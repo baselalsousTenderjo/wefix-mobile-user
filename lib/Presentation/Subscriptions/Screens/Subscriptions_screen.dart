@@ -42,6 +42,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     });
   }
 
+  List image = [
+    "assets/image/sub1.png",
+    "assets/image/sub2.png",
+    "assets/image/sub3.png",
+  ];
+
+  List imagefooter = [
+    "assets/image/pink.png",
+    "assets/image/orang.png",
+    "assets/image/green.png",
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +62,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    List colors = [
+      AppColors.pink,
+      AppColors(context).primaryColor,
+      AppColors.green
+    ];
     final primaryColor = AppColors(context).primaryColor;
     LanguageProvider languageProvider =
         Provider.of<LanguageProvider>(context, listen: true);
@@ -57,7 +74,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("${AppText(context).subscription}"),
+        title: Text(AppText(context).subscription),
         centerTitle: true,
         actions: const [LanguageButton()],
       ),
@@ -95,7 +112,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               .toList() ??
                           [],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppSize(context).height * .01),
                     Expanded(
                       child: TabBarView(
                         children: packageModel?.packages
@@ -110,30 +127,32 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
                                       return Padding(
                                         padding:
-                                            const EdgeInsets.only(right: 20),
+                                            const EdgeInsets.only(right: 10),
                                         child: Stack(
                                           children: [
-                                            SizedBox(
-                                              height:
-                                                  AppSize(context).height * 0.5,
-                                              child: GestureDetector(
-                                                onTap: () =>
-                                                    toggleSelection(index),
-                                                child: SubscriptionCard(
-                                                  title: sub.title,
-                                                  isLoading: loading2,
-                                                  onTap: () {
-                                                    subsicribeNow(sub.id)
-                                                        .then((value) {});
-                                                  },
-                                                  price:
-                                                      "${sub.price.toString()} ${AppText(context).jODMonth}",
-                                                  priceAnnual: sub.priceAnnual
-                                                      .toString(),
-                                                  features: sub.features,
-                                                  isSelected: isSelected,
-                                                  package: sub, // Add this line
-                                                ),
+                                            GestureDetector(
+                                              onTap: () =>
+                                                  toggleSelection(index),
+                                              child: SubscriptionCard(
+                                                imageFoter: imagefooter[index],
+                                                color: colors[index],
+                                                title: sub.title,
+                                                isLoading: loading2,
+                                                image: image[index],
+                                                isRecommended:
+                                                    sub.title?.toLowerCase() ==
+                                                        "premium",
+                                                onTap: () {
+                                                  subsicribeNow(sub.id)
+                                                      .then((value) {});
+                                                },
+                                                price:
+                                                    "${sub.price.toString()}",
+                                                priceAnnual:
+                                                    sub.price.toString(),
+                                                features: sub.features,
+                                                isSelected: isSelected,
+                                                package: sub, // Add this line
                                               ),
                                             ),
                                             Positioned(
@@ -252,8 +271,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     try {
       BookingApi.subsicribeNow(
-              token: appProvider.userModel?.token ?? "", id: id)
-          .then((value) {
+        token: appProvider.userModel?.token ?? "",
+        id: id,
+        age: appProvider.dateAndDistance["age"] ?? "",
+        area: appProvider.dateAndDistance["distance"] ?? "",
+        price: appProvider.dateAndDistance["price"] ?? "",
+      ).then((value) {
         showDialog(
           context: context,
           builder: (context) {
@@ -267,6 +290,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 isError: false);
           },
         );
+
         setState(() {
           loading2 = false;
         });

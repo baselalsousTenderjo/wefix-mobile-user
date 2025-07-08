@@ -44,15 +44,25 @@ class CustomerPackages {
   int price;
   int recurringVist;
   int totalRecurringVist;
+  int interiorDesign;
+  int totalInteriorDesign;
+  int totalConultation;
+  int conultation;
   int onDemandVisit;
   int totalOnDemandVisit;
   int emeregencyVisit;
   int totalEmeregencyVisit;
+  int totalNumberOnFemalUse;
+  int numberOnFemalUse;
 
   CustomerPackages({
     required this.id,
     required this.name,
     required this.status,
+    required this.conultation,
+    required this.interiorDesign,
+    required this.totalInteriorDesign,
+    required this.totalConultation,
     required this.startDate,
     required this.endDate,
     required this.price,
@@ -62,11 +72,17 @@ class CustomerPackages {
     required this.totalOnDemandVisit,
     required this.emeregencyVisit,
     required this.totalEmeregencyVisit,
+    required this.numberOnFemalUse,
+    required this.totalNumberOnFemalUse,
   });
 
   factory CustomerPackages.fromJson(Map<String, dynamic> json) =>
       CustomerPackages(
         id: json["id"],
+        conultation: json["conultation"],
+        interiorDesign: json["interiorDesign"],
+        totalConultation: json["totalConultation"],
+        totalInteriorDesign: json["totalInteriorDesign"],
         name: json["name"],
         status: json["status"],
         startDate: DateTime.parse(json["startDate"]),
@@ -77,6 +93,8 @@ class CustomerPackages {
         onDemandVisit: json["onDemandVisit"],
         totalOnDemandVisit: json["totalOnDemandVisit"],
         emeregencyVisit: json["emeregencyVisit"],
+        numberOnFemalUse: json["numberOnFemalUse"],
+        totalNumberOnFemalUse: json["totalNumberOnFemalUse"],
         totalEmeregencyVisit: json["totalEmeregencyVisit"],
       );
 
@@ -93,5 +111,7 @@ class CustomerPackages {
         "totalOnDemandVisit": totalOnDemandVisit,
         "emeregencyVisit": emeregencyVisit,
         "totalEmeregencyVisit": totalEmeregencyVisit,
+        "totalNumberOnFemalUse": totalNumberOnFemalUse,
+        "numberOnFemalUse": numberOnFemalUse
       };
 }

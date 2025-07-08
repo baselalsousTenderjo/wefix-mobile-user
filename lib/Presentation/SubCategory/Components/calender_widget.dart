@@ -1,17 +1,19 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
+import 'package:wefix/Business/orders/profile_api.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
+import 'package:wefix/Data/model/holiday_model.dart';
 
 class CalenderWidget extends StatefulWidget {
   DateTime? focusedDay;
   DateTime? selectedDay;
+  final Function? onday;
 
-  CalenderWidget({super.key, this.focusedDay, this.selectedDay});
+  CalenderWidget({super.key, this.focusedDay, this.selectedDay, this.onday});
 
   @override
   State<CalenderWidget> createState() => _CalenderWidgetState();
@@ -19,20 +21,29 @@ class CalenderWidget extends StatefulWidget {
 
 class _CalenderWidgetState extends State<CalenderWidget> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
-
   DateTime? _selectedDay;
+  HolidayModel? holidayModel;
+
+  List<DateTime> holidays = [];
+
+  bool _isHoliday(DateTime day) {
+    // Treat every Friday as a holiday + holidays from API
+    return day.weekday == DateTime.friday ||
+        holidays.any((holiday) =>
+            holiday.year == day.year &&
+            holiday.month == day.month &&
+            holiday.day == day.day);
+  }
 
   @override
   void initState() {
-    // TODO: implement initState
+    super.initState();
+    getHoliday();
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-
-    setState(() {
-      _selectedDay = appProvider.appoitmentInfo["date"] != null
-          ? DateTime.tryParse(
-              appProvider.appoitmentInfo["date"].toString().substring(0, 10))
-          : DateTime.now();
-    });
+    _selectedDay = appProvider.appoitmentInfo["date"] != null
+        ? DateTime.tryParse(
+            appProvider.appoitmentInfo["date"].toString().substring(0, 10))
+        : DateTime.now();
   }
 
   @override
@@ -48,6 +59,12 @@ class _CalenderWidgetState extends State<CalenderWidget> {
         ),
       ),
       firstDay: DateTime.now(),
+      lastDay: DateTime.now().add(const Duration(days: 1900)),
+      focusedDay: widget.focusedDay ?? DateTime.now(),
+      currentDay: _selectedDay,
+      startingDayOfWeek: StartingDayOfWeek.sunday,
+      weekNumbersVisible: false,
+      calendarFormat: _calendarFormat,
       headerStyle: HeaderStyle(
         formatButtonVisible: false,
         titleCentered: true,
@@ -59,15 +76,8 @@ class _CalenderWidgetState extends State<CalenderWidget> {
           Icons.chevron_right,
           color: AppColors(context).primaryColor,
         ),
-        formatButtonTextStyle:
-            TextStyle(fontSize: 14.0, color: AppColors(context).primaryColor),
       ),
-      lastDay: DateTime.now().add(const Duration(days: 90)),
-      focusedDay: widget.focusedDay ?? DateTime.now(),
-      currentDay: _selectedDay,
-      startingDayOfWeek: StartingDayOfWeek.sunday,
-      weekNumbersVisible: false,
-      calendarFormat: _calendarFormat,
+      enabledDayPredicate: (day) => !_isHoliday(day),
       onFormatChanged: (format) {
         setState(() {});
       },
@@ -75,9 +85,9 @@ class _CalenderWidgetState extends State<CalenderWidget> {
         setState(() {
           widget.focusedDay = focusedDay;
           _selectedDay = selectedDay;
-
           appProvider.createSelectedDate(_selectedDay ?? DateTime.now());
         });
+        await widget.onday!();
 
         log(_selectedDay.toString());
         log(widget.focusedDay.toString());
@@ -87,6 +97,77 @@ class _CalenderWidgetState extends State<CalenderWidget> {
           widget.focusedDay = focusedDay;
         });
       },
+      calendarBuilders: CalendarBuilders(
+        disabledBuilder: (context, day, focusedDay) {
+          final isFriday = day.weekday == DateTime.friday;
+          final isApiHoliday = holidays.any((holiday) =>
+              holiday.year == day.year &&
+              holiday.month == day.month &&
+              holiday.day == day.day);
+
+          if (isFriday || isApiHoliday) {
+            return Stack(
+              alignment: Alignment.topRight,
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(6.0),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.15),
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.red),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${day.day}',
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  top: 2,
+                  right: 2,
+                  child: Text("📛"),
+                ),
+              ],
+            );
+          }
+
+          return Center(
+            child: Text(
+              '${day.day}',
+              style: const TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          );
+        },
+      ),
     );
+  }
+
+  Future getHoliday() async {
+    AppProvider appProvider = Provider.of(context, listen: false);
+
+    final result = await ProfileApis.getHoliday(
+      token: '${appProvider.userModel?.token}',
+    );
+
+    if (result != null && result is HolidayModel) {
+      setState(() {
+        holidayModel = result;
+
+        holidays = result.holidays.map<DateTime>((holiday) {
+          final parts = holiday.date.split(',').map((e) => e.trim()).toList();
+          return DateTime(
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+            int.parse(parts[2]),
+          );
+        }).toList();
+      });
+    }
   }
 }

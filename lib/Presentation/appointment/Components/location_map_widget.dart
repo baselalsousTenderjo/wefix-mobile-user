@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Presentation/appointment/Components/google_maps_widget.dart';
-import 'package:wefix/Presentation/Loading/loading_text.dart';
+
 
 class WidgetAddressCheckout extends StatefulWidget {
   final String addressName;

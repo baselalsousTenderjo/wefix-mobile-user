@@ -64,27 +64,7 @@ class _OffersSectionState extends State<OffersSection> {
             ),
           ),
 
-          // // Most Requested Vertical List
-          // _mostRequestedItem(
-          //   context,
-          //   image:
-          //       "https://cdn.shopify.com/s/files/1/0413/1202/6777/articles/how-to-clean-your-split-ac-indoor-unit-at-home_36bb1e12-59ce-47c4-9a87-ea83f53af77b.jpg?v=1616919533",
-          //   title: 'Smart Lock with Camera',
-          //   price: 'Starts from 100 JOD',
-          // ),
-          // _mostRequestedItem(
-          //   context,
-          //   image:
-          //       "https://cdn.shopify.com/s/files/1/0413/1202/6777/articles/how-to-clean-your-split-ac-indoor-unit-at-home_36bb1e12-59ce-47c4-9a87-ea83f53af77b.jpg?v=1616919533",
-          //   title: 'Fingerprint Lock TTLock',
-          //   price: 'Starts from 70 JOD',
-          // ),
-          // _mostRequestedItem(
-          //   context,
-          //   image: 'assets/smoke_detector.png',
-          //   title: 'Smoke & Gas Detector',
-          //   price: 'Starts from 75 JOD',
-          // ),
+      
         ],
       ),
     );

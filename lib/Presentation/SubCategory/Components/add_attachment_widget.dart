@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
-import 'package:wefix/Business/uplade_image.dart';
 import 'package:wefix/Business/upload_files_list.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
@@ -24,6 +23,8 @@ import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:open_file/open_file.dart';
 
+final TextEditingController noteController = TextEditingController();
+
 class UploadOptionsScreen extends StatefulWidget {
   final Map<String, dynamic>? data;
   const UploadOptionsScreen({super.key, this.data});
@@ -34,7 +35,6 @@ class UploadOptionsScreen extends StatefulWidget {
 
 class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
   PlatformFile? selectedFile;
-  final TextEditingController noteController = TextEditingController();
   bool isRecording = false;
   final record = Record();
   String? audioPath;
@@ -68,7 +68,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
         "image": null,
       });
 
-      noteController.clear();
+      // noteController.clear();
     }
   }
 
@@ -86,7 +86,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera),
-              title: Text('${AppText(context).takeAPictureFromCamera}'),
+              title: Text(AppText(context).takeAPictureFromCamera),
               onTap: () async {
                 final picked =
                     await _imagePicker.pickImage(source: ImageSource.camera);
@@ -98,7 +98,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
                       "audio": null,
                       "image": picked.path,
                     });
-                    noteController.clear();
+                    // noteController.clear();
                   });
                 }
                 Navigator.pop(context);
@@ -106,7 +106,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.videocam),
-              title: Text('${AppText(context).recordVideo}'),
+              title: Text(AppText(context).recordVideo),
               onTap: () async {
                 final picked =
                     await _imagePicker.pickVideo(source: ImageSource.camera);
@@ -118,7 +118,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
                       "audio": null,
                       "image": picked.path,
                     });
-                    noteController.clear();
+                    // noteController.clear();
                   });
                 }
                 Navigator.pop(context);
@@ -132,6 +132,9 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
 
   Future uploadFile({List? files}) async {
     AppProvider appProvider = Provider.of(context, listen: false);
+    setState(() {
+      appProvider.saveDesc(noteController.text);
+    });
 
     await UpladeFiles.upladeImagesWithPaths(
             token: '${appProvider.userModel?.token}', filePaths: extractedPaths)
@@ -144,6 +147,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
             loading = false;
           });
         });
+        appProvider.desc.text.toString();
         setState(() {
           appProvider.clearAttachments();
           appProvider.saveAttachments(value);
@@ -200,8 +204,6 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
           "audio": path,
           "image": null,
         });
-
-        noteController.clear();
       });
 
       // Stop the timer
@@ -221,7 +223,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
         selectedFile = null;
         audioPath = null;
         imagePath = null;
-        noteController.clear();
+        // noteController.clear();
       });
 
       // uploadedFiles.add({
@@ -289,7 +291,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
       ),
       appBar: AppBar(
         centerTitle: true,
-        title: Text('${AppText(context).addAttachment}'),
+        title: Text(AppText(context).addAttachment),
         actions: const [
           LanguageButton(),
         ],
@@ -335,7 +337,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
             const SizedBox(height: 20),
             uploadedFiles.isEmpty
                 ? const SizedBox()
-                : Text("${AppText(context).attachments}",
+                : Text(AppText(context).attachments,
                     style: TextStyle(
                         fontSize: AppSize(context).smallText1,
                         fontWeight: FontWeight.bold)),

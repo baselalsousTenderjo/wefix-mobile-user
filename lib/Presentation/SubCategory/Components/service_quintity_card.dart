@@ -59,13 +59,10 @@ class _ServiceQuintityCardWidgetState extends State<ServiceQuintityCardWidget> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: WidgetCachNetworkImage(
-                        image: widget.services?.icon ?? "",
-                        width: 50,
-                        height: 50,
-                      ),
+                    WidgetCachNetworkImage(
+                      image: widget.services?.icon ?? "",
+                      width: 100,
+                      height: 100,
                     ),
                     const SizedBox(width: 5),
                     Column(
@@ -73,22 +70,6 @@ class _ServiceQuintityCardWidgetState extends State<ServiceQuintityCardWidget> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors(context).primaryColor,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2.0),
-                                child: Text(
-                                  "Plus",
-                                  style: TextStyle(
-                                    color: AppColors.whiteColor1,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: AppSize(context).smallText6,
-                                  ),
-                                ),
-                              ),
-                            ),
                             const SizedBox(width: 5),
                             SizedBox(
                               width: AppSize(context).width * .6,
@@ -109,27 +90,41 @@ class _ServiceQuintityCardWidgetState extends State<ServiceQuintityCardWidget> {
                         Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          children: [ 
                             Row(
                               children: [
-                                Text(
-                                  "${AppText(context).price} ${AppText(context).jod} ${widget.services?.discountPrice}",
-                                  style: TextStyle(
-                                      color: AppColors.greyColor2,
-                                      fontSize: AppSize(context).smallText3,
-                                      fontWeight: FontWeight.w400),
-                                ),
+                                widget.isSubsicribed == true
+                                    ? Text(
+                                        "${AppText(context).price} ${AppText(context).jod} ${widget.services?.subscriptionPrice}",
+                                        style: TextStyle(
+                                          color: AppColors.greyColor2,
+                                          fontSize: AppSize(context).smallText3,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      )
+                                    : Text(
+                                        "${AppText(context).price} ${AppText(context).jod} ${widget.services?.discountPrice}",
+                                        style: TextStyle(
+                                            color: AppColors.greyColor2,
+                                            fontSize:
+                                                AppSize(context).smallText3,
+                                            fontWeight: FontWeight.w400),
+                                      ),
                                 const SizedBox(
                                   width: 10,
                                 ),
-                                Text(
-                                  "${AppText(context).jod} ${widget.services?.price}",
-                                  style: TextStyle(
-                                      color: AppColors.greyColor2,
-                                      decoration: TextDecoration.lineThrough,
-                                      fontSize: AppSize(context).smallText3,
-                                      fontWeight: FontWeight.w400),
-                                ),
+                                widget.isSubsicribed == false
+                                    ? SizedBox()
+                                    : Text(
+                                        "${AppText(context).jod} ${widget.services?.price}",
+                                        style: TextStyle(
+                                            color: AppColors.greyColor2,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            fontSize:
+                                                AppSize(context).smallText3,
+                                            fontWeight: FontWeight.w400),
+                                      ),
                               ],
                             ),
                           ],

@@ -1,13 +1,11 @@
-import 'dart:developer';
+
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
-import 'package:wefix/Business/AppProvider/app_provider.dart';
-import 'package:wefix/Business/orders/profile_api.dart';
+
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/appText/appText.dart';
-import 'package:wefix/Data/model/cart_model.dart';
+
 import 'package:wefix/Presentation/Home/Screens/home_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/contact_us_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/bookings_screen.dart';
@@ -22,7 +20,7 @@ class HomeLayout extends StatefulWidget {
   State<HomeLayout> createState() => _HomeLayoutState();
 }
 
-CartModel? cartModel;
+
 
 class _HomeLayoutState extends State<HomeLayout> {
   int currentIndex = 0;

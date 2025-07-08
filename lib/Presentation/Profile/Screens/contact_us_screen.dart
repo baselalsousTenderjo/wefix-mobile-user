@@ -5,23 +5,21 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
-import 'package:wefix/Business/Bookings/bookings_apis.dart';
+
 import 'package:wefix/Business/Contact/contact_apis.dart';
-import 'package:wefix/Business/Reviews/reviews_api.dart';
+
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/contact_model.dart';
-import 'package:wefix/Data/model/questions_model.dart';
+import 'package:wefix/Presentation/Profile/Components/rateSheet_widget.dart';
 import 'package:wefix/Presentation/appointment/Components/google_maps_widget.dart';
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
-import 'package:wefix/Presentation/Profile/Components/rateSheet_widget.dart';
-import 'package:wefix/Presentation/Profile/Components/rate_sheet_step_three_widget.dart';
-import 'package:wefix/Presentation/Profile/Components/rate_sheet_step_tow_widget.dart';
+
 import 'package:wefix/Presentation/Profile/Screens/Chat/messages_screen.dart';
 
 class ContactUsScreen extends StatefulWidget {
@@ -37,7 +35,6 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
   bool loading2 = false;
   bool loading3 = false;
 
-  QuestionsModel? questionsModel;
   ContactModel? infoContactModel;
 
   TextEditingController name = TextEditingController();
@@ -51,7 +48,6 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
   void initState() {
     // TODO: implement initState
     getContactInfo();
-    getQuestionsReviews();
   }
 
   @override
@@ -62,7 +58,14 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
       appBar: AppBar(
         actions: [const LanguageButton()],
         leading: InkWell(
-          onTap: () => showRateSheet(context),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return const MultiRateSheet();
+              },
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: SvgPicture.asset(
@@ -90,13 +93,34 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   _sectionContainer(
                     title: AppText(context).emergency,
                     children: [
-                      _listTile(AppText(context).callforemergency, Icons.call,
-                          AppText(context).call, Colors.red),
+                      _listTile(
+                          AppText(context).callforemergency,
+                          const Icon(
+                            Icons.call,
+                            color: AppColors.redColor,
+                          ),
+                          AppText(context).call,
+                          Colors.red,
+                          "tel:"),
                       _listTile(
                           "${infoContactModel?.languages.emegancyPhone}",
-                          Icons.support_agent,
-                          AppText(context).call,
-                          Colors.green),
+                          const Icon(
+                            Icons.support_agent,
+                            color: AppColors.greenColor,
+                          ),
+                          AppText(context).send,
+                          Colors.green,
+                          "mailto:"),
+                      _listTile(
+                          "${infoContactModel?.languages.whatsapp ?? "0798100944"}",
+                          SvgPicture.asset(
+                            "assets/icon/whatsapp.svg",
+                            height: 25,
+                            width: 25,
+                          ),
+                          AppText(context).send,
+                          Colors.green,
+                          "https://wa.me/${infoContactModel?.languages.whatsapp ?? "+962798100944"}?text=Hello, I'm interested in your maintenance services. Could you please provide more details about your offerings?"),
                     ],
                   ),
                   spacing,
@@ -114,45 +138,45 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                         }),
                         _actionItem("assets/icon/chat.svg",
                             AppText(context).caht, "Open", () {
-                          Navigator.push(
-                            context,
-                            rightToLeft(
-                              const CommentsScreenById(
-                                chatId: "1",
-                                image: "assets/image/icon_logo.png",
-                                name: "WeFix Support",
-                                contactId: "32",
-                                index: 0,
-                                reqId: 1,
-                              ),
-                            ),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   rightToLeft(
+                          //     const CommentsScreenById(
+                          //       chatId: "1",
+                          //       image: "assets/image/icon_logo.png",
+                          //       name: "WeFix Support",
+                          //       contactId: "32",
+                          //       index: 0,
+                          //       reqId: 1,
+                          //     ),
+                          //   ),
+                          // );
                         }),
                       ]),
                     ],
                   ),
-                  spacing,
-                  _sectionContainer(
-                    title: AppText(context).caht,
-                    children: [
-                      Text(AppText(context).welcomePleaseenteryourdetailsbelow),
-                      spacing,
-                      _textField(AppText(context).fullName, name),
-                      _textField(AppText(context).email, email),
-                      const SizedBox(height: 8),
-                      Text(AppText(context).supportType,
-                          style: TextStyle(fontWeight: FontWeight.w500)),
-                      spacing,
-                      Wrap(
-                        spacing: 10,
-                        children: [
-                          _chip("Complaint", "Complaint"),
-                          _chip("Suggestion", "Suggestion"),
-                          _chip("Remark", "Remark"),
-                        ],
-                      )
-                    ],
-                  ),
+                  // spacing,
+                  // _sectionContainer(
+                  //   title: AppText(context).caht,
+                  //   children: [
+                  //     Text(AppText(context).welcomePleaseenteryourdetailsbelow),
+                  //     spacing,
+                  //     _textField(AppText(context).fullName, name),
+                  //     _textField(AppText(context).email, email),
+                  //     const SizedBox(height: 8),
+                  //     Text(AppText(context).supportType,
+                  //         style: const TextStyle(fontWeight: FontWeight.w500)),
+                  //     spacing,
+                  //     Wrap(
+                  //       spacing: 10,
+                  //       children: [
+                  //         _chip("Complaint", "Complaint"),
+                  //         _chip("Suggestion", "Suggestion"),
+                  //         _chip("Remark", "Remark"),
+                  //       ],
+                  //     )
+                  //   ],
+                  // ),
                   spacing,
                   _sectionContainer(
                     title: AppText(context).weFixStations,
@@ -292,13 +316,14 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
     });
   }
 
-  Widget _listTile(String text, IconData icon, String action, Color color) {
+  Widget _listTile(
+      String text, Widget icon, String action, Color color, String? type) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: color),
+      leading: icon,
       title: Text(text),
       trailing: TextButton(
-        onPressed: () => _launchUrl("tel:$text"),
+        onPressed: () => _launchUrl("${type ?? "tel:"}$text"),
         child: Text(action,
             style: TextStyle(color: AppColors(context).primaryColor)),
       ),
@@ -445,65 +470,5 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
     final uri = Uri.parse(url);
 
     await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
-  void showRateSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, set) {
-          return MultiRateSheet(
-            questionsModel: questionsModel,
-          );
-        });
-      },
-    );
-  }
-
-  // void showRateSheetStepTow(BuildContext context) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     builder: (context) {
-  //       return RateSheetStepTow(
-  //         onTap: () {
-  //           pop(context);
-  //           showRateSheetStepThree(context);
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
-  // void showRateSheetStepThree(BuildContext context) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     builder: (context) {
-  //       return RateSheetStepThree();
-  //     },
-  //   );
-  // }
-
-  Future getQuestionsReviews() async {
-    setState(() {
-      loading2 = true;
-    });
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-    try {
-      ReviewsApi.getQuestionsReviews(token: appProvider.userModel?.token ?? "")
-          .then((value) {
-        setState(() {
-          questionsModel = value;
-          loading2 = false;
-        });
-      });
-    } catch (e) {
-      log(e.toString());
-      setState(() {
-        loading2 = false;
-      });
-    }
   }
 }

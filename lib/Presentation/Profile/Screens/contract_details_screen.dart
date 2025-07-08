@@ -128,11 +128,51 @@ class _ContractScreenState extends State<ContractScreen> {
                               Text(
                                   "${AppText(context).endDate}: ${DateFormat('yyyy-MM-dd').format(DateTime.parse(contractDetails?.customerPackages.endDate.toString() ?? ''))}"),
                               const SizedBox(height: 8),
-                              Text(
-                                "${contractDetails?.customerPackages.price ?? 0} ${AppText(context).jODMonth}",
-                                style: TextStyle(
-                                    fontSize: AppSize(context).smallText1,
-                                    fontWeight: FontWeight.bold),
+                              Row(
+                                children: [
+                                  Text(
+                                    "${contractDetails?.customerPackages.price ?? 0} ${AppText(context).jod}",
+                                    style: TextStyle(
+                                        fontSize: AppSize(context).smallText1,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Spacer(),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                              "${AppText(context).consultations} : "),
+                                          Text(
+                                              "${contractDetails?.customerPackages.consultation}"),
+                                        ],
+                                      ),
+                                      contractDetails?.customerPackages
+                                                  .interiorDesign ==
+                                              null
+                                          ? SizedBox()
+                                          : Row(
+                                              children: [
+                                                Text(
+                                                    "${AppText(context).interiorDesign} : "),
+                                                Text(
+                                                    "${contractDetails?.customerPackages.interiorDesign}"),
+                                              ],
+                                            ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                              "${AppText(context).discount} : "),
+                                          Text(
+                                              "${contractDetails?.customerPackages.discount}%"),
+                                        ],
+                                      ),
+                                    ],
+                                  )
+                                ],
                               ),
                             ],
                           ),
@@ -176,6 +216,15 @@ class _ContractScreenState extends State<ContractScreen> {
                                   ?.customerPackages.totalEmeregencyVisit ??
                               0,
                           color: Colors.orange),
+                      UsageDetailsWidget(
+                          title: AppText(context).femaleUse,
+                          value: contractDetails
+                                  ?.customerPackages.numberOnFemalUse ??
+                              0,
+                          total: contractDetails
+                                  ?.customerPackages.totalNumberOnFemalUse ??
+                              0,
+                          color: Colors.purple),
 
                       const SizedBox(height: 20),
 
@@ -326,18 +375,25 @@ class _ContractScreenState extends State<ContractScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _paymentOption(
-                    "visa", "Visa", "assets/icon/visa.svg", setState),
-                _paymentOption("qlic", "Cliq",
+                _paymentOption("visa", AppText(context, isFunction: true).visa,
+                    "assets/icon/visa.svg", setState),
+                _paymentOption("qlic", AppText(context, isFunction: true).cliq,
                     "assets/icon/final_cliq_logo-02_1.svg", setState),
                 _paymentOption(
-                    "wallet", "Wallet", "assets/icon/wallet.svg", setState),
-                _paymentOption("bitcoin", "BitCoin",
-                    "assets/icon/bitcoin-btc-logo.svg", setState),
+                    "wallet",
+                    AppText(context, isFunction: true).wallet,
+                    "assets/icon/wallet.svg",
+                    setState),
                 _paymentOption(
-                    "Paybal", "Paybal", "assets/icon/paybal.svg", setState),
-                _paymentOption("later", "Buy Later",
-                    "assets/icon/delay_3360328.svg", setState),
+                    "Paybal",
+                    AppText(context, isFunction: true).paypal,
+                    "assets/icon/paybal.svg",
+                    setState),
+                _paymentOption(
+                    "later",
+                    " ${AppText(context, isFunction: true).paylater}",
+                    "assets/icon/delay_3360328.svg",
+                    setState),
                 const Divider(),
                 const SizedBox(height: 20),
                 CustomBotton(

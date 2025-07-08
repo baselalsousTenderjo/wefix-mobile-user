@@ -5,22 +5,17 @@ import 'dart:developer';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/cash_strings.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
-
 import 'package:wefix/Data/model/user_model.dart';
 import 'package:wefix/Presentation/Profile/Screens/notifications_screen.dart';
-
-import 'package:wefix/Presentation/Profile/profile_screen.dart';
 import 'package:wefix/Data/Helper/cache_helper.dart';
 import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
 
-import 'package:wefix/layout_screen.dart';
 
 class MainManagements {
   // ! Start Home Layout
@@ -32,7 +27,7 @@ class MainManagements {
     LanguageProvider language =
         Provider.of<LanguageProvider>(context, listen: false);
     if (language.lang == '' || CacheHelper.getData(key: LANG_CACHE) == null) {
-      language.lang = 'en';
+      language.lang = 'en'; 
 
       CacheHelper.saveData(key: LANG_CACHE, value: 'en');
     } else {

@@ -19,6 +19,6 @@ class AddressTypeWidget extends StatelessWidget {
         Text(label, style: const TextStyle(fontSize: 14)),
       ],
     );
-    ;
+    
   }
 }

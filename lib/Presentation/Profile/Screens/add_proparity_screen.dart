@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
@@ -14,7 +13,7 @@ import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
-import 'package:wefix/Presentation/Components/widget_phone_form_fields.dart';
+
 import 'package:wefix/Presentation/appointment/Components/google_maps_widget.dart';
 
 import '../../Components/custom_botton_widget.dart';
@@ -60,6 +59,7 @@ class _AddRealStateScreenState extends State<AddRealStateScreen> {
   TextEditingController houseNumber = TextEditingController();
   TextEditingController addressType = TextEditingController();
   TextEditingController state = TextEditingController();
+  TextEditingController distanceFromCenter = TextEditingController();
 
   String? latitude;
   String? longitude;
@@ -92,7 +92,7 @@ class _AddRealStateScreenState extends State<AddRealStateScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isFromEdit == true
-            ? AppText(context).editAddress
+            ? AppText(context).edit
             : AppText(context).addProperty),
         centerTitle: true,
       ),
@@ -125,6 +125,21 @@ class _AddRealStateScreenState extends State<AddRealStateScreen> {
                   return null;
                 },
                 controller: apartmentNo,
+                fillColor: AppColors.greyColorback,
+                haveBorder: false,
+                radius: 5,
+              ),
+
+              WidgetTextField(
+                AppText(context).distanceFromCenter,
+                keyboardType: TextInputType.number,
+                validator: (p0) {
+                  if (distanceFromCenter.text.isEmpty) {
+                    return AppText(context, isFunction: true).required;
+                  }
+                  return null;
+                },
+                controller: distanceFromCenter,
                 fillColor: AppColors.greyColorback,
                 haveBorder: false,
                 radius: 5,
@@ -225,7 +240,7 @@ class _AddRealStateScreenState extends State<AddRealStateScreen> {
       address:
           "${appProvider.places![0].country} ,${appProvider.places![0].locality}, ${appProvider.places![0].name}, ${appProvider.places![0].subAdministrativeArea} ,${appProvider.places![0].subLocality}",
       apartmentNo: apartmentNo.text,
-      area: "",
+      area: distanceFromCenter.text,
       title: title.text,
       latitude: appProvider.position?.latitude.toString(),
       longitude: appProvider.position?.longitude.toString(),
@@ -255,7 +270,7 @@ class _AddRealStateScreenState extends State<AddRealStateScreen> {
       address:
           "${appProvider.places![0].country} ,${appProvider.places![0].locality}, ${appProvider.places![0].name}, ${appProvider.places![0].subAdministrativeArea} ,${appProvider.places![0].subLocality}",
       apartmentNo: apartmentNo.text,
-      area: "s",
+      area: distanceFromCenter.text,
       title: title.text,
       latitude: appProvider.position?.latitude.toString(),
       longitude: appProvider.position?.longitude.toString(),

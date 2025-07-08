@@ -1,12 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
-import 'package:wefix/Data/Helper/cache_helper.dart';
-import 'package:wefix/l10n/l10n.dart';
 
 class LanguageButton extends StatefulWidget {
   const LanguageButton({super.key});

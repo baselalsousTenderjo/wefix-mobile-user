@@ -33,7 +33,7 @@ class _UsageDetailsWidgetState extends State<UsageDetailsWidget> {
           ),
           const SizedBox(height: 4),
           LinearProgressIndicator(
-            value: widget.value / widget.total,
+            value: widget.value / (widget.total == 0 ? 1 : widget.total),
             borderRadius: BorderRadius.circular(5),
             backgroundColor: Colors.grey[300],
             color: widget.color,
@@ -42,6 +42,5 @@ class _UsageDetailsWidgetState extends State<UsageDetailsWidget> {
         ],
       ),
     );
-    ;
   }
 }

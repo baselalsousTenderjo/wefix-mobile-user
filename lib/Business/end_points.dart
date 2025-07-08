@@ -1,5 +1,6 @@
 class EndPoints {
   static String baseUrl = 'https://wefixApi.oneit.website/';
+  // static String baseUrl = 'https://apitestwefix.oneit.website/';
 
   // * Authantication
   static String signUp = 'users/Signup';
@@ -26,11 +27,15 @@ class EndPoints {
   static String rate = 'Customer/CreateReview';
   static String renew = 'customer/RenewSubscribe';
   static String activeTickets = 'Common/ActiveTickets';
-
-
+  static String calculateSubPrice = 'customer/Calculate';
   static String getRealState = 'customer/RealEstate';
-
   static String addReview = 'customer/CreateCustomerQuestions';
+  static String checkAvilabel = 'customer/CheckAvilabel';
+  static String holiday = 'Customer/Holiday';
+  static String appoitmentTime = 'customer/CheckAvilabelTime';
+  static String chat = 'webhook/push';
+  static String messages = 'users/Getallmsg/';
+  static String advantages = 'customer/Advantage';
 
   // * Shop
   static String shop = 'seller/getall';

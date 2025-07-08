@@ -14,7 +14,7 @@ import 'package:wefix/Presentation/wallet/components/transaction_loading_widget.
 import 'package:wefix/Presentation/wallet/components/transactions_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import '../../../Data/appText/appText.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -37,9 +37,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    LanguageProvider languageProvider =
-        Provider.of<LanguageProvider>(context, listen: false);
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(

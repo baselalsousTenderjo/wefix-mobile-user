@@ -17,16 +17,12 @@ import 'package:wefix/Presentation/Address/Screens/address_screen.dart';
 import 'package:wefix/Presentation/Profile/Components/usage_details_widget.dart';
 import 'package:wefix/Presentation/appointment/Components/location_map_widget.dart';
 import 'package:wefix/Presentation/Checkout/Components/coboun_widget.dart';
-import 'package:wefix/Presentation/Checkout/Components/payment_method_bottom_sheet_widget.dart';
 import 'package:wefix/Presentation/Checkout/Components/payment_summary_widget.dart';
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
-import 'package:wefix/Presentation/Subscriptions/Screens/Subscriptions_screen.dart';
 import 'package:wefix/Presentation/auth/login_screen.dart';
 import 'package:wefix/layout_screen.dart';
-
-import '../../Components/widget_form_text.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -75,8 +71,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(
         title: Text('${AppText(context).checkout}'),
         centerTitle: true,
-        actions: [
-          const LanguageButton(),
+        actions: const [
+          LanguageButton(),
         ],
       ),
       bottomNavigationBar: Padding(
@@ -103,7 +99,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ))
                 : subsicripeModel?.status == true
-                    ? addRequest()
+                    ? showConfirmAppointmentDialog(context, () {
+                        addRequest();
+                      })
                     : showPaymentMethod(context);
             log(appProvider.appoitmentInfo.toString());
             // showUpgradeDialog(context);
@@ -171,9 +169,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                             const SizedBox(height: 20),
                             discountAmount != null
-                                ? SizedBox()
+                                ? const SizedBox()
                                 : subsicripeModel?.status == true
-                                    ? SizedBox()
+                                    ? const SizedBox()
                                     : CouponWidget(
                                         promoCodeController:
                                             promoCodeController,
@@ -195,10 +193,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 const SizedBox(
                                   width: 5,
                                 ),
-                                const Tooltip(
+                                Tooltip(
                                   triggerMode: TooltipTriggerMode.tap,
-                                  message: "You will be charged 10 JOD extra",
-                                  child: Icon(
+                                  message:
+                                      ((subsicripeModel?.numberOnFemalUse ??
+                                                  0) >
+                                              0)
+                                          ? AppText(context)
+                                              .youwillbechargedTicketextra
+                                          : AppText(context)
+                                              .youwillbecharged10JODextra,
+                                  child: const Icon(
                                     Icons.info_outline,
                                     color: AppColors.greyColor1,
                                     size: 15,
@@ -227,7 +232,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  AppText(context).youwillbecharged10JODextra,
+                                  ((subsicripeModel?.numberOnFemalUse ?? 0) > 0)
+                                      ? AppText(context)
+                                          .youwillbechargedTicketextra
+                                      : AppText(context)
+                                          .youwillbecharged10JODextra,
                                   style: TextStyle(
                                     fontSize: AppSize(context).smallText3,
                                     color: AppColors.greyColor2,
@@ -242,6 +251,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 ),
                                 value: isFemale ?? false,
                                 onChanged: (value) {
+                                  // if (subsicripeModel?.status == true) {
+                                  //   if ((subsicripeModel?.numberOnFemalUse ??
+                                  //           0) <=
+                                  //       0) {
+                                  //     showUpgradeDialog(context);
+                                  //   } else {
+                                  //     setState(() {
+                                  //       isFemale = value;
+                                  //       appProvider.saveAppoitmentInfo({
+                                  //         "TicketTypeId": appProvider
+                                  //             .appoitmentInfo["TicketTypeId"],
+                                  //         "gender": isFemale == false
+                                  //             ? "Male"
+                                  //             : "Female",
+                                  //         "date": appProvider.selectedDate ??
+                                  //             DateTime.now(),
+                                  //         "time": appProvider
+                                  //             .appoitmentInfo["time"],
+                                  //         "services": appProvider
+                                  //             .appoitmentInfo["services"],
+                                  //         "totalPrice": appProvider
+                                  //             .appoitmentInfo["totalPrice"],
+                                  //         "totalTickets": appProvider
+                                  //             .appoitmentInfo["totalTickets"]
+                                  //       });
+
+                                  //       log(appProvider.appoitmentInfo
+                                  //           .toString());
+                                  //     });
+                                  //   }
+                                  // }
+
                                   setState(() {
                                     isFemale = value;
                                     appProvider.saveAppoitmentInfo({
@@ -278,33 +319,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             const SizedBox(height: 16),
                             PaymentSummaryWidget(
                                 title: AppText(context).subTotal,
-                                value: subsicripeModel?.status == true
+                                value: ((subsicripeModel?.onDemandVisit ?? -1) >
+                                        0)
                                     ? " ${appProvider.appoitmentInfo["totalTickets"]} ${AppText(context).ticket}"
                                     : ' ${AppText(context).jod} ${appProvider.appoitmentInfo["totalPrice"]}'),
                             discountAmount == null
-                                ? SizedBox()
+                                ? const SizedBox()
                                 : PaymentSummaryWidget(
                                     title:
                                         ' ${AppText(context).totalAfterDiscount} 🥳',
                                     value:
                                         '- ${AppText(context).jod} ${discountAmount?.toStringAsFixed(2)}',
                                     highlight: true),
+
+                            appProvider.appoitmentInfo["TicketTypeId"] == 1
+                                ? PaymentSummaryWidget(
+                                    title: AppText(context).emergency,
+                                    value: ((subsicripeModel?.emergancyVisit ??
+                                                -1) >
+                                            0)
+                                        ? "1 ${AppText(context).ticket}"
+                                        : ' ${AppText(context).jod} 10.00',
+                                    highlight: false)
+                                : const SizedBox(),
                             appProvider.appoitmentInfo["gender"] == "Male"
-                                ? SizedBox()
+                                ? const SizedBox()
                                 : PaymentSummaryWidget(
                                     title: 'Female WeFix',
-                                    value: ' ${AppText(context).jod} 10.00',
+                                    value: ((subsicripeModel?.status ??
+                                                    false) &&
+                                                (subsicripeModel
+                                                            ?.numberOnFemalUse ??
+                                                        0) >
+                                                    0) ==
+                                            true
+                                        ? "1 ${AppText(context).ticket}"
+                                        : ' ${AppText(context).jod.toUpperCase()} 10.00',
                                     icon: Icons.info_outline),
+
+                            ((appProvider.advantages["totalPrice"] != null))
+                                ? appProvider.advantages["totalPrice"] == 0.0
+                                    ? SizedBox()
+                                    : PaymentSummaryWidget(
+                                        title: AppText(context).services,
+                                        value:
+                                            "${AppText(context).jod.toUpperCase()} ${appProvider.advantages["totalPrice"]}",
+                                        highlight: false)
+                                : const SizedBox(),
                             const SizedBox(height: 20),
                             PaymentSummaryWidget(
-                                title: AppText(context).total,
-                                value: subsicripeModel?.status == true
-                                    ? " ${appProvider.appoitmentInfo["totalTickets"]} ${AppText(context).ticket}  ${appProvider.appoitmentInfo["gender"] == "Female" ? " + 10  ${AppText(context).jod}" : ""}"
-                                    : ' ${AppText(context).jod}  ${appProvider.appoitmentInfo["gender"] == "Female" ? totalafterDiscount ?? appProvider.appoitmentInfo["totalPrice"] + 10 : totalafterDiscount ?? appProvider.appoitmentInfo["totalPrice"]}',
-                                bold: true),
+                              title: AppText(context).total,
+                              value: getPaymentSummaryValue(
+                                  appProvider.appoitmentInfo,
+                                  subsicripeModel,
+                                  totalafterDiscount,
+                                  context),
+                              bold: true,
+                            ),
                             const SizedBox(height: 20),
                             totalafterDiscount == null
-                                ? SizedBox()
+                                ? const SizedBox()
                                 : Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
@@ -372,6 +446,112 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  String getPaymentSummaryValue(
+    Map<dynamic, dynamic> appointmentInfo,
+    SubsicripeModel? subsicripeModel,
+    double? totalafterDiscount,
+    BuildContext context,
+  ) {
+    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
+
+    bool isSubscribed = subsicripeModel?.status == true;
+    bool isFemale = appointmentInfo["gender"] == "Female";
+    int numberOnFemaleUse = subsicripeModel?.numberOnFemalUse ?? 0;
+    int emergencyVisit = subsicripeModel?.emergancyVisit ?? -1;
+    int onDemandVisit = subsicripeModel?.onDemandVisit ?? 0;
+
+    double advantageExtra = 0;
+    double femaleExtra = 0;
+    double emergencyExtra = 0;
+    double onDemandPrice = 0;
+
+    // Advantage price
+    if (appProvider.advantages["totalPrice"] != null) {
+      advantageExtra +=
+          double.tryParse(appProvider.advantages["totalPrice"].toString()) ?? 0;
+    }
+
+    // Female fee
+    if (isFemale && numberOnFemaleUse <= 0) {
+      femaleExtra = 10;
+    }
+
+    // Emergency fee (if subscribed only)
+    if (emergencyVisit <= 0 && appointmentInfo["TicketTypeId"] == 1) {
+      emergencyExtra = 10;
+    }
+
+    // On-demand logic: show price instead of ticket
+    bool useOnDemandPrice = onDemandVisit <= 0;
+    if (useOnDemandPrice) {
+      onDemandPrice = appointmentInfo["totalPrice"] ?? 0;
+    }
+
+    double totalExtra = advantageExtra + femaleExtra + emergencyExtra;
+
+    // Case: not subscribed
+    if (!isSubscribed) {
+      double basePrice =
+          calculateTotalPrice(appointmentInfo, totalafterDiscount);
+
+      // ✅ If not subscribed and ticket is emergency, add 10 JOD
+      if (appointmentInfo["TicketTypeId"] == 1) {
+        basePrice += 10;
+      }
+
+      double totalPrice = basePrice + advantageExtra;
+      return "${AppText(context).jod} ${totalPrice.toStringAsFixed(2)}";
+    }
+
+    // Case: subscribed but on-demand is exhausted → show price + extras
+    if (useOnDemandPrice) {
+      double finalPrice = onDemandPrice + totalExtra;
+      return "${AppText(context).jod} ${finalPrice.toStringAsFixed(2)}";
+    }
+
+    // Case: valid subscription with ticket + possible extras
+    int ticketCount =
+        calculateTotalTickets(appointmentInfo, subsicripeModel, isSubscribed);
+    if (totalExtra > 0) {
+      return "$ticketCount ${AppText(context).ticket} + ${AppText(context).jod} ${totalExtra.toStringAsFixed(2)}";
+    }
+
+    return "$ticketCount ${AppText(context).ticket}";
+  }
+
+  int calculateTotalTickets(
+    Map<dynamic, dynamic> appointmentInfo,
+    SubsicripeModel? subsicripeModel,
+    bool isSubscribed,
+  ) {
+    int totalTickets = appointmentInfo["totalTickets"] ?? 0;
+
+    if (appointmentInfo["gender"] == "Female" &&
+        (subsicripeModel?.numberOnFemalUse ?? 0) > 0) {
+      totalTickets += 1;
+    }
+
+    if (isSubscribed &&
+        appointmentInfo["TicketTypeId"] == 1 &&
+        (subsicripeModel?.emergancyVisit ?? 0) > 0) {
+      totalTickets += 1;
+    }
+
+    return totalTickets;
+  }
+
+  double calculateTotalPrice(
+      Map<dynamic, dynamic> appointmentInfo, double? totalafterDiscount) {
+    double basePrice =
+        totalafterDiscount ?? (appointmentInfo["totalPrice"] ?? 0);
+
+    if (appointmentInfo["gender"] == "Female") {
+      basePrice += 10;
+    }
+
+    return basePrice;
+  }
+
   makeLoadingFor2Seconds() {
     setState(() {
       loading2 = true;
@@ -407,27 +587,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _paymentOption("visa", "Visa", "assets/icon/visa.svg", set),
-                _paymentOption("qlic", "Cliq",
+                _paymentOption("visa", AppText(context, isFunction: true).visa,
+                    "assets/icon/visa.svg", set),
+                _paymentOption("qlic", AppText(context, isFunction: true).cliq,
                     "assets/icon/final_cliq_logo-02_1.svg", set),
                 _paymentOption(
-                    "wallet", "Wallet", "assets/icon/wallet.svg", set),
-                _paymentOption("bitcoin", "BitCoin",
-                    "assets/icon/bitcoin-btc-logo.svg", set),
+                    "wallet",
+                    AppText(context, isFunction: true).wallet,
+                    "assets/icon/wallet.svg",
+                    set),
                 _paymentOption(
-                    "Paybal", "Paybal", "assets/icon/paybal.svg", set),
+                    "Paybal",
+                    AppText(context, isFunction: true).paypal,
+                    "assets/icon/paybal.svg",
+                    set),
                 _paymentOption(
-                    "later", "Buy Later", "assets/icon/delay_3360328.svg", set),
+                    "later",
+                    " ${AppText(context, isFunction: true).paylater}",
+                    "assets/icon/delay_3360328.svg",
+                    set),
                 const Divider(),
                 const SizedBox(height: 20),
                 CustomBotton(
                     title: AppText(context, isFunction: true).continuesss,
                     loading: loading,
                     onTap: () {
-                      set(() {
-                        loading = true;
+                      // set(() {
+                      //   loading = true;
+                      // });
+                      showConfirmAppointmentDialog(context, () {
+                        pop(context);
+                        addRequest();
                       });
-                      addRequest();
                       // isSubsicribed().then((value) {
                       //   set(() {
                       //     loading5 = false;
@@ -523,7 +714,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       onTap: () {
                         Navigator.pushAndRemoveUntil(
                             context,
-                            downToTop(HomeLayout(
+                            downToTop(const HomeLayout(
                               index: 2,
                             )),
                             (route) => false);
@@ -555,8 +746,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future addRequest() async {
     AppProvider appProvider = Provider.of(context, listen: false);
+    double advantageExtra = double.tryParse(
+            appProvider.advantages["totalPrice"]?.toString() ?? "0") ??
+        0;
 
-    Map data = {
+    bool isFemale = appProvider.appoitmentInfo["gender"] == "Female";
+    int numberOnFemaleUse = subsicripeModel?.numberOnFemalUse ?? 0;
+    int? emergencyVisit = subsicripeModel?.emergancyVisit;
+    int onDemandVisit = subsicripeModel?.onDemandVisit ?? 0;
+
+    bool isSubscribed = subsicripeModel?.status == true;
+
+    double femaleExtra = (isFemale && numberOnFemaleUse <= 0) ? 10 : 0;
+    double emergencyExtra =
+        ((emergencyVisit ?? 0) <= 0 && emergencyVisit != null) ? 10 : 0;
+    bool useOnDemandPrice = onDemandVisit <= 0;
+
+// Total price calculation
+    double basePrice = totalafterDiscount ??
+        (appProvider.appoitmentInfo["totalPrice"] ?? 0).toDouble();
+    double totalPrice =
+        basePrice + advantageExtra + femaleExtra + emergencyExtra;
+
+// Tickets
+    int numberOfTickets = 1;
+    if (isSubscribed && !useOnDemandPrice) {
+      numberOfTickets = calculateTotalTickets(
+        appProvider.appoitmentInfo,
+        subsicripeModel,
+        isSubscribed,
+      );
+    } else if (useOnDemandPrice) {
+      numberOfTickets = 0; // or skip sending if your API expects null/empty
+    }
+
+    Map<String, dynamic> data = {
       "TicketTypeId": appProvider.appoitmentInfo["TicketTypeId"],
       "PromoCode": promoCodeController.text,
       "SelectedDate":
@@ -567,16 +791,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           "${appProvider.places![0].country} ,${appProvider.places![0].locality}, ${appProvider.places![0].name}, ${appProvider.places![0].subAdministrativeArea} ,${appProvider.places![0].subLocality}",
       "Longitude": appProvider.currentLocation?.longitude.toString() ?? "",
       "Latitude": appProvider.currentLocation?.latitude.toString() ?? "",
-      "IsWithFemale":
-          appProvider.appoitmentInfo["gender"] == "Female" ? true : false,
+      "IsWithFemale": isFemale,
       "IsWithMaterial": appProvider.isMaterialFromProvider,
       "CustomerPackageId": subsicripeModel?.objSubscribe?.id,
-      "TotalPrice": appProvider.appoitmentInfo["gender"] == "Female"
-          ? appProvider.appoitmentInfo["totalPrice"] + 10
-          : appProvider.appoitmentInfo["totalPrice"],
+      "TotalPrice": totalPrice,
       "ServiceTicket": appProvider.appoitmentInfo["services"],
       "Attachments": appProvider.attachments,
       "RealEstateId": appProvider.realStateId ?? 0,
+      "NumberOfTicket": numberOfTickets,
+      "AdvantageTicket": appProvider.advantages["advantages"] ?? [],
     };
 
     if (mounted) {
@@ -589,21 +812,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       data: data,
     ).then((value) {
       appointmentModel = value;
+      log(promoCodeController.text);
       appProvider.clearRealState();
 
       subsicripeModel?.status == false
-          ? showUpgradeDialog(context)
+          ? showDialog(
+              context: context,
+              builder: (context) {
+                return WidgetDialog(
+                  title: AppText(context).successfully,
+                  desc: AppText(context).orderSentSuccessfully,
+                  isError: false,
+                  onTap: () {
+                    Navigator.pushAndRemoveUntil(context,
+                        downToTop(const HomeLayout()), (route) => false);
+                  },
+                );
+              },
+            )
           : showModalBottomSheet(
               context: context,
               isDismissible: false,
+              isScrollControlled: true,
               builder: (context) {
                 return SizedBox(
                   width: AppSize(context).width,
+                  height: AppSize(context).height * .7,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: [
-                        SvgPicture.asset("assets/icon/Group 550.svg"),
+                        SvgPicture.asset("assets/icon/success.svg"),
                         const SizedBox(height: 10),
                         Text(
                           AppText(context).orderSentSuccessfully,
@@ -640,7 +879,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     ?.customerPackages.totalEmeregencyVisit ??
                                 0,
                             color: Colors.orange),
-                        Spacer(),
+                        UsageDetailsWidget(
+                            title: AppText(context).femaleUse,
+                            value: appointmentModel
+                                    ?.customerPackages.numberOnFemalUse ??
+                                0,
+                            total: appointmentModel
+                                    ?.customerPackages.totalNumberOnFemalUse ??
+                                0,
+                            color: Colors.purple),
+                        UsageDetailsWidget(
+                            title: AppText(context).consultations,
+                            value: appointmentModel
+                                    ?.customerPackages.conultation ??
+                                0,
+                            total: appointmentModel
+                                    ?.customerPackages.totalConultation ??
+                                0,
+                            color: Colors.blue),
+                        UsageDetailsWidget(
+                            title: AppText(context).interiorDesign,
+                            value: appointmentModel
+                                    ?.customerPackages.interiorDesign ??
+                                0,
+                            total: appointmentModel
+                                    ?.customerPackages.totalInteriorDesign ??
+                                0,
+                            color: Colors.pink),
+                        const Spacer(),
                         CustomBotton(
                           title: AppText(context).back,
                           onTap: () {
@@ -751,5 +1017,73 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         loading3 = false;
       });
     }
+  }
+
+  void showConfirmAppointmentDialog(
+      BuildContext context, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: AppColors.whiteColor1,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle_outline,
+                    size: 64, color: AppColors(context).primaryColor),
+                const SizedBox(height: 16),
+                Text(
+                  AppText(context, isFunction: true).confirmAppointment,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  AppText(context, isFunction: true).confirmm,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                        child: CustomBotton(
+                      title: AppText(context, isFunction: true).no,
+                      textColor: AppColors(context).primaryColor,
+                      onTap: () {
+                        pop(context);
+                      },
+                      color: Colors.transparent,
+                      borderColor: AppColors.greyColor1,
+                      border: true,
+                      height: AppSize(context).height * .05,
+                    )),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CustomBotton(
+                        title: AppText(context, isFunction: true).confirm,
+                        height: AppSize(context).height * .05,
+                        radius: 12,
+                        onTap: () {
+                          pop(context);
+                          onConfirm();
+                        },
+                        loading: loading,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

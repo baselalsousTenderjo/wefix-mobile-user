@@ -16,15 +16,49 @@ class ComparisonScreen extends StatelessWidget {
     LanguageProvider languageProvider =
         Provider.of<LanguageProvider>(context, listen: true);
 
-    final features = <String>{};
-
-    for (var plan in plans) {
-      for (var feature in plan.features) {
-        features.add(languageProvider.lang == "ar"
-            ? feature.featureAr ?? ""
-            : feature.feature ?? "");
-      }
-    }
+    final comparisonFields = [
+      {
+        'key': 'numberOfUrgentVisits',
+        'label':
+            languageProvider.lang == 'ar' ? 'الزيارات الطارئة' : 'Urgent Visits'
+      },
+      {
+        'key': 'numberOfRegularVisit',
+        'label': languageProvider.lang == 'ar'
+            ? 'الزيارات العادية'
+            : 'Regular Visits'
+      },
+      {
+        'key': 'numberOnDemandVisit',
+        'label': languageProvider.lang == 'ar'
+            ? 'زيارات عند الطلب'
+            : 'On-Demand Visits'
+      },
+      {
+        'key': 'numberOfFemalUse',
+        'label': languageProvider.lang == 'ar'
+            ? 'الخدمة النسائية'
+            : 'Female Services'
+      },
+      {
+        'key': 'consultation',
+        'label': languageProvider.lang == 'ar' ? 'الاستشارات' : 'Consultation'
+      },
+      {
+        'key': 'interiorDesign',
+        'label':
+            languageProvider.lang == 'ar' ? 'الاستشارات' : 'Interior Design'
+      },
+      {
+        'key': 'discount',
+        'label': languageProvider.lang == 'ar' ? 'الخصم' : 'Discount (%)'
+      },
+      {
+        'key': 'totalvisit',
+        'label':
+            languageProvider.lang == 'ar' ? 'إجمالي الزيارات' : 'Total Visits'
+      },
+    ];
 
     final primaryColor = AppColors(context).primaryColor;
 
@@ -48,7 +82,6 @@ class ComparisonScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Plan Titles & Prices
               Row(
                 children: plans
                     .map((plan) => Expanded(
@@ -70,7 +103,7 @@ class ComparisonScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                plan.price.toString(),
+                                "${plan.price.toString()} ${AppText(context).jODMonth}",
                                 style: const TextStyle(
                                     fontSize: 16, fontWeight: FontWeight.w500),
                               ),
@@ -79,10 +112,7 @@ class ComparisonScreen extends StatelessWidget {
                         ))
                     .toList(),
               ),
-
               const SizedBox(height: 24),
-
-              // Header Row
               Row(
                 children: [
                   Expanded(
@@ -93,17 +123,17 @@ class ComparisonScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      "Plan 1",
+                      plans[0].title ?? "",
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      "Plan 2",
+                      plans[1].title ?? "",
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       textAlign: TextAlign.center,
@@ -113,58 +143,52 @@ class ComparisonScreen extends StatelessWidget {
               ),
               const Divider(thickness: 1),
               const SizedBox(height: 8),
-
-              // Features Comparison
               Expanded(
                 child: ListView.separated(
-                  itemCount: features.length,
+                  itemCount: comparisonFields.length,
                   separatorBuilder: (_, __) => const Divider(),
                   itemBuilder: (_, index) {
-                    final featureName = features.elementAt(index);
+                    final item = comparisonFields[index];
+                    final label = item['label']!;
+                    final key = item['key']!;
+                    final val1 = getNumericValue(plans[0], key);
+                    final val2 = getNumericValue(plans[1], key);
+
                     return Row(
                       children: [
-                        // Feature Name
                         Expanded(
                           child: Text(
-                            featureName,
+                            label,
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 14),
                           ),
                         ),
-                        // Plan 1
                         Expanded(
                           child: Center(
-                            child: CircleAvatar(
-                              radius: 14,
-                              backgroundColor: getFeatureStatus(
-                                      plans[0], featureName, context)
-                                  ? Colors.green
-                                  : Colors.red,
-                              child: Icon(
-                                getFeatureStatus(plans[0], featureName, context)
-                                    ? Icons.check
-                                    : Icons.close,
-                                color: Colors.white,
-                                size: 16,
+                            child: Text(
+                              val1.toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: val1 > val2
+                                    ? Colors.green
+                                    : (val1 < val2
+                                        ? Colors.red
+                                        : Colors.grey[800]),
                               ),
                             ),
                           ),
                         ),
-                        // Plan 2
                         Expanded(
                           child: Center(
-                            child: CircleAvatar(
-                              radius: 14,
-                              backgroundColor: getFeatureStatus(
-                                      plans[1], featureName, context)
-                                  ? Colors.green
-                                  : Colors.red,
-                              child: Icon(
-                                getFeatureStatus(plans[1], featureName, context)
-                                    ? Icons.check
-                                    : Icons.close,
-                                color: Colors.white,
-                                size: 16,
+                            child: Text(
+                              val2.toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: val2 > val1
+                                    ? Colors.green
+                                    : (val2 < val1
+                                        ? Colors.red
+                                        : Colors.grey[800]),
                               ),
                             ),
                           ),
@@ -181,15 +205,26 @@ class ComparisonScreen extends StatelessWidget {
     );
   }
 
-  bool getFeatureStatus(PackagePackage plan, String featureName, context) {
-    LanguageProvider languageProvider =
-        Provider.of<LanguageProvider>(context, listen: true);
-    for (var feature in plan.features) {
-      if ((languageProvider.lang == "ar"
-              ? feature.featureAr ?? ""
-              : feature.feature ?? "") ==
-          featureName) return feature.status ?? false;
+  int getNumericValue(PackagePackage plan, String key) {
+    try {
+      final value = plan.toJson()[key];
+      return value is int ? value : int.tryParse(value.toString()) ?? 0;
+    } catch (e) {
+      return 0;
     }
-    return false;
+  }
+
+  String getRawStringValue(PackagePackage plan, String key) {
+    try {
+      final value = plan.toJson()[key];
+      return value?.toString() ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  int extractNumber(String text) {
+    final match = RegExp(r'\d+').firstMatch(text);
+    return match != null ? int.parse(match.group(0)!) : 0;
   }
 }

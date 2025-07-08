@@ -68,13 +68,10 @@ class _ServiceCardWidgetState extends State<ServiceCardWidget> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: WidgetCachNetworkImage(
-                        image: widget.services?.icon ?? "",
-                        width: 50,
-                        height: 50,
-                      ),
+                    WidgetCachNetworkImage(
+                      image: widget.services?.icon ?? "",
+                      width: 100,
+                      height: 100,
                     ),
                     const SizedBox(width: 5),
                     Column(
@@ -83,31 +80,14 @@ class _ServiceCardWidgetState extends State<ServiceCardWidget> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors(context).primaryColor,
-                              ),
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(2.0),
-                                  child: Text(
-                                    "Plus",
-                                    style: TextStyle(
-                                      color: AppColors.whiteColor1,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: AppSize(context).smallText6,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 5),
                             SizedBox(
                               width: AppSize(context).width * .6,
                               child: Text(
                                 languageProvider.lang == "ar"
                                     ? widget.services?.nameAr ?? ""
                                     : widget.services?.name ?? "Service Name",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 3,
                                 style: TextStyle(
                                   fontSize: AppSize(context).smallText1,
                                   fontWeight: FontWeight.w400,
@@ -122,24 +102,36 @@ class _ServiceCardWidgetState extends State<ServiceCardWidget> {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  "${AppText(context).price} ${AppText(context).jod} ${widget.services?.discountPrice}",
-                                  style: TextStyle(
-                                    color: AppColors.greyColor2,
-                                    fontSize: AppSize(context).smallText3,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
+                                widget.isSubsicribed == true
+                                    ? Text(
+                                        "${AppText(context).price} ${AppText(context).jod} ${widget.services?.subscriptionPrice}",
+                                        style: TextStyle(
+                                          color: AppColors.greyColor2,
+                                          fontSize: AppSize(context).smallText3,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      )
+                                    : Text(
+                                        "${AppText(context).price} ${AppText(context).jod} ${widget.services?.discountPrice}",
+                                        style: TextStyle(
+                                          color: AppColors.greyColor2,
+                                          fontSize: AppSize(context).smallText3,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
                                 const SizedBox(width: 10),
-                                Text(
-                                  "${AppText(context).jod} ${widget.services?.price}",
-                                  style: TextStyle(
-                                    color: AppColors.greyColor2,
-                                    decoration: TextDecoration.lineThrough,
-                                    fontSize: AppSize(context).smallText3,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
+                                widget.isSubsicribed == false
+                                    ? const SizedBox()
+                                    : Text(
+                                        "${AppText(context).jod} ${widget.services?.price}",
+                                        style: TextStyle(
+                                          color: AppColors.greyColor2,
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          fontSize: AppSize(context).smallText3,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
                               ],
                             ),
                           ],

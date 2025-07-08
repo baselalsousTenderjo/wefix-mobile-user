@@ -40,39 +40,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(AppText(context).menu),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.qr_code),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  backgroundColor: AppColors.whiteColor1,
-                  title: const Text("qrCode"),
-                  content: SizedBox(
-                    height: AppSize(context).height * .3,
-                    child: Column(
-                      children: [
-                        WidgetCachNetworkImage(
-                            width: AppSize(context).width * .4,
-                            height: AppSize(context).width * .4,
-                            image: "${appProvider.userModel?.qrCodePath}"),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(AppText(context).close),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
         actions: [
           const LanguageButton(),
         ],
@@ -82,9 +49,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.all(15.0),
           child: Column(
             children: [
-              appProvider.userModel?.token == null
-                  ? const SizedBox()
-                  : const SavingCard(savingsAmount: 3000, goalAmount: 5000),
+              // appProvider.userModel?.token == null
+              //     ? const SizedBox()
+              //     : const SavingCard(savingsAmount: 3000, goalAmount: 5000),
               appProvider.userModel?.token == null
                   ? const SizedBox()
                   : WidgetCard(

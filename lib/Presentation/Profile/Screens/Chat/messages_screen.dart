@@ -1,14 +1,18 @@
 import 'dart:developer';
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
-import 'package:wefix/Business/Shop/shop_api.dart';
+import 'package:wefix/Business/Chat/chat_apis.dart';
 import 'package:wefix/Business/uplade_image.dart';
+import 'package:wefix/Business/upload_files_list.dart';
+
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
+import 'package:signalr_netcore/signalr_client.dart';
 import 'package:wefix/Data/Functions/image_picker_class.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
@@ -16,21 +20,18 @@ import 'package:wefix/Data/model/messges_model.dart';
 import 'package:wefix/Presentation/Components/custom_cach_network_image.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
+import 'package:wefix/Presentation/Profile/Screens/proparity_screen.dart';
 
 class CommentsScreenById extends StatefulWidget {
-  final int? index;
-  final int? reqId;
-  final String chatId;
-  final String? contactId;
   final String? image;
   final String? name;
+  final int? ticketId;
+  final int? toUserId;
 
   const CommentsScreenById({
     super.key,
-    this.index,
-    this.reqId,
-    required this.chatId,
-    this.contactId,
+    this.toUserId,
+    this.ticketId,
     this.image,
     this.name,
   });
@@ -47,16 +48,20 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
   bool? someUpdate;
   String? image;
   File? imageFile;
+  final serverURL = 'https://wefixApi.oneit.website/ChatHub';
+  // final serverURL = 'https://apitestwefix.oneit.website/ChatHub';
+
+  HubConnection? hubConnection;
+  List messagesList = [];
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
-    getMessagesList().then((value) {
-      log(massegesModel?.messgelist?.last.image.toString() ?? "");
-    });
+    setupSignalR();
+    getMessgaes();
 
     log(widget.image.toString());
-
-    updateMessage();
+    // updateMessage();
     super.initState();
   }
 
@@ -65,11 +70,11 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
     return Scaffold(
         appBar: AppBar(
           actions: [
-            LanguageButton(),
+            const LanguageButton(),
           ],
           title: Text(
             AppText(context).massages,
-            style: TextStyle(),
+            style: const TextStyle(),
           ),
           centerTitle: true,
           iconTheme: const IconThemeData(color: Colors.black),
@@ -85,7 +90,7 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
                   child: Form(
                     key: _formKey,
                     child: WidgetTextField(
-                      "${AppText(context).enterText}",
+                      AppText(context).enterText,
                       prefixIcon: IconButton(
                           onPressed: () {
                             showBottom().then((value) {});
@@ -96,7 +101,8 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
                           )),
                       validator: (v) {
                         if (commentController.text.isEmpty) {
-                          return AppText(context , isFunction: true).thisfeildcanbeempty;
+                          return AppText(context, isFunction: true)
+                              .thisfeildcanbeempty;
                         } else {
                           return null;
                         }
@@ -110,8 +116,7 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
               IconButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      sendMEssages().then((value) {
-                        getMessagesList();
+                      sendMEssages("").then((value) {
                         commentController.clear();
                       });
                     }
@@ -123,236 +128,320 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
             ],
           ),
         ),
-        body: SingleChildScrollView(
-          reverse: true,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ClipRRect(
-                        borderRadius: BorderRadius.circular(1000),
-                        child: Image.asset("assets/image/icon_logo.png",
-                            width: 50, height: 50, fit: BoxFit.cover)),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.name ?? "",
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                const Divider(
-                  height: 2,
-                  color: AppColors.greyColor1,
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                loadingMessage == true
-                    ? Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors(context).primaryColor,
-                        ),
-                      )
-                    : Row(
+        body: loadingMessage == true
+            ? LinearProgressIndicator(
+                color: AppColors(context).primaryColor,
+                backgroundColor: AppColors.backgroundColor,
+              )
+            : Stack(
+                children: [
+                  SingleChildScrollView(
+                    reverse: true,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: ListView.separated(
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(
-                                height: 10,
+                          Row(
+                            children: [
+                              ClipRRect(
+                                  borderRadius: BorderRadius.circular(1000),
+                                  child: Image.asset(
+                                      "assets/image/icon_logo.png",
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover)),
+                              const SizedBox(
+                                width: 10,
                               ),
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: massegesModel?.messgelist?.length ?? 0,
-                              itemBuilder: (context, index) {
-                                return Row(
-                                  mainAxisAlignment:
-                                      massegesModel?.messgelist![index].type ==
-                                              "receiver"
-                                          ? MainAxisAlignment.end
-                                          : MainAxisAlignment.start,
+                              const Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "WeFix Support",
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          const Divider(
+                            height: 2,
+                            color: AppColors.greyColor1,
+                          ),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          loadingMessage == true
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors(context).primaryColor,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    massegesModel?.messgelist![index].message ==
-                                            ""
-                                        ? ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: WidgetCachNetworkImage(
-                                                width:
-                                                    AppSize(context).width * .5,
-                                                height:
-                                                    AppSize(context).width * .5,
-                                                image: massegesModel
-                                                        ?.messgelist![index]
-                                                        .image ??
-                                                    ""),
-                                          )
-                                        : Column(
+                                    Expanded(
+                                      child: ListView.separated(
+                                        separatorBuilder: (context, index) =>
+                                            const SizedBox(
+                                          height: 10,
+                                        ),
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: messagesList.length ?? 0,
+                                        itemBuilder: (context, index) {
+                                          return Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            crossAxisAlignment: massegesModel
-                                                        ?.messgelist![index]
-                                                        .type ==
-                                                    "receiver"
-                                                ? CrossAxisAlignment.end
-                                                : CrossAxisAlignment.start,
+                                                messagesList[index]
+                                                            ["toUserId"] ==
+                                                        widget.toUserId
+                                                    ? MainAxisAlignment.end
+                                                    : MainAxisAlignment.start,
                                             children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(4.0),
-                                                child: Container(
-                                                  width: (massegesModel
-                                                              ?.messgelist![
-                                                                  index]
-                                                              .message!
-                                                              .length)! >
-                                                          30
-                                                      ? AppSize(context).width *
-                                                          .65
-                                                      : null,
-                                                  decoration: BoxDecoration(
-                                                    color: massegesModel
-                                                                ?.messgelist![
-                                                                    index]
-                                                                .type ==
-                                                            "receiver"
-                                                        ? AppColors
-                                                            .lightGreyColor
-                                                        : AppColors(context)
-                                                            .primaryColor,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Text(
-                                                      massegesModel
-                                                              ?.messgelist![
-                                                                  index]
-                                                              .message ??
-                                                          "",
-                                                      textAlign:
-                                                          TextAlign.right,
-                                                      maxLines: 20,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        color: massegesModel
-                                                                    ?.messgelist![
-                                                                        index]
-                                                                    .type ==
-                                                                "receiver"
-                                                            ? AppColors
-                                                                .blackColor1
-                                                            : AppColors
-                                                                .whiteColor1,
+                                              messagesList[index]["message"] ==
+                                                      ""
+                                                  ? Container(
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                          color: AppColors
+                                                              .greyColor1,
+                                                          width: 1,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
                                                       ),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        child: WidgetCachNetworkImage(
+                                                            boxFit:
+                                                                BoxFit.contain,
+                                                            width:
+                                                                AppSize(context)
+                                                                        .width *
+                                                                    .5,
+                                                            height:
+                                                                AppSize(context)
+                                                                        .width *
+                                                                    .5,
+                                                            image: messagesList[
+                                                                        index]
+                                                                    ["image"] ??
+                                                                ""),
+                                                      ),
+                                                    )
+                                                  : Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      crossAxisAlignment: messagesList[
+                                                                      index][
+                                                                  "toUserId"] ==
+                                                              widget.toUserId
+                                                          ? CrossAxisAlignment
+                                                              .end
+                                                          : CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(4.0),
+                                                          child: Container(
+                                                            width: (messagesList[index]
+                                                                            [
+                                                                            "message"]
+                                                                        .toString()
+                                                                        .length) >
+                                                                    30
+                                                                ? AppSize(context)
+                                                                        .width *
+                                                                    .65
+                                                                : null,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: messagesList[
+                                                                              index]
+                                                                          [
+                                                                          "toUserId"] ==
+                                                                      widget
+                                                                          .toUserId
+                                                                  ? AppColors
+                                                                      .lightGreyColor
+                                                                  : AppColors(
+                                                                          context)
+                                                                      .primaryColor,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10),
+                                                            ),
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(8.0),
+                                                              child: Text(
+                                                                messagesList[
+                                                                            index]
+                                                                        [
+                                                                        "message"] ??
+                                                                    "",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .right,
+                                                                maxLines: 20,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: messagesList[index]
+                                                                              [
+                                                                              "toUserId"] ==
+                                                                          widget
+                                                                              .toUserId
+                                                                      ? AppColors
+                                                                          .blackColor1
+                                                                      : AppColors
+                                                                          .whiteColor1,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        // DateFormat()
+                                                        // Text(
+                                                        //   massegesModel
+                                                        //           ?.messgelist![index]
+                                                        //           .insertdate ??
+                                                        //       "",
+                                                        //   style: const TextStyle(
+                                                        //       color: Colors.grey,
+                                                        //       fontSize: 10),
+                                                        // )
+                                                      ],
                                                     ),
-                                                  ),
-                                                ),
-                                              ),
-                                              // DateFormat()
-                                              Text(
-                                                massegesModel
-                                                        ?.messgelist![index]
-                                                        .insertdate ??
-                                                    "",
-                                                style: const TextStyle(
-                                                    color: Colors.grey,
-                                                    fontSize: 10),
-                                              )
                                             ],
-                                          ),
+                                          );
+                                        },
+                                      ),
+                                    ),
                                   ],
-                                );
-                              },
-                            ),
+                                ),
+                          const SizedBox(
+                            height: 10,
                           ),
                         ],
                       ),
-                const SizedBox(
-                  height: 10,
-                ),
-              ],
-            ),
-          ),
-        ));
+                    ),
+                  ),
+                ],
+              ));
   }
 
-  Future getMessagesList() async {
+  void setupSignalR() async {
+    hubConnection = HubConnectionBuilder().withUrl(serverURL).build();
+    hubConnection!.onclose(({error}) => log('Close Connection'));
+    hubConnection?.on("ReceiveMessage", _handelNewPrice);
+
+    await hubConnection?.start();
+    log("SignalR connection established.");
+    await joinTicket();
+  }
+
+  _handelNewPrice(arguments) async {
+    setState(() {
+      messagesList.add(arguments![0]);
+    });
+    await _audioPlayer
+        .play(AssetSource('video/mixkit-correct-answer-tone-2870.wav'));
+
+    log(messagesList.toString());
+  }
+
+  Future sendMEssages(chatImage) async {
+    AppProvider appProvider = Provider.of(context, listen: false);
+
+    await ChatApis.sendMessages(
+      toUserId: 0,
+      ticketId: widget.ticketId ?? 0,
+      message: commentController.text,
+      image: chatImage ?? "",
+      context: context,
+      token: appProvider.userModel?.token,
+    ).then((value) {
+      if (value != null) {
+        log('Message sent successfully');
+        commentController.clear();
+        setState(() {
+          someUpdate = true;
+        });
+      } else {
+        log('Failed to send message');
+      }
+    });
+
+    // if (hubConnection?.state == HubConnectionState.Connected) {
+    //   await hubConnection?.invoke('SendMessageToTicket', args: [
+    //     widget.ticketId ?? 0,
+    //     1,
+    //     commentController.text,
+    //     chatImage ?? "",
+    //   ]);
+    // }
+  }
+
+  Future getMessgaes() async {
+    AppProvider appProvider = Provider.of(context, listen: false);
     setState(() {
       loadingMessage = true;
     });
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-    try {
-      await ShopApis.getMessagesList(
-        chatId: widget.chatId,
-        token: appProvider.userModel?.token ?? '',
-      ).then((value) {
+
+    await ChatApis.getMessages(
+      id: widget.ticketId.toString(),
+      token: appProvider.userModel?.token,
+    ).then((value) {
+      if (value != null && value is List) {
         setState(() {
-          massegesModel = value;
-        });
-        setState(() {
+          messagesList.addAll(value);
           loadingMessage = false;
         });
-
-        log(massegesModel?.messgelist![0].message.toString() ?? "");
-      });
-    } catch (e) {
+        log("Fetched ${value.length} messages.");
+      } else {
+        log('Failed to fetch messages or invalid data');
+      }
+    }).catchError((error) {
       setState(() {
         loadingMessage = false;
       });
-      log('Login Is Error');
-    }
+      log("Error in getMessgaes: $error");
+    });
   }
 
-  Future sendMEssages() async {
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-    try {
-      await ShopApis.sendMessages(
-        chatId: widget.chatId,
-        attachment: image ?? "",
-        message: commentController.text,
-        attachmentName: "",
-        token: appProvider.userModel?.token ?? '',
-      ).then((value) {
-        setState(() {
-          massegesModel = value;
-        });
-
-        log(massegesModel?.messgelist![0].message.toString() ?? "");
-      });
-    } catch (e) {
-      log('Login Is Error');
-    }
+  Future<void> joinTicket() async {
+    await hubConnection?.invoke('JoinTicket', args: [widget.ticketId ?? 0, 3]);
+    print('📌 Joined Ticket Group: ${widget.ticketId}');
   }
 
-  Future updateMessage() async {
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-    await ShopApis.updateMessages(
-      token: appProvider.userModel?.token ?? '',
-      chatId: widget.contactId,
-    );
+  void onMessage(Function(dynamic message) callback) {
+    hubConnection?.on('ReceiveMessage', (args) {
+      callback(args?.first);
+    });
+  }
+
+  Future<void> disconnect() async {
+    await hubConnection?.stop();
+    print('🔌 Disconnected');
   }
 
   Future showBottom({bool isCover = false}) async {
@@ -391,11 +480,8 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
                           setState(() {
                             imageFile = value;
                           });
-                          await uploadFile(isCavar: isCover).then((value) {
-                            sendMEssages().then((value) {
-                              getMessagesList();
-                            });
-                          });
+                          await uploadFile(isCavar: isCover)
+                              .whenComplete(() {});
                           setState(() {
                             someUpdate = true;
                           });
@@ -443,11 +529,8 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
                           setState(() {
                             imageFile = value;
                           });
-                          await uploadFile(isCavar: isCover).then((value) {
-                            sendMEssages().then((value) {
-                              getMessagesList();
-                            });
-                          });
+                          await uploadFile(isCavar: isCover)
+                              .whenComplete(() {});
                           setState(() {
                             someUpdate = true;
                           });
@@ -494,13 +577,14 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
   Future uploadFile({bool? isCavar = false}) async {
     AppProvider appProvider = Provider.of(context, listen: false);
 
-    await UpladeImages.upladeImage(
+    await UpladeFiles.upladeImagesWithPaths(
       token: '${appProvider.userModel?.token}',
-      file: imageFile!,
+      filePaths: [imageFile!.path.toString()],
     ).then((value) {
       if (value != null) {
+        sendMEssages(value[0]);
         setState(() {
-          image = value;
+          image = value[0];
         });
       }
     });

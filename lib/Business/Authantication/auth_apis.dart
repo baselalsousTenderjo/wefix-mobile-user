@@ -48,6 +48,8 @@ class Authantication {
     required String password,
     required String phone,
     required String address,
+    required double lat,
+    required double long,
     String? email,
     required BuildContext context,
   }) async {
@@ -60,6 +62,8 @@ class Authantication {
           "Email": email,
           "Password": password,
           "Address": address,
+          "lat" : lat, 
+          "long" : long,
         },
       );
 

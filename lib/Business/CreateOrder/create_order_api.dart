@@ -22,13 +22,15 @@ class CreateOrderApi {
           "Location": data['Location'],
           'Latitude': data['Latitude'],
           'Longitude': data['Longitude'],
-          "IsWithFemale": data["IsWithFemale"], 
+          "IsWithFemale": data["IsWithFemale"],
           "IsWithMaterial": data["IsWithMaterial"],
           "CustomerPackageId": data["CustomerPackageId"],
           "TotalPrice": data["TotalPrice"],
           "ServiceTicket": data["ServiceTicket"],
           "Attachments": data["Attachments"],
           "RealEstateId": data["RealEstateId"],
+          "NumberOfTicket": data["NumberOfTicket"],
+          "AdvantageTicket": data["AdvantageTicket"],
         },
       );
 

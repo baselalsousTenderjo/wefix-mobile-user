@@ -28,6 +28,50 @@ class AppText {
   }
 
   String get home => getTranslation('home');
+  String get discount => getTranslation('discount');
+
+  String get interiorDesign => getTranslation('interiorDesign');
+
+  String get requestRegistered => getTranslation('requestRegistered');
+  String get visitScheduled => getTranslation('visitScheduled');
+  String get readytoVisit => getTranslation('readytoVisit');
+  String get vsitScheduled => getTranslation('vsitScheduled');
+  String get visitCompleted => getTranslation('visitCompleted');
+  String get awaitingRating => getTranslation('awaitingRating');
+  String get preparingMaterials => getTranslation('preparingMaterials');
+  String get waitingforConfirmation => getTranslation('waitingforConfirmation');
+
+  String get proAtt => getTranslation('proAtt');
+  String get corrective => getTranslation('corrective');
+  String get femaleService => getTranslation('femaleService');
+  String get emeregencyService => getTranslation('emeregencyService');
+  String get correctivevisits => getTranslation('correctivevisits');
+  String get preventivevisits => getTranslation('preventivevisits');
+
+  String get consultations => getTranslation('consultations');
+
+  String get youwillbechargedTicketextra =>
+      getTranslation('youwillbechargedTicketextra');
+
+  String get visa => getTranslation('visa');
+  String get cliq => getTranslation('cliq');
+  String get confirmAppointment => getTranslation('confirmAppointment');
+  String get confirmm => getTranslation('confirmm');
+
+  // String get wallet => getTranslation('wallet');
+  String get paypal => getTranslation('paypal');
+
+  String get wearesorryapp => getTranslation('wearesorryapp');
+
+  String get ticketM => getTranslation('ticketM');
+  String get paylater => getTranslation('paylater');
+
+  String get progressOverview => getTranslation('progressOverview');
+
+  String get services => getTranslation('services');
+
+  String get femaleUse => getTranslation('femaleUse');
+
   String get ticket => getTranslation('ticket');
   String get rate => getTranslation('rate');
   String get jod => getTranslation('jod');
@@ -167,7 +211,7 @@ class AppText {
   String get ratethevendor => getTranslation('ratethevendor');
   String get thankyou => getTranslation('thankyou');
   String get weappreciateyourfeedback =>
-      getTranslation('weappreciateyourfeedback'); 
+      getTranslation('weappreciateyourfeedback');
   String get pleaseenteryourphonenumber =>
       getTranslation('pleaseenteryourphonenumber');
   String get pleaseenteryourfeedback =>
@@ -204,7 +248,7 @@ class AppText {
   String get appointmentDetails => getTranslation('appointmentDetails');
   String get attachments => getTranslation('attachments');
   String get viewAttachments => getTranslation('viewAttachments');
-  String get confirmAppointment => getTranslation('confirmAppointment');
+  // String get confirmAppointment => getTranslation('confirmAppointment');
   String get attachmentPreview => getTranslation('attachmentPreview');
   String get yourrequesthasbeensentPleasecheckyouremail =>
       getTranslation('yourrequesthasbeensentPleasecheckyouremail');

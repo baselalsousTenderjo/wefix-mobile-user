@@ -35,8 +35,9 @@ class Service {
   String nameAr;
   String icon;
   String image;
-  int price;
-  int discountPrice;
+  dynamic price;
+  dynamic discountPrice;
+  dynamic subscriptionPrice;
   bool isOffer;
   bool isPopular;
   bool haveQuantity;
@@ -52,6 +53,7 @@ class Service {
     this.isSelected = false,
     required this.categoryId,
     required this.name,
+    required this.subscriptionPrice,
     required this.quantity,
     required this.nameAr,
     required this.descriptionAr,
@@ -70,6 +72,7 @@ class Service {
         id: json["id"],
         descriptionAr: json["descriptionAr"],
         categoryId: json["categoryId"],
+        subscriptionPrice: json["subscriptionPrice"],
         name: json["name"],
         numOfTicket: json["numOfTicket"],
         nameAr: json["nameAr"],
@@ -90,6 +93,7 @@ class Service {
         "categoryId": categoryId,
         "name": name,
         "nameAr": nameAr,
+        "subscriptionPrice": subscriptionPrice,
         "description": description,
         "icon": icon,
         "numOfTicket": numOfTicket,

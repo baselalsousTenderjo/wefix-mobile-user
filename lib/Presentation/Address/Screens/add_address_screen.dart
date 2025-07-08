@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_svg/svg.dart';
@@ -7,18 +7,17 @@ import 'package:geocoding/geocoding.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/Address/address_api.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
-import 'package:wefix/Data/Constant/theme/color_constant.dart';
+
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
-import 'package:wefix/Data/model/address_model.dart';
-import 'package:wefix/Presentation/Address/Components/address_type_widget.dart';
+
 import 'package:wefix/Presentation/appointment/Components/google_maps_widget.dart';
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
-import 'package:wefix/Presentation/Components/widget_phone_form_fields.dart';
+
 
 class AddShippingAddress extends StatefulWidget {
   final bool? isFromEdit;

@@ -92,7 +92,7 @@ class _ServicesWidgetState extends State<ServicesWidget> {
           crossAxisCount: 3,
           mainAxisSpacing: 5,
           crossAxisSpacing: 5,
-          childAspectRatio: .9),
+          childAspectRatio: .95),
       itemCount: widget.categories.length,
       itemBuilder: (context, index) {
         return InkWell(
@@ -107,9 +107,8 @@ class _ServicesWidgetState extends State<ServicesWidget> {
                         context,
                         downToTop(SubCategoryScreen(
                           categories: widget.categories[index].subCategory,
-                          title: languageProvider.lang == "ar"
-                              ? widget.categories[index].titleAr ?? ""
-                              : widget.categories[index].titleEn ?? "",
+                          title: widget.categories[index].titleEn ?? "",
+                          titleAr: widget.categories[index].titleAr ?? "",
                         )),
                       )
                     : Navigator.push(
@@ -128,21 +127,19 @@ class _ServicesWidgetState extends State<ServicesWidget> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(0.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: AppColors.secoundryColor.withOpacity(.2),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: WidgetCachNetworkImage(
-                        image: widget.categories[index].icon ?? "",
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: WidgetCachNetworkImage(
+                      image: widget.categories[index].icon ?? "",
+                      height: AppSize(context).height * .09,
+                      boxFit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  // const SizedBox(height: 8),
                   SizedBox(
                     width: AppSize(context).width * .2, // Set appropriate width
                     child: Text(
@@ -150,7 +147,7 @@ class _ServicesWidgetState extends State<ServicesWidget> {
                           ? widget.categories[index].titleAr ?? ""
                           : widget.categories[index].titleEn ?? "",
                       textAlign: TextAlign.center,
-                      maxLines: 2,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: AppSize(context).smallText4,

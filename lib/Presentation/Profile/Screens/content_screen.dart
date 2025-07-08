@@ -46,8 +46,7 @@ class _ContentScreenState extends State<ContentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    LanguageProvider languageProvider =
-        Provider.of<LanguageProvider>(context, listen: false);
+    LanguageProvider languageProvider = Provider.of<LanguageProvider>(context);
     return Scaffold(
       appBar: AppBar(
         actions: [

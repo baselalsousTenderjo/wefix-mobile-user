@@ -95,20 +95,26 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                         AppText(context, isFunction: true).debit
                       ]),
                 const SizedBox(height: 10),
-                _paymentOption("visa", "Visa", "assets/icon/visa.svg"),
-                _paymentOption(
-                    "qlic", "Cliq", "assets/icon/final_cliq_logo-02_1.svg"),
+                _paymentOption("visa", AppText(context, isFunction: true).visa,
+                    "assets/icon/visa.svg"),
+                _paymentOption("qlic", AppText(context, isFunction: true).cliq,
+                    "assets/icon/final_cliq_logo-02_1.svg"),
                 widget.isWallet == true
                     ? const SizedBox()
                     : _paymentOption(
-                        "wallet", "Wallet", "assets/icon/wallet.svg"),
+                        "wallet",
+                        AppText(context, isFunction: true).wallet,
+                        "assets/icon/wallet.svg"),
                 _paymentOption(
-                    "bitcoin", "BitCoin", "assets/icon/bitcoin-btc-logo.svg"),
-                _paymentOption("Paybal", "Paybal", "assets/icon/paybal.svg"),
+                    "Paybal",
+                    AppText(context, isFunction: true).paypal,
+                    "assets/icon/paybal.svg"),
                 widget.isWallet == true
                     ? const SizedBox()
                     : _paymentOption(
-                        "later", "Buy Later", "assets/icon/delay_3360328.svg"),
+                        "later",
+                        AppText(context, isFunction: true).paylater,
+                        "assets/icon/delay_3360328.svg"),
                 const Divider(),
                 const SizedBox(height: 20),
                 CustomBotton(

@@ -8,7 +8,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wefix/Data/Functions/cash_strings.dart';
 import 'package:wefix/Data/Helper/cache_helper.dart';
 
-import 'package:wefix/Data/model/all_products_model.dart';
 import 'package:wefix/Data/model/app_languege_model.dart';
 import 'package:wefix/Data/model/user_model.dart';
 
@@ -25,7 +24,7 @@ class AppProvider with ChangeNotifier {
   String? lang;
   String? appColor;
 
-  DateTime? selectedDate;
+  DateTime? selectedDate = DateTime.now();
 
   List<Map<String, dynamic>> _selectedAnswers = [];
 
@@ -124,6 +123,23 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Map advantages = {};
+
+  void saveAdvantages(Map<String, dynamic> info) {
+    advantages = info;
+
+    log(advantages.toString());
+    notifyListeners();
+  }
+
+  Map dateAndDistance = {};
+
+  void saveDateAndDistance(Map<String, dynamic> info) {
+    dateAndDistance = info;
+    log(dateAndDistance.toString());
+    notifyListeners();
+  }
+
   void clearAppoitmentInfo() {
     appoitmentInfo = {};
     notifyListeners();
@@ -202,7 +218,7 @@ class AppProvider with ChangeNotifier {
     places = placemarks;
 
     ad.text =
-        "${placemarks?[0].country ?? ""} ,${placemarks?[0].subAdministrativeArea ?? ""} , ${placemarks?[0].street ?? ""}";
+        "${placemarks?[0].country ?? ""} , ${placemarks?[0].locality ?? ""} , ${placemarks?[0].subLocality ?? ""}  , ${placemarks?[0].street ?? ""}";
 
     notifyListeners();
   }
@@ -210,26 +226,6 @@ class AppProvider with ChangeNotifier {
   void addLatAndLong({LatLng? pos}) {
     position = pos;
 
-    notifyListeners();
-  }
-
-  List<AllProducts> allProducts = [];
-  List<String> suggestionList = [];
-  List<String> searchResults = [];
-
-  void addProductsSearch(List<AllProducts> products) {
-    allProducts = products;
-    suggestionList =
-        products.map((item) => item.productName?.toLowerCase() ?? '').toList();
-    searchResults =
-        products.map((item) => item.productName?.toLowerCase() ?? '').toList();
-    notifyListeners();
-  }
-
-  void clearProductsSearch() {
-    allProducts = [];
-    suggestionList = [];
-    searchResults = [];
     notifyListeners();
   }
 

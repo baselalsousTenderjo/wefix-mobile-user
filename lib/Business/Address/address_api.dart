@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:wefix/Business/end_points.dart';
 import 'package:wefix/Data/Api/http_request.dart';
 import 'package:wefix/Data/model/address_model.dart';
-import 'package:wefix/Data/model/all_products_model.dart';
-import 'package:wefix/Data/model/shipping_info_model.dart';
+
+
 
 class AddressApi {
   static AddressModel? addressModel;
@@ -122,31 +122,4 @@ class AddressApi {
     }
   }
 
-  static ShippingInfoModel? shippingInfoModel;
-  static Future getShippingInfo(
-      {required String token, required String? customerAddressId}) async {
-    try {
-      final response = await HttpHelper.postData(
-        query: EndPoints.getShippingInfo,
-        token: token,
-        data: {
-          "CustomerAddressId": customerAddressId,
-        },
-      );
-
-      log('getShippingInfo() [ STATUS ] -> ${response.statusCode}');
-
-      final body = json.decode(response.body);
-
-      if (response.statusCode == 200) {
-        shippingInfoModel = ShippingInfoModel.fromJson(body);
-        return shippingInfoModel;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      log('getShippingInfo() [ ERROR ] -> $e');
-      return null;
-    }
-  }
 }

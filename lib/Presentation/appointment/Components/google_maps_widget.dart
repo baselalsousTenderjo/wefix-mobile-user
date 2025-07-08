@@ -39,7 +39,7 @@ double? loang;
 
 class _WidgewtGoogleMapsState extends State<WidgewtGoogleMaps> {
   Set<Marker> markers = {};
-
+  Timer? _debounce;
   BitmapDescriptor? customIcon;
 
   @override
@@ -63,6 +63,12 @@ class _WidgewtGoogleMapsState extends State<WidgewtGoogleMaps> {
   }
 
   @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     AppProvider appProvider =
         // ignore: use_build_context_synchronously
@@ -80,6 +86,7 @@ class _WidgewtGoogleMapsState extends State<WidgewtGoogleMaps> {
             ),
       height: widget.height ?? 200,
       child: Stack(
+        alignment: Alignment.topLeft,
         children: [
           ClipRRect(
             borderRadius: widget.isHaveRadius == true
@@ -99,21 +106,30 @@ class _WidgewtGoogleMapsState extends State<WidgewtGoogleMaps> {
                 compassEnabled: widget.isFromCheckOut == false ? false : true,
                 onCameraMove: widget.isFromCheckOut == true
                     ? (p) async {}
-                    : (position) async {
-                        setState(() {
-                          appProvider.saveCusrrentLocation(position.target);
-                          currentLocation = position.target;
-                          appProvider.addLatAndLong(pos: position.target);
+                    : (position) {
+                        if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+                        _debounce = Timer(const Duration(seconds: 0), () async {
+                          final target = position.target;
+                          setState(() {
+                            currentLocation = target;
+                            appProvider.saveCusrrentLocation(target);
+                            appProvider.addLatAndLong(pos: target);
+                          });
+
+                          log(currentLocation.toString());
+
+                          try {
+                            List<Placemark> placemarks3 =
+                                await placemarkFromCoordinates(
+                              target.latitude,
+                              target.longitude,
+                            );
+                            appProvider.addAddress(placemarks: placemarks3);
+                          } catch (e) {
+                            log('Geocoding failed: $e');
+                          }
                         });
-                        log(currentLocation.toString());
-                        List<Placemark> placemarks3 =
-                            await placemarkFromCoordinates(
-                                currentLocation.latitude,
-                                currentLocation.longitude);
-
-                        appProvider.addAddress(placemarks: placemarks3);
-
-                        log(placemarks3.toString());
                       },
                 markers: markers,
                 onTap: widget.isFromCheckOut == true

@@ -20,6 +20,7 @@ import 'package:wefix/Presentation/Components/widget_form_text.dart';
 import 'package:wefix/Presentation/Home/Components/popular_section_widget.dart';
 import 'package:wefix/Presentation/Home/Components/services_list_widget.dart';
 import 'package:wefix/Presentation/Home/Components/special_offer_widget.dart';
+import 'package:wefix/Presentation/Home/Components/steps_widget.dart';
 import 'package:wefix/Presentation/Home/components/slider_widget.dart';
 import 'package:wefix/Presentation/Profile/Screens/notifications_screen.dart';
 import 'package:wefix/Presentation/appointment/Components/border_animated_widget.dart';
@@ -36,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
-  late Animation<double> _fadeAnimation;
+
   ActiveTicketModel? ticketModel;
   List<Category> allSearchCategories = [];
   bool startsSearch = false;
@@ -61,14 +62,6 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.easeOutExpo,
     ));
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    ));
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward(); // Start animation on screen load
     });
@@ -86,8 +79,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    LanguageProvider languageProvider =
-        Provider.of<LanguageProvider>(context, listen: false);
+    LanguageProvider languageProvider = Provider.of<LanguageProvider>(context);
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
@@ -108,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen>
                 CircleAvatar(
                   backgroundColor: AppColors.backgroundColor,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(50)),
+                    borderRadius: const BorderRadius.all(Radius.circular(50)),
                     child: SvgPicture.asset(
                       "assets/icon/smile.svg",
                       color: AppColors(context).primaryColor,
@@ -120,11 +112,16 @@ class _HomeScreenState extends State<HomeScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "${AppText(context).hello} ${appProvider.userModel?.customer.name ?? "Guest"} 🖐",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: AppSize(context).smallText2,
+                    SizedBox(
+                      width: AppSize(context).width * .3,
+                      child: Text(
+                        "${AppText(context).hello} ${appProvider.userModel?.customer.name ?? "Guest"} 🖐",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: AppSize(context).smallText2,
+                        ),
                       ),
                     ),
                     Text(
@@ -188,71 +185,222 @@ class _HomeScreenState extends State<HomeScreen>
                                       .toList() ??
                                   []),
                           const Divider(color: AppColors.backgroundColor),
-                          SizedBox(height: AppSize(context).height * .02),
-                          ticketModel?.tickets == null
-                              ? SizedBox()
-                              : AnimatedBorderContainer(
-                                  child: Container(
+                          if (ticketModel?.tickets.isNotEmpty ?? false)
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "🔍 ${AppText(context).progressOverview}",
+                                  style: TextStyle(
+                                    fontSize: AppSize(context).smallText1,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Padding(
+                                  padding: const EdgeInsets.all(0),
+                                  child: MaintenanceStepper(
+                                    currentStep: ticketModel!.tickets[0].isWithMaterial ==
+                                            true
+                                        ? (ticketModel!.tickets[0].process
+                                                    .toString()
+                                                    .toLowerCase() ==
+                                                "requested registered"
+                                            ? 0
+                                            : ticketModel!.tickets[0].process
+                                                        .toString()
+                                                        .toLowerCase() ==
+                                                    "preparing materials"
+                                                ? 1
+                                                : ticketModel!.tickets[0].process
+                                                            .toString()
+                                                            .toLowerCase() ==
+                                                        "waiting for confirmation"
+                                                    ? 2
+                                                    : ticketModel!.tickets[0].process
+                                                                .toString()
+                                                                .toLowerCase() ==
+                                                            "visit scheduled"
+                                                        ? 3
+                                                        : ticketModel!.tickets[0].process
+                                                                    .toString()
+                                                                    .toLowerCase() ==
+                                                                "ready to visit"
+                                                            ? 4
+                                                            : ticketModel!
+                                                                        .tickets[0]
+                                                                        .process
+                                                                        .toString()
+                                                                        .toLowerCase() ==
+                                                                    "visit completed"
+                                                                ? 5
+                                                                : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
+                                                                    ? 6
+                                                                    : 0)
+                                        : (ticketModel!.tickets[0].process.toString().toLowerCase() == "requested registered"
+                                            ? 0
+                                            : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit scheduled"
+                                                ? 1
+                                                : ticketModel!.tickets[0].process.toString().toLowerCase() == "ready to visit"
+                                                    ? 2
+                                                    : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
+                                                        ? 3
+                                                        : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
+                                                            ? 4
+                                                            : 0),
+                                    confirmationNote: ticketModel!
+                                                .tickets[0].isWithMaterial ==
+                                            true
+                                        ? ""
+                                        : "Without Approval",
+                                    // or 'Without Approval'
+                                  ),
+                                ),
+                                const Divider(
+                                  color: AppColors.backgroundColor,
+                                  height: 1,
+                                ),
+                              ],
+                            ),
+                          // SizedBox(height: AppSize(context).height * .02),
+                          ticketModel?.tickets.isEmpty ?? true
+                              ? const SizedBox()
+                              : Center(
+                                  child: SizedBox(
+                                    height: AppSize(context).height * .16,
                                     width: AppSize(context).width,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.whiteColor1,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          WidgetCachNetworkImage(
-                                            width: AppSize(context).width * .3,
-                                            height:
-                                                AppSize(context).height * .15,
-                                            image: ticketModel
-                                                    ?.tickets.qrCodePath ??
-                                                "",
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  languageProvider.lang == "ar"
-                                                      ? ticketModel?.tickets
-                                                              .descriptionAr ??
-                                                          ""
-                                                      : ticketModel?.tickets
-                                                              .description ??
-                                                          "",
-                                                  maxLines: 3,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: AppSize(context)
-                                                        .smallText1,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 10),
-                                                Text(
-                                                  ticketModel?.tickets
-                                                          .selectedDateTime ??
-                                                      "",
-                                                  style: TextStyle(
-                                                    fontSize: AppSize(context)
-                                                        .smallText2,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                        ],
+                                    child: ListView.separated(
+                                      separatorBuilder: (context, index) =>
+                                          const SizedBox(
+                                        width: 10,
                                       ),
+                                      itemCount:
+                                          ticketModel?.tickets.length ?? 0,
+                                      shrinkWrap: true,
+                                      scrollDirection: Axis.horizontal,
+                                      itemBuilder: (context, index) {
+                                        return AnimatedBorderContainer(
+                                          child: Container(
+                                            width: AppSize(context).width * .93,
+                                            height:
+                                                AppSize(context).height * .2,
+                                            decoration: BoxDecoration(
+                                              color: AppColors.whiteColor1,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(4.0),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  WidgetCachNetworkImage(
+                                                    width:
+                                                        AppSize(context).width *
+                                                            .3,
+                                                    height: AppSize(context)
+                                                            .height *
+                                                        .15,
+                                                    image: ticketModel
+                                                            ?.tickets[index]
+                                                            .qrCodePath ??
+                                                        "",
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  Expanded(
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          languageProvider
+                                                                      .lang ==
+                                                                  "ar"
+                                                              ? ticketModel
+                                                                      ?.tickets[
+                                                                          index]
+                                                                      .descriptionAr ??
+                                                                  ""
+                                                              : ticketModel
+                                                                      ?.tickets[
+                                                                          index]
+                                                                      .description ??
+                                                                  "",
+                                                          maxLines: 3,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                AppSize(context)
+                                                                    .smallText1,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                        Row(
+                                                          children: [
+                                                            Text("🕑 "),
+                                                            Text(
+                                                              ticketModel
+                                                                      ?.tickets[
+                                                                          index]
+                                                                      .selectedDateTime ??
+                                                                  "",
+                                                              style: TextStyle(
+                                                                fontSize: AppSize(
+                                                                        context)
+                                                                    .smallText2,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 5),
+                                                        Row(
+                                                          children: [
+                                                            Text("🗓 "),
+                                                            Text(
+                                                              ticketModel
+                                                                      ?.tickets[
+                                                                          index]
+                                                                      .selectedDate
+                                                                      .toString()
+                                                                      .substring(
+                                                                          0,
+                                                                          10) ??
+                                                                  "",
+                                                              style: TextStyle(
+                                                                fontSize: AppSize(
+                                                                        context)
+                                                                    .smallText2,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
@@ -332,17 +480,89 @@ class _HomeScreenState extends State<HomeScreen>
                                   startsSearch = true;
                                 });
 
+                                final searchValue = value.toLowerCase();
+
                                 for (var category
                                     in homeModel?.categories ?? []) {
-                                  if (languageProvider.lang == "ar"
-                                      ? category.titleAr
-                                              ?.toLowerCase()
-                                              .contains(value.toLowerCase()) ??
-                                          false
-                                      : category.titleEn
-                                              ?.toLowerCase()
-                                              .contains(value.toLowerCase()) ??
-                                          false) {
+                                  final isCategoryTitleMatch =
+                                      languageProvider.lang == "ar"
+                                          ? category.titleAr
+                                                  ?.toLowerCase()
+                                                  .contains(searchValue) ??
+                                              false
+                                          : category.titleEn
+                                                  ?.toLowerCase()
+                                                  .contains(searchValue) ??
+                                              false;
+
+                                  bool isMatchInSubCategoryOrService = false;
+
+                                  // ✅ Check subcategories if they exist
+                                  if (category.subCategory != null &&
+                                      category.subCategory!.isNotEmpty) {
+                                    for (var subCat in category.subCategory!) {
+                                      final isSubTitleMatch =
+                                          languageProvider.lang == "ar"
+                                              ? subCat.titleAr
+                                                      ?.toLowerCase()
+                                                      .contains(searchValue) ??
+                                                  false
+                                              : subCat.titleEn
+                                                      ?.toLowerCase()
+                                                      .contains(searchValue) ??
+                                                  false;
+
+                                      final isServiceMatch = (subCat.service
+                                                  as List<Service>?)
+                                              ?.any((srv) {
+                                            return languageProvider.lang == "ar"
+                                                ? srv.nameAr
+                                                        ?.toLowerCase()
+                                                        .contains(
+                                                            searchValue) ??
+                                                    false
+                                                : srv.name
+                                                        ?.toLowerCase()
+                                                        .contains(
+                                                            searchValue) ??
+                                                    false;
+                                          }) ??
+                                          false;
+
+                                      if (isSubTitleMatch || isServiceMatch) {
+                                        isMatchInSubCategoryOrService = true;
+                                        break;
+                                      }
+                                    }
+                                  }
+
+                                  // ✅ Fallback: check services directly inside category (if any)
+                                  if (!isMatchInSubCategoryOrService &&
+                                      category is dynamic &&
+                                      category.service != null) {
+                                    final isDirectServiceMatch = (category
+                                                .service as List<Service>?)
+                                            ?.any((srv) {
+                                          return languageProvider.lang == "ar"
+                                              ? srv.nameAr
+                                                      ?.toLowerCase()
+                                                      .contains(searchValue) ??
+                                                  false
+                                              : srv.name
+                                                      ?.toLowerCase()
+                                                      .contains(searchValue) ??
+                                                  false;
+                                        }) ??
+                                        false;
+
+                                    if (isDirectServiceMatch) {
+                                      isMatchInSubCategoryOrService = true;
+                                    }
+                                  }
+
+                                  // ✅ If any match — add the category
+                                  if (isCategoryTitleMatch ||
+                                      isMatchInSubCategoryOrService) {
                                     setState(() {
                                       allSearchCategories.add(category);
                                     });

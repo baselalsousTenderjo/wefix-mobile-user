@@ -9,8 +9,8 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wefix/l10n/l10n.dart';
+// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import 'package:wefix/main_managements.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:wefix/Data/Helper/cache_helper.dart';
@@ -120,9 +120,8 @@ class _MyAppState extends State<MyApp> {
         navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,
         title: AppConstans.appName,
-        
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
+        localizationsDelegates: [
+          // AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,

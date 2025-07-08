@@ -1,15 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:wefix/Business/AppProvider/app_provider.dart';
-import 'package:wefix/Business/Shop/shop_api.dart';
+
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/contacts_model.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Profile/Screens/Chat/messages_screen.dart';
-import 'package:wefix/Presentation/Profile/loading/messages_Contacts_loading.dart';
 
 class ListUser extends StatefulWidget {
   const ListUser({super.key});
@@ -35,7 +32,7 @@ class _ListUserState extends State<ListUser> {
           actions: [
             LanguageButton(),
           ],
-          title:  Text("${AppText(context).massages}"),
+          title: Text("${AppText(context).massages}"),
           centerTitle: true,
         ),
         body: SingleChildScrollView(
@@ -57,19 +54,19 @@ class _ListUserState extends State<ListUser> {
                     itemBuilder: (context, index) {
                       return ListTile(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CommentsScreenById(
-                                  chatId: "1",
-                                  image:
-                                      "https://t3.ftcdn.net/jpg/10/18/35/56/360_F_1018355691_3GfF6Dk0iXqHcACgcgr0ptLKP7Zat8Qv.jpg",
-                                  name: "Abdallah abuasab",
-                                  contactId: "32",
-                                  index: index,
-                                  reqId: 1,
-                                ),
-                              ));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //       builder: (context) => CommentsScreenById(
+                          //         chatId: "1",
+                          //         image:
+                          //             "https://t3.ftcdn.net/jpg/10/18/35/56/360_F_1018355691_3GfF6Dk0iXqHcACgcgr0ptLKP7Zat8Qv.jpg",
+                          //         name: "Abdallah abuasab",
+                          //         contactId: "32",
+                          //         index: index,
+                          //         reqId: 1,
+                          //       ),
+                          //     ));
                         },
                         trailing: const Icon(Icons.arrow_forward_ios_rounded),
                         title: Text(
@@ -125,35 +122,35 @@ class _ListUserState extends State<ListUser> {
         ));
   }
 
-  Future getContactsList() async {
-    if (mounted) {
-      setState(() {
-        loading = true;
-      });
-    }
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-    await ShopApis.getContactsChat(
-      token: appProvider.userModel?.token ?? '',
-    ).then((value) {
-      if (value != null) {
-        if (mounted) {
-          setState(() {
-            contactsModel = value;
-          });
-        }
+  // Future getContactsList() async {
+  //   if (mounted) {
+  //     setState(() {
+  //       loading = true;
+  //     });
+  //   }
+  //   AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
+  //   await ShopApis.getContactsChat(
+  //     token: appProvider.userModel?.token ?? '',
+  //   ).then((value) {
+  //     if (value != null) {
+  //       if (mounted) {
+  //         setState(() {
+  //           contactsModel = value;
+  //         });
+  //       }
 
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-      }
-    });
-  }
+  //       if (mounted) {
+  //         setState(() {
+  //           loading = false;
+  //         });
+  //       }
+  //     } else {
+  //       if (mounted) {
+  //         setState(() {
+  //           loading = false;
+  //         });
+  //       }
+  //     }
+  //   });
+  // }
 }

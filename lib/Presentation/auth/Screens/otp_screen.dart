@@ -1,8 +1,7 @@
-// ignore_for_file: file_names, use_build_context_synchronously, avoid_print
+
 
 import 'dart:async';
 import 'dart:developer';
-
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
@@ -13,20 +12,14 @@ import 'package:wefix/Data/model/user_model.dart';
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
-
 import 'package:wefix/layout_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
-import 'package:wefix/Presentation/Components/custom_button.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-// import 'package:provider/provider.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
   final String? verificationId;
@@ -75,7 +68,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   }
 
   Scaffold _buildBody() {
-    AppLocalizations lang = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(

@@ -8,7 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Business/Authantication/auth_apis.dart';
-import 'package:wefix/Business/Facebook/facebook_api.dart';
+
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
@@ -18,10 +18,9 @@ import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
 import 'package:wefix/Presentation/Components/widget_phone_form_fields.dart';
-import 'package:wefix/Presentation/Auth/components/circular_login_widget.dart';
+
 import 'package:wefix/Presentation/Profile/Screens/content_screen.dart';
 import 'package:wefix/Presentation/auth/login_screen.dart';
-import 'package:wefix/layout_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -49,6 +48,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
   bool loading = false;
+  double? latitude;
+  double? longitude;
 
   String? phoneNumber;
 
@@ -397,6 +398,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // Get current location
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
+    log("Current Position: ${position.latitude}, ${position.longitude}");
 
     // Convert coordinates to address using geocoding
     List<Placemark> placemarks =
@@ -405,6 +407,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     // Update the location name
     setState(() {
+      latitude = position.latitude;
+      longitude = position.longitude;
       location.text =
           '${place.locality}, ${place.country} , ${place.subLocality}';
     });
@@ -419,6 +423,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       address: location.text,
       email: email.text,
       password: password.text,
+      lat: latitude ?? 0,
+      long: longitude ?? 0,
       context: context,
     ).then((value) async {
       if (value?.status ?? false) {

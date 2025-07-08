@@ -3,14 +3,20 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
+import 'package:wefix/Business/orders/profile_api.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
-import 'package:wefix/Presentation/appointment/Screens/appointment_details_screen.dart';
+import 'package:wefix/Data/model/subsicripe_model.dart';
+import 'package:wefix/Data/model/time_appointment_model.dart';
+
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
+import 'package:wefix/Presentation/Loading/loading_text.dart';
 import 'package:wefix/Presentation/SubCategory/Components/add_attachment_widget.dart';
 import 'package:wefix/Presentation/SubCategory/Components/calender_widget.dart';
+import 'package:wefix/Presentation/SubCategory/Components/tab_indecator.dart';
+import 'package:wefix/layout_screen.dart';
 
 class DateTimeWidget extends StatefulWidget {
   final String? date;
@@ -39,10 +45,18 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
   String selectedTab = "Later";
   bool? isAddedd = false;
   bool? isFemale = false;
+  TimeAppoitmentModel? timeAppoitmentModel;
+
+  bool? loading5 = false;
+  bool? loadingTime = false;
+
+  SubsicripeModel? subsicripeModel;
 
   @override
   void initState() {
     // TODO: implement initState
+    isSubsicribed();
+    getTime();
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     selectedTime = appProvider.appoitmentInfo["time"];
     setState(() {
@@ -74,6 +88,7 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
           padding: const EdgeInsets.all(8.0),
           child: Container(
               width: AppSize(context).width,
+              height: AppSize(context).height * .07,
               decoration: BoxDecoration(
                   color: AppColors.whiteColor1,
                   borderRadius: BorderRadius.circular(5),
@@ -87,16 +102,18 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
                       "${appProvider.appoitmentInfo["date"].toString().substring(0, 10)} - ${appProvider.appoitmentInfo["time"]}",
                       style: TextStyle(fontSize: AppSize(context).smallText2),
                     ),
-                    TextButton(
-                        onPressed: () {
-                          showBottomSheetFun();
-                        },
-                        child: Text(
-                          AppText(context).change,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors(context).primaryColor),
-                        ))
+                    appProvider.appoitmentInfo["TicketTypeId"] == 1
+                        ? const SizedBox()
+                        : TextButton(
+                            onPressed: () {
+                              showBottomSheetFun();
+                            },
+                            child: Text(
+                              AppText(context).change,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors(context).primaryColor),
+                            ))
                   ],
                 ),
               )),
@@ -119,10 +136,12 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
             const SizedBox(
               width: 5,
             ),
-            const Tooltip(
+            Tooltip(
               triggerMode: TooltipTriggerMode.tap,
-              message: "You will be charged 10 JOD extra",
-              child: Icon(
+              message: ((subsicripeModel?.numberOnFemalUse ?? 0) > 0)
+                  ? AppText(context).youwillbechargedTicketextra
+                  : AppText(context).youwillbecharged10JODextra,
+              child: const Icon(
                 Icons.info_outline,
                 color: AppColors.greyColor1,
                 size: 15,
@@ -149,7 +168,9 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
               ),
             ),
             subtitle: Text(
-              AppText(context).youwillbecharged10JODextra,
+              ((subsicripeModel?.numberOnFemalUse ?? 0) > 0)
+                  ? AppText(context).youwillbechargedTicketextra
+                  : AppText(context).youwillbecharged10JODextra,
               style: TextStyle(
                 fontSize: AppSize(context).smallText3,
                 color: AppColors.greyColor2,
@@ -162,6 +183,31 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
             ),
             value: isFemale ?? false,
             onChanged: (value) {
+              // if (subsicripeModel?.status == true) {
+              //   if ((subsicripeModel?.numberOnFemalUse ?? 0) <= 0) {
+              //     showUpgradeDialog(context);
+              //   } else {
+              //     setState(() {
+              //       isFemale = value;
+              //       appProvider.saveAppoitmentInfo({
+              //         "TicketTypeId":
+              //             appProvider.appoitmentInfo["TicketTypeId"],
+              //         "gender": isFemale == false ? "Male" : "Female",
+              //         "date": appProvider.selectedDate ?? DateTime.now(),
+              //         "time":
+              //             selectedTime ?? appProvider.appoitmentInfo["time"],
+              //         "services":
+              //             services ?? appProvider.appoitmentInfo["services"],
+              //         "totalPrice": totalPrice ??
+              //             appProvider.appoitmentInfo["totalPrice"],
+              //         "totalTickets": appProvider.appoitmentInfo["totalTickets"]
+              //       });
+
+              //       log(appProvider.appoitmentInfo.toString());
+              //     });
+              //   }
+              // }
+
               setState(() {
                 isFemale = value;
                 appProvider.saveAppoitmentInfo({
@@ -181,6 +227,7 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
             },
           ),
         ),
+
         // Padding(
         //     padding: const EdgeInsets.all(8.0),
         //     child: CheckboxListTile(
@@ -224,6 +271,78 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
           height: 5,
         ),
       ],
+    );
+  }
+
+  void showUpgradeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.whiteColor1,
+          icon: Center(
+            child: Text(
+              "🚀",
+              style: TextStyle(fontSize: AppSize(context).largText1),
+            ),
+          ),
+          title: Text(
+            AppText(context, isFunction: true).upgradeandSaveBig,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          // ignore: prefer_const_constructors
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10),
+              Text(
+                AppText(context, isFunction: true)
+                    .subscribenowandsave50JODDonmissoutonthisspecialoffer,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity, // Ensures buttons take full width
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: CustomBotton(
+                      height: AppSize(context).height * .04,
+                      title: AppText(context, isFunction: true).subscribeNow,
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            downToTop(const HomeLayout(
+                              index: 2,
+                            )),
+                            (route) => false);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CustomBotton(
+                      border: true,
+                      color: AppColors.whiteColor1,
+                      height: AppSize(context).height * .04,
+                      title: AppText(context, isFunction: true).skip,
+                      textColor: AppColors(context).primaryColor,
+                      onTap: () {
+                        pop(context);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -276,8 +395,9 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: AppColors.whiteColor1,
-                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey
+                                .shade300, // Background for the whole tab bar
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: TabBar(
                             onTap: (index) {
@@ -285,19 +405,24 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
                                 selectedTabIndex = index;
                               });
                             },
-                            indicator: const BoxDecoration(
-                              color: AppColors.whiteColor1,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
+                            labelColor: Colors.white,
+                            unselectedLabelColor: Colors.black,
+                            indicator: RoundedTabIndicator(
+                              color: AppColors(context).primaryColor, // Blue
+                              radius: 12,
                             ),
-                            labelColor: AppColors(context).primaryColor,
-                            unselectedLabelColor: AppColors.blackColor1,
+                            indicatorSize: TabBarIndicatorSize.tab,
                             tabs: [
                               Tab(
-                                  text:
-                                      '${AppText(context, isFunction: true).later}'),
+                                  child: Text(
+                                AppText(context, isFunction: true).later,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: AppSize(context).smallText2),
+                              )),
                               Tab(
                                 child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Image.asset(
                                       "assets/icon/alert.gif",
@@ -305,15 +430,20 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
                                       height: 30,
                                       repeat: ImageRepeat.repeat,
                                     ),
-                                    Text(AppText(context, isFunction: true)
-                                        .emergency)
+                                    Text(
+                                      AppText(context, isFunction: true)
+                                          .emergency,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize:
+                                              AppSize(context).smallText2),
+                                    )
                                   ],
                                 ),
-                              ),
+                              )
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 16),
 
                         // Tab View
@@ -364,6 +494,64 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
     );
   }
 
+  Future getTime() async {
+    AppProvider appProvider = Provider.of(context, listen: false);
+    setState(() {
+      loadingTime = true;
+    });
+
+    final result = await ProfileApis.getAppitmentTime(
+      token: '${appProvider.userModel?.token}',
+      date: appProvider.selectedDate.toString().isEmpty
+          ? DateTime.now().toString().substring(0, 10)
+          : appProvider.selectedDate.toString().substring(0, 10),
+    );
+
+    if (result != null) {
+      log(result.toString());
+      setState(() {
+        timeAppoitmentModel = result;
+        loadingTime = false;
+        selectedTime = appProvider.appoitmentInfo["time"] ??
+            timeAppoitmentModel?.timesList.first.time;
+
+        // ✅ Set the first available time (status == true)
+        // for (TimesList element in timeAppoitmentModel?.timesList ?? []) {
+        //   if (element.status == true) {
+        //     selectedTime = element.time;
+        //     break;
+        //   }
+        // }
+      });
+    }
+  }
+
+  Future isSubsicribed() async {
+    AppProvider appProvider = Provider.of(context, listen: false);
+
+    setState(() {
+      loading5 = true;
+    });
+
+    await ProfileApis.isSubsicribe(
+      token: '${appProvider.userModel?.token}',
+    ).then((value) {
+      if (value != null) {
+        setState(() {
+          subsicripeModel = value;
+        });
+
+        setState(() {
+          loading5 = false;
+        });
+      } else {
+        setState(() {
+          loading5 = false;
+        });
+      }
+    });
+  }
+
   Widget _dateTimeContent(StateSetter setModalState) {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     return Column(
@@ -374,49 +562,71 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
           children: [
             // Date Selection
             CalenderWidget(
-              focusedDay: DateTime.tryParse("2025-05-28"),
-              selectedDay: DateTime.tryParse("2025-05-28"),
+              onday: () {
+                getTime().then((value) {
+                  setModalState(() {});
+                });
+              },
             ),
             const SizedBox(height: 20),
             // Time Selection
-            SizedBox(
-              height: AppSize(context).height * .05,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: times.length,
-                itemBuilder: (context, index) {
-                  final time = times[index];
-                  final isSelected = time == selectedTime;
-                  return GestureDetector(
-                    onTap: () {
-                      setModalState(() => selectedTime = time);
-                      setState(() {}); // ✅ Reflect changes outside the sheet
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors(context).primaryColor
-                            : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        time,
-                        style: TextStyle(
-                          color: isSelected
-                              ? AppColors.whiteColor1
-                              : AppColors.blackColor1,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
+            loadingTime == true
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: LoadingText(
+                      width: AppSize(context).width,
+                      height: AppSize(context).height * .04,
                     ),
-                  );
-                },
-              ),
-            ),
+                  )
+                : SizedBox(
+                    height: AppSize(context).height * .05,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: timeAppoitmentModel?.timesList.length,
+                      itemBuilder: (context, index) {
+                        final timeItem = timeAppoitmentModel?.timesList[index];
+                        final isSelected = timeItem?.time == selectedTime;
+                        final isDisabled = timeItem?.status == false;
+
+                        return GestureDetector(
+                          onTap: isDisabled
+                              ? null
+                              : () {
+                                  setModalState(() =>
+                                      selectedTime = timeItem?.time ?? "");
+                                  setState(() {}); // Reflect changes
+                                },
+                          child: Opacity(
+                            opacity:
+                                isDisabled ? 0.4 : 1.0, // visually greyed out
+                            child: Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              margin: const EdgeInsets.symmetric(horizontal: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors(context).primaryColor
+                                    : Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                timeItem?.time ?? "",
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? AppColors.whiteColor1
+                                      : AppColors.blackColor1,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ],
         ),
         Padding(

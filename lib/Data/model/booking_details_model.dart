@@ -34,39 +34,46 @@ class ObjTickets {
   String type;
   String typeAr;
   DateTime date;
+  int? userId;
   String status;
-  bool? isWithFemale;
+  dynamic totalPrice;
   String customerName;
-  dynamic customerImage;
+  String customerImage;
   String customerAddress;
+  bool isWithFemale;
   String latitudel;
   String longitude;
   String mobile;
   String description;
   bool isWithMaterial;
-  bool? isReated;
   String esitmatedTime;
-  String? qrCodePath;
-  String? qrCode;
+  String qrCodePath;
+  String qrCode;
   String reportLink;
-  List<TicketAttatchment> ticketAttatchments;
-  List<TicketTool> ticketTools;
-  List<TicketMaterial> ticketMaterials;
-  List<MaintenanceTicket> maintenanceTickets;
+  bool isRated;
+  List<dynamic> ticketAttatchments;
+  List<dynamic> ticketImages;
+
+  List<dynamic> ticketTools;
+  List<dynamic> ticketMaterials;
+  List<dynamic> maintenanceTickets;
+  List<ServcieTicket> servcieTickets;
 
   ObjTickets({
     required this.id,
+    required this.totalPrice,
     required this.title,
     required this.titleAr,
-    required this.isReated,
     required this.type,
-    required this.isWithFemale,
+    required this.userId,
     required this.typeAr,
+    required this.ticketImages,
     required this.date,
     required this.status,
     required this.customerName,
     required this.customerImage,
     required this.customerAddress,
+    required this.isWithFemale,
     required this.latitudel,
     required this.longitude,
     required this.mobile,
@@ -76,25 +83,28 @@ class ObjTickets {
     required this.qrCodePath,
     required this.qrCode,
     required this.reportLink,
+    required this.isRated,
     required this.ticketAttatchments,
     required this.ticketTools,
     required this.ticketMaterials,
     required this.maintenanceTickets,
+    required this.servcieTickets,
   });
 
   factory ObjTickets.fromJson(Map<String, dynamic> json) => ObjTickets(
         id: json["id"],
         title: json["title"],
         titleAr: json["titleAr"],
-        isReated: json["isRated"],
+        totalPrice: json["totalPrice"],
+        userId: json["userId"],
         type: json["type"],
         typeAr: json["typeAr"],
         date: DateTime.parse(json["date"]),
         status: json["status"],
-        isWithFemale: json["isWithFemale"],
         customerName: json["customerName"],
         customerImage: json["customerImage"],
         customerAddress: json["customerAddress"],
+        isWithFemale: json["isWithFemale"],
         latitudel: json["latitudel"],
         longitude: json["longitude"],
         mobile: json["mobile"],
@@ -104,31 +114,33 @@ class ObjTickets {
         qrCodePath: json["qrCodePath"],
         qrCode: json["qrCode"],
         reportLink: json["reportLink"],
-        ticketAttatchments: List<TicketAttatchment>.from(
-            json["ticketAttatchments"]
-                .map((x) => TicketAttatchment.fromJson(x))),
-        ticketTools: List<TicketTool>.from(
-            json["ticketTools"].map((x) => TicketTool.fromJson(x))),
-        ticketMaterials: List<TicketMaterial>.from(
-            json["ticketMaterials"].map((x) => TicketMaterial.fromJson(x))),
-        maintenanceTickets: List<MaintenanceTicket>.from(
-            json["maintenanceTickets"]
-                .map((x) => MaintenanceTicket.fromJson(x))),
+        isRated: json["isRated"],
+        ticketAttatchments:
+            List<dynamic>.from(json["ticketAttatchments"].map((x) => x)),
+        ticketImages: List<dynamic>.from(json["ticketImages"].map((x) => x)),
+        ticketTools: List<dynamic>.from(json["ticketTools"].map((x) => x)),
+        ticketMaterials:
+            List<dynamic>.from(json["ticketMaterials"].map((x) => x)),
+        maintenanceTickets:
+            List<dynamic>.from(json["maintenanceTickets"].map((x) => x)),
+        servcieTickets: List<ServcieTicket>.from(
+            json["servcieTickets"].map((x) => ServcieTicket.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "title": title,
-        "isReated": isReated,
+        "userId": userId,
         "titleAr": titleAr,
-        "isWithFemale": isWithFemale,
         "type": type,
+        "totalPrice": totalPrice,
         "typeAr": typeAr,
         "date": date.toIso8601String(),
         "status": status,
         "customerName": customerName,
         "customerImage": customerImage,
         "customerAddress": customerAddress,
+        "isWithFemale": isWithFemale,
         "latitudel": latitudel,
         "longitude": longitude,
         "mobile": mobile,
@@ -138,154 +150,42 @@ class ObjTickets {
         "qrCodePath": qrCodePath,
         "qrCode": qrCode,
         "reportLink": reportLink,
+        "isRated": isRated,
         "ticketAttatchments":
-            List<dynamic>.from(ticketAttatchments.map((x) => x.toJson())),
-        "ticketTools": List<dynamic>.from(ticketTools.map((x) => x.toJson())),
-        "ticketMaterials":
-            List<dynamic>.from(ticketMaterials.map((x) => x.toJson())),
+            List<dynamic>.from(ticketAttatchments.map((x) => x)),
+        "ticketTools": List<dynamic>.from(ticketTools.map((x) => x)),
+        "ticketMaterials": List<dynamic>.from(ticketMaterials.map((x) => x)),
         "maintenanceTickets":
-            List<dynamic>.from(maintenanceTickets.map((x) => x.toJson())),
+            List<dynamic>.from(maintenanceTickets.map((x) => x)),
+        "servcieTickets":
+            List<dynamic>.from(servcieTickets.map((x) => x.toJson())),
       };
 }
 
-class MaintenanceTicket {
+class ServcieTicket {
   int id;
   String name;
   String nameAr;
-  String description;
-  String note;
+  dynamic price;
 
-  MaintenanceTicket({
+  ServcieTicket({
     required this.id,
     required this.name,
     required this.nameAr,
-    required this.description,
-    required this.note,
+    required this.price,
   });
 
-  factory MaintenanceTicket.fromJson(Map<String, dynamic> json) =>
-      MaintenanceTicket(
+  factory ServcieTicket.fromJson(Map<String, dynamic> json) => ServcieTicket(
         id: json["id"],
         name: json["name"],
         nameAr: json["nameAr"],
-        description: json["description"],
-        note: json["note"],
+        price: json["price"],
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,
         "nameAr": nameAr,
-        "description": description,
-        "note": note,
-      };
-}
-
-class TicketAttatchment {
-  int id;
-  int ticketId;
-  dynamic size;
-  dynamic fileName;
-  String filePath;
-  dynamic type;
-  DateTime createdDate;
-  dynamic ticket;
-
-  TicketAttatchment({
-    required this.id,
-    required this.ticketId,
-    required this.size,
-    required this.fileName,
-    required this.filePath,
-    required this.type,
-    required this.createdDate,
-    required this.ticket,
-  });
-
-  factory TicketAttatchment.fromJson(Map<String, dynamic> json) =>
-      TicketAttatchment(
-        id: json["id"],
-        ticketId: json["ticketId"],
-        size: json["size"],
-        fileName: json["fileName"],
-        filePath: json["filePath"],
-        type: json["type"],
-        createdDate: DateTime.parse(json["createdDate"]),
-        ticket: json["ticket"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "ticketId": ticketId,
-        "size": size,
-        "fileName": fileName,
-        "filePath": filePath,
-        "type": type,
-        "createdDate": createdDate.toIso8601String(),
-        "ticket": ticket,
-      };
-}
-
-class TicketMaterial {
-  int id;
-  String title;
-  String titleAr;
-  String status;
-  bool iSselected;
-  int quantity;
-
-  TicketMaterial({
-    required this.id,
-    required this.title,
-    required this.titleAr,
-    required this.status,
-    required this.iSselected,
-    required this.quantity,
-  });
-
-  factory TicketMaterial.fromJson(Map<String, dynamic> json) => TicketMaterial(
-        id: json["id"],
-        title: json["title"],
-        titleAr: json["titleAr"],
-        status: json["status"],
-        iSselected: json["iSselected"],
-        quantity: json["quantity"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "title": title,
-        "titleAr": titleAr,
-        "status": status,
-        "iSselected": iSselected,
-        "quantity": quantity,
-      };
-}
-
-class TicketTool {
-  int id;
-  String title;
-  String titleAr;
-  int quantity;
-
-  TicketTool({
-    required this.id,
-    required this.title,
-    required this.titleAr,
-    required this.quantity,
-  });
-
-  factory TicketTool.fromJson(Map<String, dynamic> json) => TicketTool(
-        id: json["id"],
-        title: json["title"],
-        titleAr: json["titleAr"],
-        quantity: json["quantity"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "title": title,
-        "titleAr": titleAr,
-        "quantity": quantity,
+        "price": price,
       };
 }

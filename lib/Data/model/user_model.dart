@@ -14,7 +14,7 @@ class UserModel {
   String message;
   String? qrCodePath;
 
-  int wallet;
+  int? wallet;
 
   Customer customer;
 
@@ -29,8 +29,8 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
         status: json["status"],
-        wallet: json["wallet"],
-        qrCodePath: json["qrCodePath"],
+        wallet: json["wallet"] ?? 0,
+        qrCodePath: json["qrCodePath"] ?? "",
         token: json["token"],
         message: json["message"],
         customer: Customer.fromJson(json["customer"]),
@@ -53,7 +53,7 @@ class Customer {
   String mobile;
   String email;
   DateTime createdDate;
-  String password;
+  dynamic password;
   dynamic oldPassword;
   int otp;
   String address;

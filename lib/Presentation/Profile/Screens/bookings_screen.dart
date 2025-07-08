@@ -339,21 +339,23 @@ class _BookingCardState extends State<BookingCard> {
                   ],
                 ),
               if (widget.status == 'Pending')
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: CustomBotton(
-                      loading: widget.loading2,
-                      height: AppSize(context).height * .04,
-                      title: AppText(context).cancelBooking,
-                      border: true,
-                      borderColor: AppColors.redColor,
-                      color: AppColors.whiteColor1,
-                      textColor: AppColors.redColor,
-                      onTap: widget.onTapCancle,
-                    ),
-                  ),
-                ),
+                widget.ticket?.cancelButton == true
+                    ? SizedBox()
+                    : Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: CustomBotton(
+                            loading: widget.loading2,
+                            height: AppSize(context).height * .04,
+                            title: AppText(context).cancelBooking,
+                            border: true,
+                            borderColor: AppColors.redColor,
+                            color: AppColors.whiteColor1,
+                            textColor: AppColors.redColor,
+                            onTap: widget.onTapCancle,
+                          ),
+                        ),
+                      ),
             ],
           ),
         ),

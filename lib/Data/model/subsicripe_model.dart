@@ -13,23 +13,35 @@ String subsicripeModelToJson(SubsicripeModel data) =>
 class SubsicripeModel {
   bool status;
   ObjSubscribe? objSubscribe;
+  int? numberOnFemalUse;
+  int? onDemandVisit;
+  int? emergancyVisit;
 
   SubsicripeModel({
     required this.status,
-    required this.objSubscribe,
+    this.objSubscribe,
+    this.numberOnFemalUse,
+    this.emergancyVisit,
+    this.onDemandVisit,
   });
 
   factory SubsicripeModel.fromJson(Map<String, dynamic> json) =>
       SubsicripeModel(
-        status: json["status"],
-        objSubscribe: json["objSubscribe"] != null
-            ? ObjSubscribe.fromJson(json["objSubscribe"])
-            : null,
+        status: json["status"] ?? false,
+        emergancyVisit: json["emergancyVisit"],
+        onDemandVisit: json["onDemandVisit"],
+        numberOnFemalUse: json["numberOnFemalUse"],
+        objSubscribe: json["objSubscribe"] == null
+            ? null
+            : ObjSubscribe.fromJson(json["objSubscribe"]),
       );
 
   Map<String, dynamic> toJson() => {
         "status": status,
         "objSubscribe": objSubscribe?.toJson(),
+        "numberOnFemalUse": numberOnFemalUse,
+        "onDemandVisit": onDemandVisit,
+        "emergancyVisit": emergancyVisit,
       };
 }
 
@@ -44,7 +56,10 @@ class ObjSubscribe {
   int recurringVist;
   int onDemandVisit;
   int emeregencyVisit;
-  int price;
+  int numberOnFemalUse;
+  dynamic price;
+  dynamic age;
+  dynamic area;
   dynamic package;
   List<dynamic> payments;
 
@@ -59,7 +74,10 @@ class ObjSubscribe {
     required this.recurringVist,
     required this.onDemandVisit,
     required this.emeregencyVisit,
+    required this.numberOnFemalUse,
     required this.price,
+    required this.age,
+    required this.area,
     required this.package,
     required this.payments,
   });
@@ -75,9 +93,14 @@ class ObjSubscribe {
         recurringVist: json["recurringVist"],
         onDemandVisit: json["onDemandVisit"],
         emeregencyVisit: json["emeregencyVisit"],
+        numberOnFemalUse: json["numberOnFemalUse"],
         price: json["price"],
+        age: json["age"],
+        area: json["area"],
         package: json["package"],
-        payments: List<dynamic>.from(json["payments"].map((x) => x)),
+        payments: json["payments"] == null
+            ? []
+            : List<dynamic>.from(json["payments"].map((x) => x)),
       );
 
   Map<String, dynamic> toJson() => {
@@ -91,8 +114,11 @@ class ObjSubscribe {
         "recurringVist": recurringVist,
         "onDemandVisit": onDemandVisit,
         "emeregencyVisit": emeregencyVisit,
+        "numberOnFemalUse": numberOnFemalUse,
         "price": price,
+        "age": age,
+        "area": area,
         "package": package,
-        "payments": List<dynamic>.from(payments.map((x) => x)),
+        "payments": payments,
       };
 }

@@ -38,16 +38,14 @@ class Ticket {
   dynamic teamNo;
   String? status;
   String? statusAr;
-  int? rating;
+  dynamic rating;
   String? type;
-
   String? location;
   String? longitude;
   String? latitude;
   String? gender;
   bool isWithMaterial;
   bool? isRated;
-
   dynamic priority;
   int createdBy;
   int? customerPackageId;
@@ -56,6 +54,7 @@ class Ticket {
   String? serviceprovideImage;
   String? description;
   String? descriptionAr;
+  bool? cancelButton;
 
   Ticket({
     required this.id,
@@ -63,6 +62,7 @@ class Ticket {
     required this.statusAr,
     required this.ticketTypeId,
     this.rating,
+    this.cancelButton,
     this.isRated,
     this.type,
     this.serviceprovideImage,
@@ -90,6 +90,7 @@ class Ticket {
 
   factory Ticket.fromJson(Map<String, dynamic> json) => Ticket(
         id: json["id"],
+        cancelButton: json["cancelButton"],
         isRated: json["isRated"],
         customerId: json["customerId"],
         type: json["type"],

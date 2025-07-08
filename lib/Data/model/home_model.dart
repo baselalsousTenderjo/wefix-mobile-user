@@ -44,12 +44,12 @@ class HomeModel {
 }
 
 class SliderModel {
-  int id;
+  dynamic id;
   String? title;
   String? titleAr;
   String? image;
   bool isActive;
-  int sortOrder;
+  dynamic? sortOrder;
 
   SliderModel({
     required this.id,
@@ -80,61 +80,78 @@ class SliderModel {
 }
 
 class Category {
-  int id;
-  String? titleEn;
-  String? titleAr;
+  dynamic id;
+  dynamic? parentId;
+  String titleEn;
+  String titleAr;
   String? icon;
-  String? image;
-  List<Category>? subCategory;
+  String image;
   bool? subscribScreen;
+  List<Category>? subCategory;
+  List<Service> service;
 
   Category({
     required this.id,
+    required this.parentId,
     required this.titleEn,
     required this.titleAr,
     required this.icon,
     required this.image,
     this.subscribScreen,
     this.subCategory,
+    required this.service,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
         id: json["id"],
+        parentId: json["parentId"],
         titleEn: json["titleEn"],
-        subscribScreen: json["subscribScreen"] ?? false,
         titleAr: json["titleAr"],
         icon: json["icon"],
         image: json["image"],
+        subscribScreen: json["subscribScreen"],
         subCategory: json["subCategory"] == null
             ? []
             : List<Category>.from(
                 json["subCategory"]!.map((x) => Category.fromJson(x))),
+        service:
+            List<Service>.from(json["service"].map((x) => Service.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
+        "parentId": parentId,
         "titleEn": titleEn,
         "titleAr": titleAr,
         "icon": icon,
         "image": image,
+        "subscribScreen": subscribScreen,
+        "subCategory": subCategory == null
+            ? []
+            : List<dynamic>.from(subCategory!.map((x) => x.toJson())),
+        "service": List<dynamic>.from(service.map((x) => x.toJson())),
       };
 }
 
 class Service {
-  int id;
-  int categoryId;
-  String? name;
-  String? nameAr;
-  String? icon;
-  String? image;
+  dynamic id;
+  dynamic? categoryId;
+  String name;
+  String nameAr;
+  String icon;
+  String image;
   String? description;
-  String? descriptionAr;
-  double price;
-  double discountPrice;
+  dynamic? price;
+  dynamic? discountPrice;
   bool isOffer;
   bool isPopular;
   bool haveQuantity;
-  List<dynamic> serviceTickets;
+  String? descriptionAr;
+  dynamic? sortOrder;
+  dynamic? numOfTicket;
+  dynamic? subscriptionPrice;
+  dynamic category;
+  List<dynamic>? serviceTickets;
 
   Service({
     required this.id,
@@ -143,14 +160,18 @@ class Service {
     required this.nameAr,
     required this.icon,
     required this.image,
-    this.description,
-    this.descriptionAr,
+    required this.description,
     required this.price,
     required this.discountPrice,
     required this.isOffer,
     required this.isPopular,
     required this.haveQuantity,
-    required this.serviceTickets,
+    required this.descriptionAr,
+    required this.sortOrder,
+    this.numOfTicket,
+    this.subscriptionPrice,
+    this.category,
+    this.serviceTickets,
   });
 
   factory Service.fromJson(Map<String, dynamic> json) => Service(
@@ -161,14 +182,19 @@ class Service {
         icon: json["icon"],
         image: json["image"],
         description: json["description"],
-        descriptionAr: json["descriptionAr"],
-        price: (json["price"] as num).toDouble(),
-        discountPrice: (json["discountPrice"] as num).toDouble(),
+        price: json["price"],
+        discountPrice: json["discountPrice"],
         isOffer: json["isOffer"],
         isPopular: json["isPopular"],
         haveQuantity: json["haveQuantity"],
-        serviceTickets:
-            List<dynamic>.from(json["serviceTickets"].map((x) => x)),
+        descriptionAr: json["descriptionAr"],
+        sortOrder: json["sortOrder"],
+        numOfTicket: json["numOfTicket"],
+        subscriptionPrice: json["subscriptionPrice"],
+        category: json["category"],
+        serviceTickets: json["serviceTickets"] == null
+            ? []
+            : List<dynamic>.from(json["serviceTickets"]!.map((x) => x)),
       );
 
   Map<String, dynamic> toJson() => {
@@ -179,20 +205,26 @@ class Service {
         "icon": icon,
         "image": image,
         "description": description,
-        "descriptionAr": descriptionAr,
         "price": price,
         "discountPrice": discountPrice,
         "isOffer": isOffer,
         "isPopular": isPopular,
         "haveQuantity": haveQuantity,
-        "serviceTickets": List<dynamic>.from(serviceTickets.map((x) => x)),
+        "descriptionAr": descriptionAr,
+        "sortOrder": sortOrder,
+        "numOfTicket": numOfTicket,
+        "subscriptionPrice": subscriptionPrice,
+        "category": category,
+        "serviceTickets": serviceTickets == null
+            ? []
+            : List<dynamic>.from(serviceTickets!.map((x) => x)),
       };
 }
 
 class Tickets {
-  int id;
-  int customerId;
-  int ticketTypeId;
+  dynamic id;
+  dynamic? customerId;
+  dynamic? ticketTypeId;
   String promoCode;
   DateTime requestedDate;
   DateTime selectedDate;
@@ -207,15 +239,15 @@ class Tickets {
   dynamic gender;
   bool isWithMaterial;
   dynamic priority;
-  int createdBy;
-  int customerPackageId;
-  int totalPrice;
+  dynamic? createdBy;
+  dynamic? customerPackageId;
+  dynamic totalPrice;
   dynamic serviceprovide;
   dynamic serviceprovideImage;
   String? description;
   String? descriptionAr;
   String? qrCodePath;
-  int rating;
+  dynamic? rating;
   bool isRated;
   String? qrCode;
   String? statusAr;

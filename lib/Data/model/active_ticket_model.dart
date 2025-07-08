@@ -11,7 +11,7 @@ String activeTicketModelToJson(ActiveTicketModel data) =>
     json.encode(data.toJson());
 
 class ActiveTicketModel {
-  Tickets tickets;
+  List<Ticket> tickets;
 
   ActiveTicketModel({
     required this.tickets,
@@ -19,50 +19,51 @@ class ActiveTicketModel {
 
   factory ActiveTicketModel.fromJson(Map<String, dynamic> json) =>
       ActiveTicketModel(
-        tickets: Tickets.fromJson(json["tickets"]),
+        tickets:
+            List<Ticket>.from(json["tickets"].map((x) => Ticket.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
-        "tickets": tickets.toJson(),
+        "tickets": List<dynamic>.from(tickets.map((x) => x.toJson())),
       };
 }
 
-class Tickets {
+class Ticket {
   int id;
   int customerId;
   int ticketTypeId;
-  String promoCode;
   DateTime requestedDate;
   DateTime selectedDate;
   String selectedDateTime;
-  dynamic timeFrom;
-  dynamic timeTo;
-  dynamic teamNo;
-  String status;
-  String location;
-  String longitude;
-  String latitude;
-  String? gender; // ✅ Nullable
+  DateTime timeFrom;
+  DateTime timeTo;
+  String? teamNo;
+  String? status;
+  String? location;
+  String? longitude;
+  String? latitude;
+  String? gender;
   bool isWithMaterial;
-  dynamic priority;
+  String? priority;
   int createdBy;
-  int? customerPackageId; // ✅ Nullable
-  int totalPrice;
+  int customerPackageId;
+  dynamic totalPrice;
+  String? promoCode;
   dynamic serviceprovide;
   dynamic serviceprovideImage;
-  String description;
-  String descriptionAr;
-  String qrCodePath;
+  String? description;
+  String? descriptionAr;
+  String? qrCodePath;
   int rating;
   bool isRated;
-  String qrCode;
-  String statusAr;
+  String? qrCode;
+  String? statusAr;
+  dynamic process;
 
-  Tickets({
+  Ticket({
     required this.id,
     required this.customerId,
     required this.ticketTypeId,
-    required this.promoCode,
     required this.requestedDate,
     required this.selectedDate,
     required this.selectedDateTime,
@@ -79,6 +80,7 @@ class Tickets {
     required this.createdBy,
     required this.customerPackageId,
     required this.totalPrice,
+    required this.promoCode,
     required this.serviceprovide,
     required this.serviceprovideImage,
     required this.description,
@@ -88,29 +90,30 @@ class Tickets {
     required this.isRated,
     required this.qrCode,
     required this.statusAr,
+    required this.process,
   });
 
-  factory Tickets.fromJson(Map<String, dynamic> json) => Tickets(
+  factory Ticket.fromJson(Map<String, dynamic> json) => Ticket(
         id: json["id"],
         customerId: json["customerId"],
         ticketTypeId: json["ticketTypeId"],
-        promoCode: json["promoCode"],
         requestedDate: DateTime.parse(json["requestedDate"]),
         selectedDate: DateTime.parse(json["selectedDate"]),
         selectedDateTime: json["selectedDateTime"],
-        timeFrom: json["timeFrom"],
-        timeTo: json["timeTo"],
+        timeFrom: DateTime.parse(json["timeFrom"]),
+        timeTo: DateTime.parse(json["timeTo"]),
         teamNo: json["teamNo"],
         status: json["status"],
         location: json["location"],
         longitude: json["longitude"],
         latitude: json["latitude"],
-        gender: json["gender"], // may be null
+        gender: json["gender"],
         isWithMaterial: json["isWithMaterial"],
         priority: json["priority"],
         createdBy: json["createdBy"],
         customerPackageId: json["customerPackageId"],
         totalPrice: json["totalPrice"],
+        promoCode: json["promoCode"],
         serviceprovide: json["serviceprovide"],
         serviceprovideImage: json["serviceprovideImage"],
         description: json["description"],
@@ -120,18 +123,18 @@ class Tickets {
         isRated: json["isRated"],
         qrCode: json["qrCode"],
         statusAr: json["statusAr"],
+        process: json["process"],
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "customerId": customerId,
         "ticketTypeId": ticketTypeId,
-        "promoCode": promoCode,
         "requestedDate": requestedDate.toIso8601String(),
         "selectedDate": selectedDate.toIso8601String(),
         "selectedDateTime": selectedDateTime,
-        "timeFrom": timeFrom,
-        "timeTo": timeTo,
+        "timeFrom": timeFrom.toIso8601String(),
+        "timeTo": timeTo.toIso8601String(),
         "teamNo": teamNo,
         "status": status,
         "location": location,
@@ -143,6 +146,7 @@ class Tickets {
         "createdBy": createdBy,
         "customerPackageId": customerPackageId,
         "totalPrice": totalPrice,
+        "promoCode": promoCode,
         "serviceprovide": serviceprovide,
         "serviceprovideImage": serviceprovideImage,
         "description": description,
@@ -152,5 +156,6 @@ class Tickets {
         "isRated": isRated,
         "qrCode": qrCode,
         "statusAr": statusAr,
+        "process": process,
       };
 }

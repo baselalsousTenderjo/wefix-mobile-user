@@ -10,7 +10,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Business/Authantication/auth_apis.dart';
-import 'package:wefix/Business/Facebook/facebook_api.dart';
+
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
@@ -26,7 +26,7 @@ import 'package:wefix/Presentation/Auth/sign_up_screen.dart';
 import 'package:wefix/Presentation/auth/Screens/forget_password_screen.dart';
 import 'package:wefix/Presentation/auth/Screens/otp_screen.dart';
 import 'package:wefix/layout_screen.dart';
-import 'package:http/http.dart' as http;
+
 import 'package:local_auth/local_auth.dart';
 
 List<String> scopes = const <String>[
@@ -337,40 +337,6 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-
-  Future getFacebook() async {
-    try {
-      AppProvider appProvider =
-          Provider.of<AppProvider>(context, listen: false);
-      await FacebookApi.getFacebookStatus(
-              token: appProvider.userModel?.token ?? '')
-          .then(
-        (value) {
-          if (value) {
-            if (mounted) {
-              setState(() {
-                facebookStatus = value;
-              });
-            }
-          } else {
-            if (mounted) {
-              setState(() {
-                // loadingCategory = false;
-              });
-            }
-          }
-        },
-      );
-    } catch (e) {
-      log('Category Error -> $e');
-      if (mounted) {
-        setState(() {
-          // loadingCategory = false;
-        });
-      }
-    }
-  }
-
   Future login() async {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     try {

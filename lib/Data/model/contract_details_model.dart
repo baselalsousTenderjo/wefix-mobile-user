@@ -33,16 +33,24 @@ class CustomerPackages {
   String status;
   DateTime startDate;
   DateTime endDate;
-  int price;
+  dynamic price;
   int recurringVist;
   int totalRecurringVist;
   int onDemandVisit;
   int totalOnDemandVisit;
   int emeregencyVisit;
   int totalEmeregencyVisit;
+  int totalNumberOnFemalUse;
+  int numberOnFemalUse;
+  int consultation;
+  String? interiorDesign;
+  dynamic discount;
 
   CustomerPackages({
     required this.id,
+    this.interiorDesign,
+    this.discount,
+    required this.consultation,
     required this.name,
     required this.status,
     required this.startDate,
@@ -54,12 +62,17 @@ class CustomerPackages {
     required this.totalOnDemandVisit,
     required this.emeregencyVisit,
     required this.totalEmeregencyVisit,
+    required this.totalNumberOnFemalUse,
+    required this.numberOnFemalUse,
   });
 
   factory CustomerPackages.fromJson(Map<String, dynamic> json) =>
       CustomerPackages(
         id: json["id"],
+        discount: json["discount"],
         name: json["name"],
+        interiorDesign: json["interiorDesign"],
+        consultation: json["consultation"],
         status: json["status"],
         startDate: DateTime.parse(json["startDate"]),
         endDate: DateTime.parse(json["endDate"]),
@@ -70,6 +83,8 @@ class CustomerPackages {
         totalOnDemandVisit: json["totalOnDemandVisit"],
         emeregencyVisit: json["emeregencyVisit"],
         totalEmeregencyVisit: json["totalEmeregencyVisit"],
+        totalNumberOnFemalUse: json["totalNumberOnFemalUse"],
+        numberOnFemalUse: json["numberOnFemalUse"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -85,5 +100,7 @@ class CustomerPackages {
         "totalOnDemandVisit": totalOnDemandVisit,
         "emeregencyVisit": emeregencyVisit,
         "totalEmeregencyVisit": totalEmeregencyVisit,
+        "totalNumberOnFemalUse": totalNumberOnFemalUse,
+        "numberOnFemalUse": numberOnFemalUse,
       };
 }

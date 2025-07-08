@@ -81,6 +81,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       Navigator.push(
                           context,
                           rightToLeft(TicketDetailsScreen(
+                          
                               id: notification?.ticketId.toString() ?? "0")));
                     },
                   ),

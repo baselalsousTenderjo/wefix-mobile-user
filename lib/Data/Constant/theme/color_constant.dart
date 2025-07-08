@@ -48,6 +48,9 @@ class AppColors {
 
   static const Color darkGreyColor = Color(0xFF6D6D6D);
 
+  static const Color pink = Color(0xFFfe375e);
+  static const Color green = Color(0xFF129271);
+
   //todo:white Color
   static const Color whiteColor1 = Color(0xFFFFFFFF);
   static const Color whiteColor2 = Color(0xFFFEFEFE);

@@ -36,10 +36,12 @@ class Languages {
   String twitter;
   String instagram;
   String youtube;
+  String? whatsapp;
 
   Languages({
     required this.id,
     required this.phone,
+    required this.whatsapp,
     required this.emegancyPhone,
     required this.email,
     required this.longitude,
@@ -53,6 +55,7 @@ class Languages {
   factory Languages.fromJson(Map<String, dynamic> json) => Languages(
         id: json["id"],
         phone: json["phone"],
+        whatsapp: json["whatsapp"],
         emegancyPhone: json["emegancyPhone"],
         email: json["email"],
         longitude: json["longitude"],

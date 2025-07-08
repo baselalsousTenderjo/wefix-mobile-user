@@ -3,24 +3,34 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:wefix/Business/AppProvider/app_provider.dart';
+
 import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
+import 'package:wefix/Business/orders/profile_api.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
+
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/packages_model.dart';
-import 'package:wefix/Presentation/Checkout/Components/payment_method_bottom_sheet_widget.dart';
+
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
-import 'package:wefix/Presentation/Profile/Screens/proparity_screen.dart';
+import 'package:wefix/Presentation/Loading/loading_text.dart';
+import 'package:wefix/Presentation/Subscriptions/Components/featuer_widget.dart';
 
 class SubscriptionCard extends StatefulWidget {
   final String? title;
+  final String? image;
   final String? price;
   final String? priceAnnual;
+  final String? imageFoter;
+  final Color? color;
   final Function()? onTap;
   final List? features;
   final bool? isActive;
+  final bool? isRecommended;
+
   bool? isLoading;
   final bool? isSelected;
   final PackagePackage? package; // Add this to access package details
@@ -29,7 +39,11 @@ class SubscriptionCard extends StatefulWidget {
     super.key,
     this.title,
     this.price,
+    this.isRecommended,
     this.features,
+    this.imageFoter,
+    this.image,
+    this.color,
     this.isActive,
     this.priceAnnual,
     this.isSelected,
@@ -46,8 +60,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
   String selectedPayment = 'visa';
   TextEditingController ageController = TextEditingController();
   TextEditingController distanceController = TextEditingController();
-  double calculatedPrice = 0;
+  dynamic calculatedPrice = 0;
   bool showCalculatedPrice = false;
+  bool loading2 = false;
 
   @override
   Widget build(BuildContext context) {
@@ -56,131 +71,224 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
     return Center(
       child: Container(
         width: AppSize(context).width * 0.7,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(top: 0, bottom: 0, left: 0, right: 0),
         decoration: BoxDecoration(
           color: AppColors.whiteColor1,
           border: Border.all(
               color: widget.isSelected == true
                   ? AppColors(context).primaryColor
                   : AppColors.greyColor),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(0),
         ),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(0),
           decoration: BoxDecoration(
             color: AppColors.whiteColor1,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(0),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                AppText(context).recommended,
-                style: const TextStyle(
-                  color: AppColors.blackColor1,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                widget.title ?? "Google One",
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () {
-                  showDetailsInput(context);
-                },
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    widget.isLoading == true
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator())
-                        : Text(
-                            widget.price ?? "JOD 90 / month",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: AppColors.blackColor1,
-                              decoration: TextDecoration.lineThrough,
+              Container(
+                height: AppSize(context).height * .18,
+                // width: AppSize(context).width * .5,
+                decoration: BoxDecoration(color: widget.color?.withOpacity(.2)),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: widget.color,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                child: Text(
+                                  widget.title?.toUpperCase() ?? "Google One",
+                                  style: TextStyle(
+                                    fontSize: AppSize(context).smallText1,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.whiteColor1,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                    Container(
-                      height: 40,
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                        color: AppColors(context).primaryColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        showCalculatedPrice
-                            ? "JOD $calculatedPrice / ${AppText(context).month}"
-                            : widget.price ??
-                                "JOD 90 / ${AppText(context).month}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "${AppText(context).orprepayannually}:",
-                style: const TextStyle(color: Colors.black54),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.priceAnnual ?? "JOD 90 / month",
-                style: const TextStyle(
-                  color: AppColors.secoundryColor,
-                  fontSize: 16,
-                ),
-              ),
-              const Divider(height: 30),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListView.separated(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      return Row(
+                      widget.isRecommended == false
+                          ? SizedBox()
+                          : Text(AppText(context).recommended),
+                      SizedBox(height: AppSize(context).height * .01),
+                      Column(
                         children: [
-                          widget.features![index].status == true
-                              ? const Icon(Icons.check,
-                                  size: 18, color: AppColors.greenColor)
-                              : const Icon(Icons.close,
-                                  size: 18, color: AppColors.greyColor1),
-                          const SizedBox(width: 8),
-                          Text(languageProvider.lang == "ar"
-                              ? "${widget.features![index].featureAr}"
-                              : "${widget.features![index].feature}"),
+                          Text(
+                            "${widget.price.toString()} ${AppText(context).jod}",
+                            style: TextStyle(
+                              fontSize: AppSize(context).largText1,
+                              color: AppColors.blackColor1,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.whiteColor1,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 2),
+                              child: Text(
+                                AppText(context).jODMonth,
+                                style: TextStyle(
+                                  fontSize: AppSize(context).smallText4,
+                                  color: widget.color,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
-                      );
-                    },
-                    separatorBuilder: (context, index) {
-                      return const SizedBox(height: 8);
-                    },
-                    itemCount: widget.features?.length ?? 0,
-                  )
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: AppSize(context).width * 0.45,
+                          child: Text(
+                            AppText(context).feature,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          AppText(context).value,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    height: AppSize(context).height * .01,
+                    color: AppColors.backgroundColor,
+                  ),
+                  FeatureWidget(
+                    color: widget.color,
+                    feature: AppText(context).correctivevisits,
+                    value:
+                        widget.package?.numberOfRegularVisit.toString() ?? "0",
+                  ),
+                  FeatureWidget(
+                    color: widget.color,
+                    feature: AppText(context).preventivevisits,
+                    value:
+                        widget.package?.numberOnDemandVisit.toString() ?? "0",
+                  ),
+                  FeatureWidget(
+                    color: widget.color,
+                    feature: AppText(context).consultations,
+                    value: widget.package?.consultation.toString() ?? "0",
+                  ),
+                  FeatureWidget(
+                    color: widget.color,
+                    feature: AppText(context).emeregencyService,
+                    value:
+                        widget.package?.numberOfUrgentVisits.toString() ?? "0",
+                  ),
+                  FeatureWidget(
+                    color: widget.color,
+                    feature: AppText(context).femaleService,
+                    value: widget.package?.numberOfFemalUse.toString() ?? "0",
+                  ),
+                  FeatureWidget(
+                    color: widget.color,
+                    feature: AppText(context).interiorDesign,
+                    value: widget.package?.interiorDesign == null
+                        ? "\n - \n"
+                        : widget.package?.interiorDesign.toString() ?? "0",
+                  ),
                 ],
               ),
-              // const SizedBox(height: 20),
-              // CustomBotton(
-              //   title: AppText(context).subscribeNow,
-              //   loading: widget.isLoading,
-              //   onTap: () {
-              //     showDetailsInput(context);
-              //   },
-              // ),
+              // SizedBox(height: AppSize(context).height * .02),
+              Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Image(
+                    image: AssetImage(
+                        widget.imageFoter ?? "assets/image/green.png"),
+                    fit: BoxFit.cover,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(AppSize(context).height * .015),
+                    child: Stack(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            showDetailsInput(context);
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              widget.isLoading == true
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator())
+                                  : Text(
+                                      widget.price ?? "JOD 90 / month",
+                                      style: TextStyle(
+                                        fontSize: AppSize(context).smallText1,
+                                        color: AppColors.blackColor1,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                              Container(
+                                height: AppSize(context).height * .05,
+                                width: AppSize(context).width * .5,
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: AppSize(context).width * .1),
+                                decoration: BoxDecoration(
+                                  color: widget.color,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  AppText(context).subscribeNow,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: AppSize(context).smallText1,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -215,18 +323,6 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                           fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  WidgetTextField(
-                    AppText(context).apartmentAge,
-                    controller: ageController,
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return AppText(context, isFunction: true).required;
-                      }
-                      return null;
-                    },
-                  ),
                   const SizedBox(height: 16),
                   WidgetTextField(
                     AppText(context).distanceFromCenter,
@@ -241,14 +337,16 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                   ),
                   const SizedBox(height: 20),
                   if (showCalculatedPrice)
-                    Text(
-                      "${AppText(context).calculatedPrice}: JOD $calculatedPrice",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors(context).primaryColor,
-                      ),
-                    ),
+                    loading2 == true
+                        ? const LoadingText(width: 100)
+                        : Text(
+                            "${AppText(context).calculatedPrice}: JOD $calculatedPrice",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors(context).primaryColor,
+                            ),
+                          ),
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -257,8 +355,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                           title: AppText(context).calculate,
                           onTap: () {
                             if (key.currentState!.validate()) {
-                              if (ageController.text.isEmpty ||
-                                  distanceController.text.isEmpty) {
+                              if (distanceController.text.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                       content: Text(AppText(context)
@@ -268,20 +365,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               }
 
                               // Calculate price based on inputs
-                              double basePrice = double.tryParse(widget.price
-                                          ?.replaceAll(
-                                              RegExp(r'[^0-9.]'), '') ??
-                                      '0') ??
-                                  0;
-                              int age = int.tryParse(ageController.text) ?? 0;
-                              int distance =
-                                  int.tryParse(distanceController.text) ?? 0;
-
-                              // Example calculation - adjust according to your business logic
-                              double ageFactor = age > 20 ? 1.2 : 1.0;
-                              double distanceFactor = distance > 10 ? 1.1 : 1.0;
-                              calculatedPrice =
-                                  (basePrice * ageFactor * distanceFactor);
+                              calculate(setState);
 
                               setState(() {
                                 showCalculatedPrice = true;
@@ -354,17 +438,30 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                         ),
                         const SizedBox(height: 10),
                         _paymentOption(
-                            "visa", "Visa", "assets/icon/visa.svg", set),
-                        _paymentOption("qlic", "Cliq",
-                            "assets/icon/final_cliq_logo-02_1.svg", set),
+                            "visa",
+                            AppText(context, isFunction: true).visa,
+                            "assets/icon/visa.svg",
+                            set),
                         _paymentOption(
-                            "wallet", "Wallet", "assets/icon/wallet.svg", set),
-                        _paymentOption("bitcoin", "BitCoin",
-                            "assets/icon/bitcoin-btc-logo.svg", set),
+                            "qlic",
+                            AppText(context, isFunction: true).cliq,
+                            "assets/icon/final_cliq_logo-02_1.svg",
+                            set),
                         _paymentOption(
-                            "Paybal", "Paybal", "assets/icon/paybal.svg", set),
-                        _paymentOption("later", "Buy Later",
-                            "assets/icon/delay_3360328.svg", set),
+                            "wallet",
+                            AppText(context, isFunction: true).wallet,
+                            "assets/icon/wallet.svg",
+                            set),
+                        _paymentOption(
+                            "Paybal",
+                            AppText(context, isFunction: true).paypal,
+                            "assets/icon/paybal.svg",
+                            set),
+                        _paymentOption(
+                            "later",
+                            "${AppText(context, isFunction: true).paylater}",
+                            "assets/icon/delay_3360328.svg",
+                            set),
                         const Divider(),
                         const SizedBox(height: 20),
                         CustomBotton(
@@ -383,6 +480,53 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                 );
               },
             ));
+  }
+
+  Future calculate(void Function(void Function()) setState) async {
+    setState(() {
+      loading2 = true;
+    });
+    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
+    try {
+      ProfileApis.calculateSubPrice(
+        token: appProvider.userModel?.token ?? "",
+        age: ageController.text,
+        area: distanceController.text,
+        packageId: widget.package?.id.toString() ?? "0",
+      ).then((value) {
+        setState(() {
+          appProvider.saveDateAndDistance({
+            "age": ageController.text,
+            "distance": distanceController.text,
+            "price": value.toString(),
+          });
+          calculatedPrice = value;
+          // packageModel = value;
+          loading2 = false;
+        });
+
+        // if (value == false) {
+        //   showDialog(
+        //     context: context,
+        //     builder: (context) {
+        //       return WidgetDialog(
+        //           onTap: () {
+        //             pop(context);
+        //             pop(context);
+        //           },
+        //           title: AppText(context, isFunction: true).warning,
+        //           desc: AppText(context, isFunction: true).contactUs,
+        //           isError: false);
+        //     },
+        //   );
+        // }
+      });
+    } catch (e) {
+      log(e.toString());
+      setState(() {
+        loading2 = false;
+      });
+    }
   }
 
   Widget _paymentOption(String value, String label, String icon,
