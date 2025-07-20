@@ -74,7 +74,7 @@ class PackagePackage {
   int? numberOnDemandVisit;
   int? numberOfFemalUse;
   int? totalvisit;
-  List<Feature> features;
+  List<Feature>? features;
 
   PackagePackage({
     required this.id,
@@ -108,7 +108,7 @@ class PackagePackage {
         numberOfFemalUse: json["numberOfFemalUse"],
         totalvisit: json["totalvisit"],
         features: List<Feature>.from(
-            json["features"].map((x) => Feature.fromJson(x))),
+            json["features"]?.map((x) => Feature.fromJson(x)) ?? []),
       );
 
   Map<String, dynamic> toJson() => {
@@ -125,7 +125,7 @@ class PackagePackage {
         "numberOnDemandVisit": numberOnDemandVisit,
         "numberOfFemalUse": numberOfFemalUse,
         "totalvisit": totalvisit,
-        "features": List<dynamic>.from(features.map((x) => x.toJson())),
+        "features": List<dynamic>.from(features?.map((x) => x.toJson()) ?? []),
       };
 }
 

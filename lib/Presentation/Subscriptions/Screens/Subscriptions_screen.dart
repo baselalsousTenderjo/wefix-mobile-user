@@ -98,7 +98,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    // const SizedBox(height: 20),
                     TabBar(
                       isScrollable: true,
                       indicatorColor: primaryColor,
@@ -112,7 +112,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               .toList() ??
                           [],
                     ),
-                    SizedBox(height: AppSize(context).height * .01),
+                    // SizedBox(height: AppSize(context).height * .01),
                     Expanded(
                       child: TabBarView(
                         children: packageModel?.packages

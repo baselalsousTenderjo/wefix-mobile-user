@@ -52,14 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // appProvider.userModel?.token == null
               //     ? const SizedBox()
               //     : const SavingCard(savingsAmount: 3000, goalAmount: 5000),
-              appProvider.userModel?.token == null
-                  ? const SizedBox()
-                  : WidgetCard(
-                      title: AppText(context).massages,
-                      onTap: () {
-                        Navigator.push(context, rightToLeft(const ListUser()));
-                      },
-                    ),
+
               appProvider.userModel?.token == null
                   ? const SizedBox()
                   : const SizedBox(

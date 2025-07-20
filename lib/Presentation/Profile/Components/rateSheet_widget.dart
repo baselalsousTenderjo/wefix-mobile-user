@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
+import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
 import 'package:wefix/Business/Reviews/reviews_api.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
@@ -105,14 +106,13 @@ class _MultiRateSheetState extends State<MultiRateSheet>
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.6,
+                  height: MediaQuery.of(context).size.height * 0.5,
                   child: PageView(
                     controller: _pageController,
                     physics: const NeverScrollableScrollPhysics(),
                     onPageChanged: (index) {
                       final answers =
                           context.read<AppProvider>().selectedAnswers;
-                      // Use the `answers` list as needed
                       print(answers);
                       setState(() {
                         _currentPage = index;
@@ -120,13 +120,23 @@ class _MultiRateSheetState extends State<MultiRateSheet>
                       });
                     },
                     children: [
-                      stepOne(context),
-                      stepTwo(
-                        context,
-                        image: selectedSvgPath,
-                        iconColor: selectedColor,
+                      // 👇 Wrap each step with SingleChildScrollView
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 40),
+                        child: stepOne(context),
                       ),
-                      stepThree(context),
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 40),
+                        child: stepTwo(
+                          context,
+                          image: selectedSvgPath,
+                          iconColor: selectedColor,
+                        ),
+                      ),
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 100),
+                        child: stepThree(context),
+                      ),
                       thankYouPage(context),
                     ],
                   ),
@@ -145,7 +155,7 @@ class _MultiRateSheetState extends State<MultiRateSheet>
                         textColor: AppColors(context).primaryColor,
                       ),
                     const Spacer(),
-                    if (_currentPage < 3)
+                    if (_currentPage < 3 && _currentPage != 0)
                       CustomBotton(
                         loading: isLoading,
                         title: _currentPage == 2
@@ -325,6 +335,9 @@ class _MultiRateSheetState extends State<MultiRateSheet>
 
   Widget stepTwo(BuildContext context,
       {String? image, Color? iconColor, String? title}) {
+    LanguageProvider languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
+
     return SingleChildScrollView(
       // ✅ Important: wrap everything to avoid overflow in PageView
       child: Column(
@@ -342,7 +355,7 @@ class _MultiRateSheetState extends State<MultiRateSheet>
               Expanded(
                 // ✅ Prevent Row overflow
                 child: Text(
-                  " ${AppText(context, isFunction: true).whatmadeyou} ${image?.contains("smile") ?? false ? "${AppText(context, isFunction: true).happy}" : image?.contains("sadface") ?? false ? "${AppText(context, isFunction: true).bad}" : "${AppText(context, isFunction: true).good}"}?",
+                  " ${AppText(context, isFunction: true).whatmadeyou} ${image?.contains("smile") ?? false ? "${AppText(context, isFunction: true).happy}" : image?.contains("sadface") ?? false ? "${AppText(context, isFunction: true).bad}" : "${AppText(context, isFunction: true).good} ${languageProvider.lang == "ar" ? "؟" : "?"}"}",
                   style: TextStyle(
                     fontSize: AppSize(context).smallText1,
                     fontWeight: FontWeight.bold,
@@ -353,7 +366,10 @@ class _MultiRateSheetState extends State<MultiRateSheet>
           ),
           const Divider(color: AppColors.backgroundColor),
           const SizedBox(height: 10),
-          ListView.builder(
+          ListView.separated(
+            separatorBuilder: (context, index) => const Divider(
+              color: AppColors.backgroundColor,
+            ),
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemCount: widget.questionsModel?.questions.length ?? 0,
@@ -363,7 +379,9 @@ class _MultiRateSheetState extends State<MultiRateSheet>
                   context.watch<AppProvider>().getRating(question.id);
 
               return ListRateTypeWidget(
-                title: question.title,
+                title: languageProvider.lang == "ar"
+                    ? question.titleAr
+                    : question.title,
                 selectedRating: selectedRating,
                 onRatingSelected: (rating) {
                   context.read<AppProvider>().selectAnswer(question.id, rating);

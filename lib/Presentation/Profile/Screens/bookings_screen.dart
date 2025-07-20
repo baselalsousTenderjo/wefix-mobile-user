@@ -62,7 +62,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 color: AppColors(context).primaryColor,
                 backgroundColor: AppColors.secoundryColor,
               )
-            : ticketModel?.tickets.isEmpty ?? true
+            : ((ticketModel?.tickets.isEmpty ?? true) || (ticketModel == null))
                 ? const EmptyScreen()
                 : ListView.builder(
                     padding: const EdgeInsets.all(10),

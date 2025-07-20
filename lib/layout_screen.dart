@@ -2,10 +2,8 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/appText/appText.dart';
-
 import 'package:wefix/Presentation/Home/Screens/home_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/contact_us_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/bookings_screen.dart';

@@ -45,8 +45,8 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    getActiveTicket();
     getAllHomeApis().then((value) {});
+    getActiveTicket();
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ],
       ),
-      body: (loading && loading2) == true
+      body: (loading) == true
           ? LinearProgressIndicator(
               color: AppColors(context).primaryColor,
               backgroundColor: AppColors.secoundryColor,
@@ -173,268 +173,290 @@ class _HomeScreenState extends State<HomeScreen>
                 children: [
                   SvgPicture.asset("assets/icon/background.svg"),
                   SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SliderWidget(
-                              images: homeModel?.sliders
-                                      .map((e) => e.image ?? "")
-                                      .toList() ??
-                                  []),
-                          const Divider(color: AppColors.backgroundColor),
-                          if (ticketModel?.tickets.isNotEmpty ?? false)
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "🔍 ${AppText(context).progressOverview}",
-                                  style: TextStyle(
-                                    fontSize: AppSize(context).smallText1,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                Padding(
-                                  padding: const EdgeInsets.all(0),
-                                  child: MaintenanceStepper(
-                                    currentStep: ticketModel!.tickets[0].isWithMaterial ==
-                                            true
-                                        ? (ticketModel!.tickets[0].process
-                                                    .toString()
-                                                    .toLowerCase() ==
-                                                "requested registered"
-                                            ? 0
-                                            : ticketModel!.tickets[0].process
-                                                        .toString()
-                                                        .toLowerCase() ==
-                                                    "preparing materials"
-                                                ? 1
-                                                : ticketModel!.tickets[0].process
+                    physics: const ClampingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        SliderWidget(
+                            images: homeModel?.sliders
+                                    .map((e) => e.image ?? "")
+                                    .toList() ??
+                                []),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Divider(color: AppColors.backgroundColor),
+                              if (ticketModel?.tickets.isNotEmpty ?? false)
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "🔍 ${AppText(context).progressOverview}",
+                                      style: TextStyle(
+                                        fontSize: AppSize(context).smallText1,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Padding(
+                                      padding: const EdgeInsets.all(0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          MaintenanceStepper(
+                                            currentStep: ticketModel!.tickets[0]
+                                                        .isWithMaterial ==
+                                                    true
+                                                ? (ticketModel!
+                                                            .tickets[0].process
                                                             .toString()
                                                             .toLowerCase() ==
-                                                        "waiting for confirmation"
-                                                    ? 2
-                                                    : ticketModel!.tickets[0].process
+                                                        "requested registered"
+                                                    ? 0
+                                                    : ticketModel!.tickets[0]
+                                                                .process
                                                                 .toString()
                                                                 .toLowerCase() ==
-                                                            "visit scheduled"
-                                                        ? 3
-                                                        : ticketModel!.tickets[0].process
+                                                            "preparing materials"
+                                                        ? 1
+                                                        : ticketModel!
+                                                                    .tickets[0]
+                                                                    .process
                                                                     .toString()
                                                                     .toLowerCase() ==
-                                                                "ready to visit"
-                                                            ? 4
-                                                            : ticketModel!
-                                                                        .tickets[0]
-                                                                        .process
+                                                                "waiting for confirmation"
+                                                            ? 2
+                                                            : ticketModel!.tickets[0].process
                                                                         .toString()
                                                                         .toLowerCase() ==
-                                                                    "visit completed"
-                                                                ? 5
+                                                                    "visit scheduled"
+                                                                ? 3
+                                                                : ticketModel!
+                                                                            .tickets[0]
+                                                                            .process
+                                                                            .toString()
+                                                                            .toLowerCase() ==
+                                                                        "ready to visit"
+                                                                    ? 4
+                                                                    : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
+                                                                        ? 5
+                                                                        : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
+                                                                            ? 6
+                                                                            : 0)
+                                                : (ticketModel!.tickets[0].process.toString().toLowerCase() == "requested registered"
+                                                    ? 0
+                                                    : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit scheduled"
+                                                        ? 1
+                                                        : ticketModel!.tickets[0].process.toString().toLowerCase() == "ready to visit"
+                                                            ? 2
+                                                            : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
+                                                                ? 3
                                                                 : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
-                                                                    ? 6
-                                                                    : 0)
-                                        : (ticketModel!.tickets[0].process.toString().toLowerCase() == "requested registered"
-                                            ? 0
-                                            : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit scheduled"
-                                                ? 1
-                                                : ticketModel!.tickets[0].process.toString().toLowerCase() == "ready to visit"
-                                                    ? 2
-                                                    : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
-                                                        ? 3
-                                                        : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
-                                                            ? 4
-                                                            : 0),
-                                    confirmationNote: ticketModel!
-                                                .tickets[0].isWithMaterial ==
-                                            true
-                                        ? ""
-                                        : "Without Approval",
-                                    // or 'Without Approval'
-                                  ),
-                                ),
-                                const Divider(
-                                  color: AppColors.backgroundColor,
-                                  height: 1,
-                                ),
-                              ],
-                            ),
-                          // SizedBox(height: AppSize(context).height * .02),
-                          ticketModel?.tickets.isEmpty ?? true
-                              ? const SizedBox()
-                              : Center(
-                                  child: SizedBox(
-                                    height: AppSize(context).height * .16,
-                                    width: AppSize(context).width,
-                                    child: ListView.separated(
-                                      separatorBuilder: (context, index) =>
-                                          const SizedBox(
-                                        width: 10,
-                                      ),
-                                      itemCount:
-                                          ticketModel?.tickets.length ?? 0,
-                                      shrinkWrap: true,
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder: (context, index) {
-                                        return AnimatedBorderContainer(
-                                          child: Container(
-                                            width: AppSize(context).width * .93,
-                                            height:
-                                                AppSize(context).height * .2,
-                                            decoration: BoxDecoration(
-                                              color: AppColors.whiteColor1,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(4.0),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  WidgetCachNetworkImage(
-                                                    width:
-                                                        AppSize(context).width *
-                                                            .3,
-                                                    height: AppSize(context)
-                                                            .height *
-                                                        .15,
-                                                    image: ticketModel
-                                                            ?.tickets[index]
-                                                            .qrCodePath ??
-                                                        "",
-                                                  ),
-                                                  const SizedBox(width: 10),
-                                                  Expanded(
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          languageProvider
-                                                                      .lang ==
-                                                                  "ar"
-                                                              ? ticketModel
-                                                                      ?.tickets[
-                                                                          index]
-                                                                      .descriptionAr ??
-                                                                  ""
-                                                              : ticketModel
-                                                                      ?.tickets[
-                                                                          index]
-                                                                      .description ??
-                                                                  "",
-                                                          maxLines: 3,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: TextStyle(
-                                                            fontSize:
-                                                                AppSize(context)
-                                                                    .smallText1,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            height: 10),
-                                                        Row(
-                                                          children: [
-                                                            Text("🕑 "),
-                                                            Text(
-                                                              ticketModel
-                                                                      ?.tickets[
-                                                                          index]
-                                                                      .selectedDateTime ??
-                                                                  "",
-                                                              style: TextStyle(
-                                                                fontSize: AppSize(
-                                                                        context)
-                                                                    .smallText2,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        const SizedBox(
-                                                            height: 5),
-                                                        Row(
-                                                          children: [
-                                                            Text("🗓 "),
-                                                            Text(
-                                                              ticketModel
-                                                                      ?.tickets[
-                                                                          index]
-                                                                      .selectedDate
-                                                                      .toString()
-                                                                      .substring(
-                                                                          0,
-                                                                          10) ??
-                                                                  "",
-                                                              style: TextStyle(
-                                                                fontSize: AppSize(
-                                                                        context)
-                                                                    .smallText2,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
+                                                                    ? 4
+                                                                    : 0),
+                                            confirmationNote: ticketModel!
+                                                        .tickets[0]
+                                                        .isWithMaterial ==
+                                                    true
+                                                ? ""
+                                                : "Without Approval",
+                                            // or 'Without Approval'
                                           ),
-                                        );
-                                      },
+                                        ],
+                                      ),
                                     ),
-                                  ),
+                                    const Divider(
+                                      color: AppColors.backgroundColor,
+                                      height: 1,
+                                    ),
+                                  ],
                                 ),
-                          SizedBox(height: AppSize(context).height * .02),
-                          Text(
-                            "🛠️ ${AppText(context).popularServices}",
-                            style: TextStyle(
-                              fontSize: AppSize(context).smallText1,
-                              fontWeight: FontWeight.bold,
-                            ),
+                              // SizedBox(height: AppSize(context).height * .02),
+                              ticketModel?.tickets.isEmpty ?? true
+                                  ? const SizedBox()
+                                  : Center(
+                                      child: SizedBox(
+                                        height: AppSize(context).height * .16,
+                                        width: AppSize(context).width,
+                                        child: ListView.separated(
+                                          separatorBuilder: (context, index) =>
+                                              const SizedBox(
+                                            width: 10,
+                                          ),
+                                          itemCount:
+                                              ticketModel?.tickets.length ?? 0,
+                                          shrinkWrap: true,
+                                          scrollDirection: Axis.horizontal,
+                                          itemBuilder: (context, index) {
+                                            return AnimatedBorderContainer(
+                                              child: Container(
+                                                width: AppSize(context).width *
+                                                    .93,
+                                                height:
+                                                    AppSize(context).height *
+                                                        .2,
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.whiteColor1,
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(4.0),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      WidgetCachNetworkImage(
+                                                        width: AppSize(context)
+                                                                .width *
+                                                            .3,
+                                                        height: AppSize(context)
+                                                                .height *
+                                                            .15,
+                                                        image: ticketModel
+                                                                ?.tickets[index]
+                                                                .qrCodePath ??
+                                                            "",
+                                                      ),
+                                                      const SizedBox(width: 10),
+                                                      Expanded(
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              languageProvider
+                                                                          .lang ==
+                                                                      "ar"
+                                                                  ? ticketModel
+                                                                          ?.tickets[
+                                                                              index]
+                                                                          .descriptionAr ??
+                                                                      ""
+                                                                  : ticketModel
+                                                                          ?.tickets[
+                                                                              index]
+                                                                          .description ??
+                                                                      "",
+                                                              maxLines: 3,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize: AppSize(
+                                                                        context)
+                                                                    .smallText1,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                height: 10),
+                                                            Row(
+                                                              children: [
+                                                                Text("🕑 "),
+                                                                Text(
+                                                                  ticketModel
+                                                                          ?.tickets[
+                                                                              index]
+                                                                          .selectedDateTime ??
+                                                                      "",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontSize: AppSize(
+                                                                            context)
+                                                                        .smallText2,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const SizedBox(
+                                                                height: 5),
+                                                            Row(
+                                                              children: [
+                                                                Text("🗓 "),
+                                                                Text(
+                                                                  ticketModel
+                                                                          ?.tickets[
+                                                                              index]
+                                                                          .selectedDate
+                                                                          .toString()
+                                                                          .substring(
+                                                                              0,
+                                                                              10) ??
+                                                                      "",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontSize: AppSize(
+                                                                            context)
+                                                                        .smallText2,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                              SizedBox(height: AppSize(context).height * .02),
+                              Text(
+                                "🛠️ ${AppText(context).popularServices}",
+                                style: TextStyle(
+                                  fontSize: AppSize(context).smallText1,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              OffersSection(
+                                services: homeModel?.servicePopular ?? [],
+                              ),
+                              const Divider(color: AppColors.backgroundColor),
+                              SizedBox(height: AppSize(context).height * .01),
+                              Text(
+                                "🎉 ${AppText(context).specialOffer}",
+                                style: TextStyle(
+                                  fontSize: AppSize(context).smallText1,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              InkWell(
+                                onTap: () {},
+                                child: PopularServicesSection(
+                                  services: homeModel?.serviceOffers ?? [],
+                                ),
+                              ),
+                              SizedBox(height: AppSize(context).height * .2),
+                            ],
                           ),
-                          const SizedBox(height: 5),
-                          OffersSection(
-                            services: homeModel?.servicePopular ?? [],
-                          ),
-                          const Divider(color: AppColors.backgroundColor),
-                          SizedBox(height: AppSize(context).height * .01),
-                          Text(
-                            "🎉 ${AppText(context).specialOffer}",
-                            style: TextStyle(
-                              fontSize: AppSize(context).smallText1,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          InkWell(
-                            onTap: () {},
-                            child: PopularServicesSection(
-                              services: homeModel?.serviceOffers ?? [],
-                            ),
-                          ),
-                          SizedBox(height: AppSize(context).height * .2),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
 

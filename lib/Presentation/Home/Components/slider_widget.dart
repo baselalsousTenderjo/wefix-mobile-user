@@ -22,14 +22,14 @@ class _SliderWidgetState extends State<SliderWidget> {
             borderRadius: BorderRadius.circular(10),
             child: WidgetCachNetworkImage(
               image: e,
-              boxFit: BoxFit.cover,
+              boxFit: BoxFit.fill,
             ),
           ),
         );
       }).toList(),
       options: CarouselOptions(
         height: AppSize(context).height * .2,
-        aspectRatio: .8,
+        aspectRatio: 1,
         initialPage: 0,
         enableInfiniteScroll: true,
         reverse: false,
@@ -38,7 +38,7 @@ class _SliderWidgetState extends State<SliderWidget> {
         autoPlayAnimationDuration: const Duration(milliseconds: 800),
         autoPlayCurve: Curves.fastEaseInToSlowEaseOut,
         enlargeCenterPage: true,
-        viewportFraction: .7,
+        viewportFraction: .85,
         scrollDirection: Axis.horizontal,
       ),
     );

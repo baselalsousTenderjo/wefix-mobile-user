@@ -2,201 +2,200 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
+import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/packages_model.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 
 class ComparisonScreen extends StatelessWidget {
   final List<PackagePackage> plans;
-
   const ComparisonScreen({super.key, required this.plans});
 
   @override
   Widget build(BuildContext context) {
-    LanguageProvider languageProvider =
+    final languageProvider =
         Provider.of<LanguageProvider>(context, listen: true);
+    final appText = AppText(context);
+    final primaryColor = AppColors(context).primaryColor;
 
     final comparisonFields = [
       {
         'key': 'numberOfUrgentVisits',
-        'label':
-            languageProvider.lang == 'ar' ? 'الزيارات الطارئة' : 'Urgent Visits'
+        'label': languageProvider.lang == 'ar'
+            ? '🚨 الزيارات الطارئة'
+            : '🚨 Urgent Visits'
       },
       {
         'key': 'numberOfRegularVisit',
         'label': languageProvider.lang == 'ar'
-            ? 'الزيارات العادية'
-            : 'Regular Visits'
+            ? '🧾 الزيارات العادية'
+            : '🧾 Regular Visits'
       },
       {
         'key': 'numberOnDemandVisit',
         'label': languageProvider.lang == 'ar'
-            ? 'زيارات عند الطلب'
-            : 'On-Demand Visits'
+            ? '📞 زيارات عند الطلب'
+            : '📞 On-Demand Visits'
       },
       {
         'key': 'numberOfFemalUse',
         'label': languageProvider.lang == 'ar'
-            ? 'الخدمة النسائية'
-            : 'Female Services'
+            ? '👩‍🔧 الخدمة النسائية'
+            : '👩‍🔧 Female Services'
       },
       {
         'key': 'consultation',
-        'label': languageProvider.lang == 'ar' ? 'الاستشارات' : 'Consultation'
+        'label':
+            languageProvider.lang == 'ar' ? '💬 الاستشارات' : '💬 Consultation'
       },
       {
         'key': 'interiorDesign',
-        'label':
-            languageProvider.lang == 'ar' ? 'الاستشارات' : 'Interior Design'
+        'label': languageProvider.lang == 'ar'
+            ? '🎨 تصميم داخلي'
+            : '🎨 Interior Design'
       },
       {
         'key': 'discount',
-        'label': languageProvider.lang == 'ar' ? 'الخصم' : 'Discount (%)'
+        'label':
+            languageProvider.lang == 'ar' ? '🏷️ الخصم' : '🏷️ Discount (%)'
       },
       {
         'key': 'totalvisit',
-        'label':
-            languageProvider.lang == 'ar' ? 'إجمالي الزيارات' : 'Total Visits'
+        'label': languageProvider.lang == 'ar'
+            ? '📊 إجمالي الزيارات'
+            : '📊 Total Visits'
       },
     ];
 
-    final primaryColor = AppColors(context).primaryColor;
-
     return Scaffold(
       appBar: AppBar(
-        actions: [const LanguageButton()],
-        title: Text("${AppText(context).comparePlans}"),
+        title: Text(
+          appText.comparePlans,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        actions: const [LanguageButton()],
       ),
-      backgroundColor: const Color(0xFFF5F7FA),
       body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(8),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               Row(
-                children: plans
-                    .map((plan) => Expanded(
-                          child: Column(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: primaryColor,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  plan.title ?? "",
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                "${plan.price.toString()} ${AppText(context).jODMonth}",
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w500),
-                              ),
-                            ],
-                          ),
-                        ))
-                    .toList(),
-              ),
-              const SizedBox(height: 24),
-              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      AppText(context).feature,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      plans[0].title ?? "",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      plans[1].title ?? "",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  const Expanded(child: SizedBox()),
+                  ...plans.map((plan) => Expanded(
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                plan.title ?? '',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: AppSize(context).smallText1,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "${plan.price} ${appText.jODMonth}",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
                 ],
               ),
-              const Divider(thickness: 1),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: comparisonFields.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (_, index) {
-                    final item = comparisonFields[index];
-                    final label = item['label']!;
-                    final key = item['key']!;
-                    final val1 = getNumericValue(plans[0], key);
-                    final val2 = getNumericValue(plans[1], key);
+              const SizedBox(height: 24),
+              Column(
+                children: comparisonFields.map((field) {
+                  final label = field['label']!;
+                  final key = field['key']!;
+                  final values = plans.map((p) => getRawValue(p, key)).toList();
+                  final numericValues =
+                      values.map((v) => getNumericForComparison(v)).toList();
+                  final maxValue =
+                      numericValues.reduce((a, b) => a > b ? a : b);
 
-                    return Row(
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
                           child: Text(
                             label,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              val1.toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: val1 > val2
-                                    ? Colors.green
-                                    : (val1 < val2
-                                        ? Colors.red
-                                        : Colors.grey[800]),
-                              ),
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontSize: AppSize(context).smallText3,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              val2.toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: val2 > val1
-                                    ? Colors.green
-                                    : (val2 < val1
-                                        ? Colors.red
-                                        : Colors.grey[800]),
+                        ...values.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final value = entry.value;
+                          final numeric = numericValues[index];
+
+                          return Expanded(
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: numeric == maxValue && maxValue != 0
+                                      ? primaryColor.withOpacity(0.1)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  getValueDisplay(value, key),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: numeric == maxValue && maxValue != 0
+                                        ? primaryColor
+                                        : Colors.black87,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }),
                       ],
-                    );
-                  },
-                ),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
@@ -205,26 +204,44 @@ class ComparisonScreen extends StatelessWidget {
     );
   }
 
-  int getNumericValue(PackagePackage plan, String key) {
+  /// Gets the raw value from the JSON
+  dynamic getRawValue(PackagePackage plan, String key) {
     try {
-      final value = plan.toJson()[key];
-      return value is int ? value : int.tryParse(value.toString()) ?? 0;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  String getRawStringValue(PackagePackage plan, String key) {
-    try {
-      final value = plan.toJson()[key];
-      return value?.toString() ?? '';
+      return plan.toJson()[key];
     } catch (_) {
-      return '';
+      return null;
     }
   }
 
-  int extractNumber(String text) {
-    final match = RegExp(r'\d+').firstMatch(text);
-    return match != null ? int.parse(match.group(0)!) : 0;
+  /// Converts raw value to a display string with formatting
+  String getValueDisplay(dynamic value, String key) {
+    if (value == null) return "-";
+
+    if (value is bool) return value ? "✅" : "❌";
+
+    if (value is int || value is double) {
+      if (key == "discount" || key == "الخصم") {
+        return "$value%";
+      }
+      return "$value";
+    }
+
+    String stringValue = value.toString().toLowerCase();
+    if (["yes", "true", "1"].contains(stringValue)) return "✅";
+    if (["no", "false", "0"].contains(stringValue)) return "❌";
+
+    return stringValue;
+  }
+
+  /// Converts value to numeric for comparison logic
+  int getNumericForComparison(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+
+    String stringValue = value.toString().toLowerCase();
+    if (["yes", "true", "1"].contains(stringValue)) return 1;
+    if (["no", "false", "0"].contains(stringValue)) return 0;
+
+    return 0;
   }
 }

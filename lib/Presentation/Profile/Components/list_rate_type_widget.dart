@@ -25,15 +25,18 @@ class ListRateTypeWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(
-                width: AppSize(context).width * 0.5,
+              Expanded(
                 child: Text(
                   title ?? "",
                   style: TextStyle(
-                    fontSize: AppSize(context).mediumText3,
+                    fontSize: AppSize(context).smallText1,
+                    fontWeight: FontWeight.bold,
                     color: AppColors(context).primaryColor,
                   ),
                 ),
+              ),
+              SizedBox(
+                width: 10,
               ),
               Row(
                 children: [
@@ -72,7 +75,7 @@ class ListRateTypeWidget extends StatelessWidget {
     return InkWell(
       onTap: () => onRatingSelected?.call(label),
       child: Container(
-        padding: const EdgeInsets.all(2),
+        padding: const EdgeInsets.all(0),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isSelected ? color.withOpacity(0.2) : Colors.transparent,
@@ -80,8 +83,8 @@ class ListRateTypeWidget extends StatelessWidget {
         child: SvgPicture.asset(
           iconPath,
           color: isSelected ? color : color.withOpacity(0.5),
-          width: 30,
-          height: 30,
+          width: 25,
+          height: 25,
         ),
       ),
     );

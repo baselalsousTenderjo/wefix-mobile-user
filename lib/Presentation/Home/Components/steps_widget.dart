@@ -17,9 +17,9 @@ class MaintenanceStepper extends StatelessWidget {
 
     // Base steps without the two conditional ones
     final List<_StepData> baseSteps = [
-      _StepData(AppText(context).requestRegistered,
-          Icons.assignment_turned_in_outlined),
-      _StepData(AppText(context).visitScheduled, Icons.calendar_today_outlined),
+      // _StepData(AppText(context).requestRegistered,
+      //     Icons.assignment_turned_in_outlined),
+      // _StepData(AppText(context).visitScheduled, Icons.calendar_today_outlined),
       _StepData(AppText(context).readytoVisit, Icons.directions_run_outlined),
       _StepData(AppText(context).visitCompleted, Icons.check_circle_outline),
       _StepData(AppText(context).awaitingRating, Icons.star_outline),

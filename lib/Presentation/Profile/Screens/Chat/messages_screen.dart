@@ -296,9 +296,6 @@ class _CommentsScreenByIdState extends State<CommentsScreenById> {
                                                                         [
                                                                         "message"] ??
                                                                     "",
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .right,
                                                                 maxLines: 20,
                                                                 overflow:
                                                                     TextOverflow

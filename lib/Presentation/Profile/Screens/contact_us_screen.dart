@@ -7,12 +7,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 
 import 'package:wefix/Business/Contact/contact_apis.dart';
+import 'package:wefix/Business/Reviews/reviews_api.dart';
 
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/contact_model.dart';
+import 'package:wefix/Data/model/questions_model.dart';
 import 'package:wefix/Presentation/Profile/Components/rateSheet_widget.dart';
 import 'package:wefix/Presentation/appointment/Components/google_maps_widget.dart';
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
@@ -36,6 +38,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
   bool loading3 = false;
 
   ContactModel? infoContactModel;
+  QuestionsModel? questionsModel;
 
   TextEditingController name = TextEditingController();
   TextEditingController email = TextEditingController();
@@ -48,6 +51,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
   void initState() {
     // TODO: implement initState
     getContactInfo();
+    getQuestions();
   }
 
   @override
@@ -61,8 +65,11 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
           onTap: () {
             showModalBottomSheet(
               context: context,
+              isScrollControlled: true,
               builder: (context) {
-                return const MultiRateSheet();
+                return MultiRateSheet(
+                  questionsModel: questionsModel,
+                );
               },
             );
           },
@@ -94,7 +101,9 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                     title: AppText(context).emergency,
                     children: [
                       _listTile(
-                          AppText(context).callforemergency,
+                          infoContactModel?.languages.emegancyPhone
+                                  .toString() ??
+                              "",
                           const Icon(
                             Icons.call,
                             color: AppColors.redColor,
@@ -103,24 +112,24 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                           Colors.red,
                           "tel:"),
                       _listTile(
-                          "${infoContactModel?.languages.emegancyPhone}",
-                          const Icon(
-                            Icons.support_agent,
-                            color: AppColors.greenColor,
+                          "${infoContactModel?.languages.email}",
+                          Icon(
+                            Icons.mail,
+                            color: AppColors(context).primaryColor,
                           ),
                           AppText(context).send,
                           Colors.green,
                           "mailto:"),
                       _listTile(
-                          "${infoContactModel?.languages.whatsapp ?? "0798100944"}",
+                          infoContactModel?.languages.whatsapp ?? "0798100944",
                           SvgPicture.asset(
                             "assets/icon/whatsapp.svg",
-                            height: 25,
-                            width: 25,
+                            height: 20,
+                            width: 20,
                           ),
                           AppText(context).send,
                           Colors.green,
-                          "https://wa.me/${infoContactModel?.languages.whatsapp ?? "+962798100944"}?text=Hello, I'm interested in your maintenance services. Could you please provide more details about your offerings?"),
+                          "https://wa.me/${infoContactModel?.languages.whatsapp ?? "+962798100944"}?text=مرحبااا ، أنا حاب أعرف أكتر عن خدمات الصيانة اللي بتقدموها. ممكن تحكولي شو العروض المتوفرة عندكم؟"),
                     ],
                   ),
                   spacing,
@@ -201,13 +210,13 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                           _launchUrl(
                               infoContactModel?.languages.facebook ?? "0");
                         }),
-                        _actionItem(
-                            "assets/icon/instagram.svg", "Instagram", "Follow",
-                            () {
+                        _actionItem("assets/icon/instagram-svgrepo-com.svg",
+                            "Instagram", "Follow", () {
                           _launchUrl(
                               infoContactModel?.languages.instagram ?? "0");
                         }),
-                        _actionItem("assets/icon/x.svg", "X", "Follow", () {
+                        _actionItem("assets/icon/linkedin-svgrepo-com.svg",
+                            "linkedin", "Follow", () {
                           _launchUrl(
                               infoContactModel?.languages.twitter ?? "0");
                         }),
@@ -272,6 +281,27 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
     }
   }
 
+  Future getQuestions() async {
+    setState(() {
+      loading = true;
+    });
+    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
+    try {
+      ReviewsApi.getQuestionsReviews(token: appProvider.userModel?.token ?? "")
+          .then((value) {
+        setState(() {
+          questionsModel = value;
+          loading = false;
+        });
+      });
+    } catch (e) {
+      log(e.toString());
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
   Future addContactInfo() async {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     setState(() => loading3 = true);
@@ -318,14 +348,20 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
 
   Widget _listTile(
       String text, Widget icon, String action, Color color, String? type) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: icon,
-      title: Text(text),
-      trailing: TextButton(
-        onPressed: () => _launchUrl("${type ?? "tel:"}$text"),
-        child: Text(action,
-            style: TextStyle(color: AppColors(context).primaryColor)),
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: icon,
+        title: Text(
+          text,
+          textAlign: TextAlign.start,
+        ),
+        trailing: TextButton(
+          onPressed: () => _launchUrl("${type ?? "tel:"}$text"),
+          child: Text(action,
+              style: TextStyle(color: AppColors(context).primaryColor)),
+        ),
       ),
     );
   }
@@ -337,15 +373,15 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
         onTap: onTap,
         child: Column(
           children: [
-            CircleAvatar(
-              backgroundColor: AppColors(context).primaryColor.withOpacity(0.1),
-              radius: 28,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: SvgPicture.asset(icon),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: SvgPicture.asset(
+                icon,
+                height: AppSize(context).height * .05,
+                width: AppSize(context).height * .05,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             Text(label,
                 style: TextStyle(
                     fontWeight: FontWeight.bold,

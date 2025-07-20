@@ -87,7 +87,7 @@ class _ServicesWidgetState extends State<ServicesWidget> {
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           mainAxisSpacing: 5,
@@ -141,7 +141,8 @@ class _ServicesWidgetState extends State<ServicesWidget> {
                   ),
                   // const SizedBox(height: 8),
                   SizedBox(
-                    width: AppSize(context).width * .2, // Set appropriate width
+                    width:
+                        AppSize(context).width * .25, // Set appropriate width
                     child: Text(
                       languageProvider.lang == "ar"
                           ? widget.categories[index].titleAr ?? ""

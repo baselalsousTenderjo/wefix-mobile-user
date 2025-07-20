@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '115771809459',
     projectId: 'wefix-16eac',
     storageBucket: 'wefix-16eac.firebasestorage.app',
-    iosBundleId: 'com.example.wefixapp',
+    iosBundleId: 'com.tenderjo.wefixapp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '115771809459',
     projectId: 'wefix-16eac',
     storageBucket: 'wefix-16eac.firebasestorage.app',
-    iosBundleId: 'com.example.wefixapp',
+    iosBundleId: 'com.tenderjo.wefixapp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

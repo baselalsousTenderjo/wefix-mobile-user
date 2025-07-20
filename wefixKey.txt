@@ -1,0 +1,3 @@
+C:\Users\Abdallah\Desktop\Tender Jo Application\wefixapp\wefix-key.jks
+alias: wefix
+pass :wefix2025

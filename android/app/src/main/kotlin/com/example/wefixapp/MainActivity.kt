@@ -1,4 +1,4 @@
-package com.example.wefixapp
+package com.tenderjo.wefixapp
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

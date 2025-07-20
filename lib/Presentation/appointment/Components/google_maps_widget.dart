@@ -93,7 +93,7 @@ class _WidgewtGoogleMapsState extends State<WidgewtGoogleMaps> {
                 ? BorderRadius.circular(10)
                 : BorderRadius.circular(0),
             child: GoogleMap(
-                mapToolbarEnabled: widget.isFromCheckOut == true ? false : true,
+                mapToolbarEnabled: true,
                 scrollGesturesEnabled:
                     widget.isFromCheckOut == true ? false : true,
                 myLocationEnabled: widget.isFromCheckOut == true ? false : true,
