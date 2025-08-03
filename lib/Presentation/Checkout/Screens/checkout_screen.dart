@@ -51,7 +51,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   List<Placemark> placemarks = [];
   @override
   void initState() {
-    googleSignIn?.signOut();
+    // googleSignIn?.signOut();
     AppProvider appProvider = Provider.of(context, listen: false);
     setState(() {
       isFemale =
@@ -76,6 +76,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String selectedPayment = 'visa';
   double? discountAmount;
   double? totalafterDiscount;
+  double? totalDiscountAmount;
+
   static GoogleSignIn? googleSignIn = GoogleSignIn(
     scopes: [
       'email',
@@ -108,7 +110,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> addAppointmentToGoogleCalendar({
     required String date, // e.g. "2025-07-27"
-    required String time, // e.g. "12:00 - 02:00 PM"
+    required String time, // e.g. "8:00 - 10:00 AM"
     String? address,
     String? serviceName,
   }) async {
@@ -124,39 +126,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    // Parse the date string to DateTime (date only)
-    final DateTime dateOnly = DateTime.parse(date); // 2025-07-27 00:00:00
+    // Parse the date part
+    final DateTime dateOnly = DateTime.parse(date); // 2025-07-27
 
-    // Parse the time range string "12:00 - 02:00 PM"
-    // We'll extract start and end time strings separately:
-    final timeParts = time.split('-').map((t) => t.trim()).toList();
-    if (timeParts.length != 2) {
-      print("❌ Time format incorrect. Expected format 'HH:mm - HH:mm AM/PM'");
+    // Define fixed slot mapping
+    final Map<String, List<TimeOfDay>> timeSlots = {
+      "08:00 - 10:00 AM": [
+        const TimeOfDay(hour: 8, minute: 0),
+        const TimeOfDay(hour: 10, minute: 0)
+      ],
+      "10:00 - 12:00 AM": [
+        const TimeOfDay(hour: 10, minute: 0),
+        const TimeOfDay(hour: 12, minute: 0)
+      ], // This is actually 10 AM to 12 PM
+
+      "12:00 - 02:00 PM": [
+        const TimeOfDay(hour: 12, minute: 0),
+        const TimeOfDay(hour: 14, minute: 0)
+      ],
+      "02:00 - 04:00 PM": [
+        const TimeOfDay(hour: 14, minute: 0),
+        const TimeOfDay(hour: 16, minute: 0)
+      ],
+      "04:00 - 06:00 PM": [
+        const TimeOfDay(hour: 16, minute: 0),
+        const TimeOfDay(hour: 18, minute: 0)
+      ],
+    };
+
+    if (!timeSlots.containsKey(time)) {
+      print("❌ Unsupported time slot: $time");
       return;
     }
 
-    final String startTimeStr = timeParts[0]; // e.g. "12:00"
-    final String endTimeStr = timeParts[1]; // e.g. "02:00 PM"
+    final start = timeSlots[time]![0];
+    final end = timeSlots[time]![1];
 
-    // We need to combine with AM/PM part from endTimeStr, since startTimeStr misses it
-    // Extract AM/PM from endTimeStr
-    final ampmMatch =
-        RegExp(r'(AM|PM)', caseSensitive: false).firstMatch(endTimeStr);
-    final ampm = ampmMatch?.group(0) ?? 'AM';
-
-    final String startTimeWithAmPm = '$startTimeStr $ampm';
-    final String endTimeWithAmPm = endTimeStr;
-
-    DateTime parseTime(String timeStr) {
-      final format = DateFormat.jm();
-      final timeParsed = format.parse(timeStr);
-
-      return DateTime(dateOnly.year, dateOnly.month, dateOnly.day,
-          timeParsed.hour, timeParsed.minute);
-    }
-
-    final DateTime startDateTime = parseTime(startTimeWithAmPm);
-    final DateTime endDateTime = parseTime(endTimeWithAmPm);
+    final DateTime startDateTime = DateTime(
+        dateOnly.year, dateOnly.month, dateOnly.day, start.hour, start.minute);
+    final DateTime endDateTime = DateTime(
+        dateOnly.year, dateOnly.month, dateOnly.day, end.hour, end.minute);
 
     final client = GoogleHttpClient(authHeaders);
     final calendarApi = calendar.CalendarApi(client);
@@ -166,16 +175,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       colorId: "1",
       reminders: calendar.EventReminders(
         useDefault: false,
-        // overrides: [
-        //   calendar.EventReminder(
-        //     method: 'popup',
-        //     minutes: 30,
-        //   ),
-        //   calendar.EventReminder(
-        //     method: 'popup',
-        //     minutes: 5,
-        //   ),
-        // ],
+        overrides: [
+          calendar.EventReminder(method: 'popup', minutes: 30),
+          calendar.EventReminder(method: 'popup', minutes: 5),
+        ],
       ),
       description: serviceName ?? 'Service Appointment',
       start: calendar.EventDateTime(
@@ -494,7 +497,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                             ((appProvider.advantages["totalPrice"] != null))
                                 ? appProvider.advantages["totalPrice"] == 0.0
-                                    ? SizedBox()
+                                    ? const SizedBox()
                                     : PaymentSummaryWidget(
                                         title: AppText(context).services,
                                         value:
@@ -543,7 +546,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ),
 
                             appProvider.isMaterialFromProvider == false
-                                ? SizedBox()
+                                ? const SizedBox()
                                 : Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
@@ -955,6 +958,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       "RealEstateId": appProvider.realStateId ?? 0,
       "NumberOfTicket": numberOfTickets,
       "AdvantageTicket": appProvider.advantages["advantages"] ?? [],
+      "DiscountAmount": totalDiscountAmount ?? 0,
     };
 
     if (mounted) {
@@ -1155,9 +1159,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             totalafterDiscount = appProvider.appoitmentInfo["totalPrice"] -
                 (appProvider.appoitmentInfo["totalPrice"] *
                     (double.parse(value["percantage"].toString()) / 100));
+            totalDiscountAmount =
+                appProvider.appoitmentInfo["totalPrice"] - totalafterDiscount!;
+
             const snackBar = SnackBar(
               content: Text('Your promo code has been applied successfully'),
             );
+            log("Total discount: $totalDiscountAmount");
 
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
           } else {

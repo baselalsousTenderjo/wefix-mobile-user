@@ -432,72 +432,83 @@ class _SubServicesScreenState extends State<SubServicesScreen> {
 
                         // Tab View
                         Expanded(
-                          child: TabBarView(
-                            children: [
-                              _dateTimeContent(setModalState),
-                              Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const SizedBox(),
-                                  Center(
-                                    child: Text(
-                                        AppText(context, isFunction: true)
-                                            .estimatedTimeToArrivalminutes),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: CustomBotton(
-                                      title: AppText(context, isFunction: true)
-                                          .continuesss,
-                                      loading: loading6,
-                                      onTap: () {
-                                        setModalState(() {
-                                          loading6 = true;
-                                        });
-                                        chaeckAvalable().then((value) {
+                          child: SafeArea(
+                            child: TabBarView(
+                              children: [
+                                _dateTimeContent(setModalState),
+                                Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(),
+                                    Center(
+                                      child: Text(
+                                          AppText(context, isFunction: true)
+                                              .estimatedTimeToArrivalminutes),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: CustomBotton(
+                                        title:
+                                            AppText(context, isFunction: true)
+                                                .continuesss,
+                                        loading: loading6,
+                                        onTap: () {
                                           setModalState(() {
-                                            loading6 = false;
+                                            loading6 = true;
                                           });
-                                          if (status == false) {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return WidgetDialog(
-                                                    title: AppText(context,
-                                                            isFunction: true)
-                                                        .warning,
-                                                    desc: AppText(context,
-                                                            isFunction: true)
-                                                        .wearesorryapp,
-                                                    isError: true);
-                                              },
-                                            );
-                                          } else {
-                                            Navigator.pop(context);
-                                            AppProvider appProvider =
-                                                Provider.of<AppProvider>(
-                                                    context,
-                                                    listen: false);
-
-                                            appProvider.saveAppoitmentInfo({
-                                              "TicketTypeId": 1,
-                                              "date": DateTime.now(),
-                                              "time": "After 90 - 120 minutes",
-                                              "services": serviceId,
-                                              "totalPrice": totalPrice,
-                                              "totalTickets": totalTickets,
-                                              "gender": "Male",
+                                          chaeckAvalable().then((value) {
+                                            setModalState(() {
+                                              loading6 = false;
                                             });
+                                            if (status == false) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return WidgetDialog(
+                                                      title: AppText(context,
+                                                              isFunction: true)
+                                                          .warning,
+                                                      desc: AppText(context,
+                                                              isFunction: true)
+                                                          .wearesorryapp,
+                                                      isError: true);
+                                                },
+                                              );
+                                            } else {
+                                              Navigator.pop(context);
+                                              AppProvider appProvider =
+                                                  Provider.of<AppProvider>(
+                                                      context,
+                                                      listen: false);
 
-                                            if (subsicripeModel?.status ==
-                                                true) {
-                                              if ((subsicripeModel?.objSubscribe
-                                                          ?.emeregencyVisit ??
-                                                      0) <=
-                                                  0) {
-                                                showUpgradeDialog(context);
+                                              appProvider.saveAppoitmentInfo({
+                                                "TicketTypeId": 1,
+                                                "date": DateTime.now(),
+                                                "time":
+                                                    "After 90 - 120 minutes",
+                                                "services": serviceId,
+                                                "totalPrice": totalPrice,
+                                                "totalTickets": totalTickets,
+                                                "gender": "Male",
+                                              });
+
+                                              if (subsicripeModel?.status ==
+                                                  true) {
+                                                if ((subsicripeModel
+                                                            ?.objSubscribe
+                                                            ?.emeregencyVisit ??
+                                                        0) <=
+                                                    0) {
+                                                  showUpgradeDialog(context);
+                                                } else {
+                                                  Navigator.push(
+                                                    context,
+                                                    downToTop(
+                                                        const UploadOptionsScreen()),
+                                                  );
+                                                }
                                               } else {
                                                 Navigator.push(
                                                   context,
@@ -505,21 +516,15 @@ class _SubServicesScreenState extends State<SubServicesScreen> {
                                                       const UploadOptionsScreen()),
                                                 );
                                               }
-                                            } else {
-                                              Navigator.push(
-                                                context,
-                                                downToTop(
-                                                    const UploadOptionsScreen()),
-                                              );
                                             }
-                                          }
-                                        });
-                                      },
+                                          });
+                                        },
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -610,8 +615,8 @@ class _SubServicesScreenState extends State<SubServicesScreen> {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     return SafeArea(
       child: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Column(
             children: [

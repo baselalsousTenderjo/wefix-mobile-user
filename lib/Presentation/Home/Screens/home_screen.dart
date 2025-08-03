@@ -23,6 +23,7 @@ import 'package:wefix/Presentation/Home/Components/special_offer_widget.dart';
 import 'package:wefix/Presentation/Home/Components/steps_widget.dart';
 import 'package:wefix/Presentation/Home/components/slider_widget.dart';
 import 'package:wefix/Presentation/Profile/Screens/notifications_screen.dart';
+import 'package:wefix/Presentation/SubCategory/Screens/sub_services_screen.dart';
 import 'package:wefix/Presentation/appointment/Components/border_animated_widget.dart';
 import 'package:wefix/layout_screen.dart';
 
@@ -65,6 +66,13 @@ class _HomeScreenState extends State<HomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward(); // Start animation on screen load
     });
+  }
+
+  getCatId() {
+    for (SliderModel element in homeModel?.sliders ?? []) {
+      log("Category ID: ${element.categoryId}");
+      return element.categoryId;
+    }
   }
 
   @override
@@ -177,6 +185,10 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Column(
                       children: [
                         SliderWidget(
+                            catId: homeModel?.sliders
+                                    .map((e) => e.categoryId ?? 0)
+                                    .toList() ??
+                                [],
                             images: homeModel?.sliders
                                     .map((e) => e.image ?? "")
                                     .toList() ??
@@ -208,65 +220,194 @@ class _HomeScreenState extends State<HomeScreen>
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
                                         children: [
-                                          MaintenanceStepper(
-                                            currentStep: ticketModel!.tickets[0]
-                                                        .isWithMaterial ==
-                                                    true
-                                                ? (ticketModel!
-                                                            .tickets[0].process
-                                                            .toString()
-                                                            .toLowerCase() ==
-                                                        "requested registered"
-                                                    ? 0
-                                                    : ticketModel!.tickets[0]
+                                          appProvider.lang == "en"
+                                              ? Column(
+                                                  children: [
+                                                    ticketModel!.tickets[0]
                                                                 .process
                                                                 .toString()
                                                                 .toLowerCase() ==
-                                                            "preparing materials"
-                                                        ? 1
+                                                            "request registered"
+                                                        ? Image.asset(
+                                                            "assets/image/1en.png",
+                                                            width:
+                                                                AppSize(context)
+                                                                        .width *
+                                                                    .9,
+                                                          )
                                                         : ticketModel!
                                                                     .tickets[0]
                                                                     .process
                                                                     .toString()
                                                                     .toLowerCase() ==
-                                                                "waiting for confirmation"
-                                                            ? 2
-                                                            : ticketModel!.tickets[0].process
+                                                                "visit scheduled"
+                                                            ? Image.asset(
+                                                                "assets/image/2en.png",
+                                                                width: AppSize(
+                                                                            context)
+                                                                        .width *
+                                                                    .9,
+                                                              )
+                                                            : ticketModel!
+                                                                        .tickets[
+                                                                            0]
+                                                                        .process
                                                                         .toString()
                                                                         .toLowerCase() ==
-                                                                    "visit scheduled"
-                                                                ? 3
+                                                                    "ready to visit"
+                                                                ? Image.asset(
+                                                                    "assets/image/3en.png",
+                                                                    width: AppSize(context)
+                                                                            .width *
+                                                                        .9,
+                                                                  )
                                                                 : ticketModel!
-                                                                            .tickets[0]
+                                                                            .tickets[
+                                                                                0]
                                                                             .process
                                                                             .toString()
                                                                             .toLowerCase() ==
-                                                                        "ready to visit"
-                                                                    ? 4
-                                                                    : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
-                                                                        ? 5
-                                                                        : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
-                                                                            ? 6
-                                                                            : 0)
-                                                : (ticketModel!.tickets[0].process.toString().toLowerCase() == "requested registered"
-                                                    ? 0
-                                                    : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit scheduled"
-                                                        ? 1
-                                                        : ticketModel!.tickets[0].process.toString().toLowerCase() == "ready to visit"
-                                                            ? 2
-                                                            : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
-                                                                ? 3
-                                                                : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
-                                                                    ? 4
-                                                                    : 0),
-                                            confirmationNote: ticketModel!
-                                                        .tickets[0]
-                                                        .isWithMaterial ==
-                                                    true
-                                                ? ""
-                                                : "Without Approval",
-                                            // or 'Without Approval'
-                                          ),
+                                                                        "awaiting rating"
+                                                                    ? Image
+                                                                        .asset(
+                                                                        "assets/image/4en.png",
+                                                                        width: AppSize(context).width *
+                                                                            .9,
+                                                                      )
+                                                                    : ticketModel!.tickets[0].isWithMaterial ==
+                                                                            true
+                                                                        ? Image
+                                                                            .asset(
+                                                                            "assets/image/4en.png",
+                                                                            width:
+                                                                                AppSize(context).width * .9,
+                                                                          )
+                                                                        : const SizedBox()
+                                                  ],
+                                                )
+                                              : Column(
+                                                  children: [
+                                                    ticketModel!.tickets[0]
+                                                                .process
+                                                                .toString()
+                                                                .toLowerCase() ==
+                                                            "request registered"
+                                                        ? Image.asset(
+                                                            "assets/image/1-01-01.png",
+                                                            width:
+                                                                AppSize(context)
+                                                                        .width *
+                                                                    .9,
+                                                          )
+                                                        : ticketModel!
+                                                                    .tickets[0]
+                                                                    .process
+                                                                    .toString()
+                                                                    .toLowerCase() ==
+                                                                "visit scheduled"
+                                                            ? Image.asset(
+                                                                "assets/image/2-01-01.png",
+                                                                width: AppSize(
+                                                                            context)
+                                                                        .width *
+                                                                    .9,
+                                                              )
+                                                            : ticketModel!
+                                                                        .tickets[
+                                                                            0]
+                                                                        .process
+                                                                        .toString()
+                                                                        .toLowerCase() ==
+                                                                    "ready to visit"
+                                                                ? Image.asset(
+                                                                    "assets/image/3-01-01.png",
+                                                                    width: AppSize(context)
+                                                                            .width *
+                                                                        .9,
+                                                                  )
+                                                                : ticketModel!
+                                                                            .tickets[
+                                                                                0]
+                                                                            .process
+                                                                            .toString()
+                                                                            .toLowerCase() ==
+                                                                        "awaiting rating"
+                                                                    ? Image
+                                                                        .asset(
+                                                                        "assets/image/4-01-01.png",
+                                                                        width: AppSize(context).width *
+                                                                            .9,
+                                                                      )
+                                                                    : ticketModel!.tickets[0].isWithMaterial ==
+                                                                            true
+                                                                        ? Image
+                                                                            .asset(
+                                                                            "assets/image/5-01.png",
+                                                                            width:
+                                                                                AppSize(context).width * .9,
+                                                                          )
+                                                                        : const SizedBox(),
+                                                  ],
+                                                )
+                                          // MaintenanceStepper(
+                                          //   currentStep: ticketModel!.tickets[0]
+                                          //               .isWithMaterial ==
+                                          //           true
+                                          //       ? (ticketModel!
+                                          //                   .tickets[0].process
+                                          //                   .toString()
+                                          //                   .toLowerCase() ==
+                                          //               "requested registered"
+                                          //           ? 0
+                                          //           : ticketModel!.tickets[0]
+                                          //                       .process
+                                          //                       .toString()
+                                          //                       .toLowerCase() ==
+                                          //                   "preparing materials"
+                                          //               ? 1
+                                          //               : ticketModel!
+                                          //                           .tickets[0]
+                                          //                           .process
+                                          //                           .toString()
+                                          //                           .toLowerCase() ==
+                                          //                       "waiting for confirmation"
+                                          //                   ? 2
+                                          //                   : ticketModel!.tickets[0].process
+                                          //                               .toString()
+                                          //                               .toLowerCase() ==
+                                          //                           "visit scheduled"
+                                          //                       ? 3
+                                          //                       : ticketModel!
+                                          //                                   .tickets[0]
+                                          //                                   .process
+                                          //                                   .toString()
+                                          //                                   .toLowerCase() ==
+                                          //                               "ready to visit"
+                                          //                           ? 4
+                                          //                           : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
+                                          //                               ? 5
+                                          //                               : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
+                                          //                                   ? 6
+                                          //                                   : 0)
+                                          //       : (ticketModel!.tickets[0].process.toString().toLowerCase() == "requested registered"
+                                          //           ? 0
+                                          //           : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit scheduled"
+                                          //               ? 1
+                                          //               : ticketModel!.tickets[0].process.toString().toLowerCase() == "ready to visit"
+                                          //                   ? 2
+                                          //                   : ticketModel!.tickets[0].process.toString().toLowerCase() == "visit completed"
+                                          //                       ? 3
+                                          //                       : ticketModel!.tickets[0].process.toString().toLowerCase() == "awaiting rating"
+                                          //                           ? 4
+                                          //                           : 0),
+                                          //   confirmationNote: ticketModel!
+                                          //               .tickets[0]
+                                          //               .isWithMaterial ==
+                                          //           true
+                                          //       ? ""
+                                          //       : "Without Approval",
+                                          //   // or 'Without Approval'
+                                          // ),
                                         ],
                                       ),
                                     ),
@@ -307,23 +448,32 @@ class _HomeScreenState extends State<HomeScreen>
                                                 ),
                                                 child: Padding(
                                                   padding:
-                                                      const EdgeInsets.all(4.0),
+                                                      const EdgeInsets.all(0.0),
                                                   child: Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
                                                             .center,
                                                     children: [
-                                                      WidgetCachNetworkImage(
-                                                        width: AppSize(context)
-                                                                .width *
-                                                            .3,
-                                                        height: AppSize(context)
-                                                                .height *
-                                                            .15,
-                                                        image: ticketModel
-                                                                ?.tickets[index]
-                                                                .qrCodePath ??
-                                                            "",
+                                                      ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        child:
+                                                            WidgetCachNetworkImage(
+                                                          width:
+                                                              AppSize(context)
+                                                                      .width *
+                                                                  .3,
+                                                          height:
+                                                              AppSize(context)
+                                                                      .height *
+                                                                  .15,
+                                                          image: ticketModel
+                                                                  ?.tickets[
+                                                                      index]
+                                                                  .qrCodePath ??
+                                                              "",
+                                                        ),
                                                       ),
                                                       const SizedBox(width: 10),
                                                       Expanded(

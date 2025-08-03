@@ -1,11 +1,17 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
+import 'package:wefix/Data/Functions/navigation.dart';
+import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Presentation/Components/custom_cach_network_image.dart';
+import 'package:wefix/Presentation/SubCategory/Screens/sub_services_screen.dart';
 
 class SliderWidget extends StatefulWidget {
   final List<String> images;
-  const SliderWidget({super.key, required this.images});
+  final List<int>? catId;
+
+  final Function()? onTap;
+  const SliderWidget({super.key, required this.images, this.onTap, this.catId});
 
   @override
   State<SliderWidget> createState() => _SliderWidgetState();
@@ -15,14 +21,33 @@ class _SliderWidgetState extends State<SliderWidget> {
   @override
   Widget build(BuildContext context) {
     return CarouselSlider(
-      items: widget.images.map((e) {
-        return SizedBox(
-          width: AppSize(context).width,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: WidgetCachNetworkImage(
-              image: e,
-              boxFit: BoxFit.fill,
+      items: widget.images.asMap().entries.map((entry) {
+        int index = entry.key;
+        String image = entry.value;
+
+        return InkWell(
+          onTap: () {
+            if (widget.catId != null && index < widget.catId!.length) {
+              Navigator.push(
+                context,
+                downToTop(
+                  SubServicesScreen(
+                    title: AppText(context, isFunction: true)
+                        .category, // optionally replace with a real one
+                    catId: widget.catId![index],
+                  ),
+                ),
+              );
+            }
+          },
+          child: SizedBox(
+            width: AppSize(context).width,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: WidgetCachNetworkImage(
+                image: image,
+                boxFit: BoxFit.fill,
+              ),
             ),
           ),
         );

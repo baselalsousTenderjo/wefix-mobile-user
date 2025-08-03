@@ -41,7 +41,7 @@ class CustomerPackages {
   String status;
   DateTime startDate;
   DateTime endDate;
-  int price;
+  dynamic price;
   int recurringVist;
   int totalRecurringVist;
   int interiorDesign;

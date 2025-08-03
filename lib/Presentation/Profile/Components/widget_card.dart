@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 
 class WidgetCard extends StatefulWidget {
   final String title;
+  final String? svg;
+
   final Function()? onTap;
-  const WidgetCard({super.key, required this.title, this.onTap});
+  const WidgetCard({super.key, required this.title, this.onTap, this.svg});
 
   @override
   State<WidgetCard> createState() => _WidgetCardState();
@@ -18,25 +21,33 @@ class _WidgetCardState extends State<WidgetCard> {
       borderRadius: BorderRadius.circular(10),
       onTap: widget.onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.greyColorback,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // SvgPicture.asset(
+            //   widget.svg ?? "",
+            //   width: 30,
+            //   height: 30,
+            // ),
             Text(
               widget.title,
               style: TextStyle(
                 fontSize: AppSize(context).smallText1,
                 color: AppColors.blackColor1,
+                fontWeight: FontWeight.normal,
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios_outlined,
-              size: 20,
+            Spacer(),
+            SvgPicture.asset(
+              'assets/icon/arrowright2.svg',
+              width: AppSize(context).width * .05,
+              height: AppSize(context).height * .03,
             ),
           ],
         ),

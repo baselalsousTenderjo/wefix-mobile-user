@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Business/orders/profile_api.dart';
@@ -29,12 +30,12 @@ class DateTimeWidget extends StatefulWidget {
 }
 
 class _DateTimeWidgetState extends State<DateTimeWidget> {
-  List<String> times = [
-    "04:00 - 06:00 PM",
-    "05:00 - 06:00 PM",
-    "06:00 - 08:00 PM",
-    "07:00 - 09:00 PM"
-  ];
+  // List<String> times = [
+  //   "04:00 - 06:00 PM",
+  //   "05:00 - 06:00 PM",
+  //   "06:00 - 08:00 PM",
+  //   "07:00 - 09:00 PM"
+  // ];
   double? totalPrice;
   List<int>? services;
   bool selectedGenderMale = true;
@@ -496,32 +497,69 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
 
   Future getTime() async {
     AppProvider appProvider = Provider.of(context, listen: false);
+
     setState(() {
       loadingTime = true;
     });
 
+    final selectedDateStr = appProvider.selectedDate.toString().isEmpty
+        ? DateTime.now().toString().substring(0, 10)
+        : appProvider.selectedDate.toString().substring(0, 10);
+
     final result = await ProfileApis.getAppitmentTime(
       token: '${appProvider.userModel?.token}',
-      date: appProvider.selectedDate.toString().isEmpty
-          ? DateTime.now().toString().substring(0, 10)
-          : appProvider.selectedDate.toString().substring(0, 10),
+      date: selectedDateStr,
     );
 
     if (result != null) {
       log(result.toString());
+
+      DateTime now = DateTime.now();
+      DateTime selectedDate = DateTime.parse(selectedDateStr);
+      bool isToday = now.year == selectedDate.year &&
+          now.month == selectedDate.month &&
+          now.day == selectedDate.day;
+
+      if (isToday) {
+        result.timesList.removeWhere((element) {
+          final parts = element.time.split(' - ');
+          if (parts.length != 2) return true;
+
+          try {
+            String startTimeStr = parts[0].trim(); // e.g. "08:00"
+            String endTimeStr = parts[1].trim(); // e.g. "10:00 AM"
+            String period = endTimeStr.split(' ').last; // "AM" or "PM"
+
+            // Append AM/PM to start time
+            startTimeStr = '$startTimeStr $period';
+
+            // Create full datetime string
+            final fullDateTimeStr =
+                '${DateFormat('yyyy-MM-dd').format(now)} $startTimeStr';
+
+            // Parse it
+            final startDateTime =
+                DateFormat('yyyy-MM-dd hh:mm a').parse(fullDateTimeStr);
+
+            return now.isAfter(startDateTime); // remove if expired
+          } catch (e) {
+            log('Time parsing error: $e');
+            return true; // remove on parse failure
+          }
+        });
+      }
+
       setState(() {
         timeAppoitmentModel = result;
         loadingTime = false;
-        selectedTime = appProvider.appoitmentInfo["time"] ??
-            timeAppoitmentModel?.timesList.first.time;
 
-        // ✅ Set the first available time (status == true)
-        // for (TimesList element in timeAppoitmentModel?.timesList ?? []) {
-        //   if (element.status == true) {
-        //     selectedTime = element.time;
-        //     break;
-        //   }
-        // }
+        // Select the first valid slot
+        for (TimesList element in timeAppoitmentModel?.timesList ?? []) {
+          if (element.status == true) {
+            selectedTime = element.time;
+            break;
+          }
+        }
       });
     }
   }

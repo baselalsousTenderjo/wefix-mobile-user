@@ -16,7 +16,6 @@ import 'package:wefix/Presentation/Profile/Screens/notifications_screen.dart';
 import 'package:wefix/Data/Helper/cache_helper.dart';
 import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
 
-
 class MainManagements {
   // ! Start Home Layout
 
@@ -27,7 +26,7 @@ class MainManagements {
     LanguageProvider language =
         Provider.of<LanguageProvider>(context, listen: false);
     if (language.lang == '' || CacheHelper.getData(key: LANG_CACHE) == null) {
-      language.lang = 'en'; 
+      language.lang = 'en';
 
       CacheHelper.saveData(key: LANG_CACHE, value: 'en');
     } else {

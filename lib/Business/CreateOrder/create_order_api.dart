@@ -31,6 +31,7 @@ class CreateOrderApi {
           "RealEstateId": data["RealEstateId"],
           "NumberOfTicket": data["NumberOfTicket"],
           "AdvantageTicket": data["AdvantageTicket"],
+          "DiscountAmount": data["DiscountAmount"] ?? 0,
         },
       );
 

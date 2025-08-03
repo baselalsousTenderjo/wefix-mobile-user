@@ -35,15 +35,44 @@ class _CalenderWidgetState extends State<CalenderWidget> {
             holiday.day == day.day);
   }
 
+  // Find next non-holiday day recursively
+  DateTime findNextNonHolidayDay(DateTime day) {
+    DateTime nextDay = day.add(const Duration(days: 1));
+    while (_isHoliday(nextDay)) {
+      nextDay = nextDay.add(const Duration(days: 1));
+    }
+    return nextDay;
+  }
+
   @override
   void initState() {
     super.initState();
-    getHoliday();
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-    _selectedDay = appProvider.appoitmentInfo["date"] != null
-        ? DateTime.tryParse(
-            appProvider.appoitmentInfo["date"].toString().substring(0, 10))
-        : DateTime.now();
+    // Wait for holidays to load, then update selected day accordingly
+    getHoliday().then((_) {
+      AppProvider appProvider =
+          Provider.of<AppProvider>(context, listen: false);
+
+      DateTime initialDay = appProvider.appoitmentInfo["date"] != null
+          ? DateTime.tryParse(appProvider.appoitmentInfo["date"]
+                  .toString()
+                  .substring(0, 10)) ??
+              DateTime.now()
+          : DateTime.now();
+
+      if (_isHoliday(initialDay)) {
+        // If initial day is a holiday, pick next non-holiday day
+        initialDay = findNextNonHolidayDay(initialDay);
+      }
+
+      setState(() {
+        _selectedDay = initialDay;
+        widget.focusedDay = initialDay;
+      });
+
+      appProvider.createSelectedDate(_selectedDay ?? DateTime.now());
+
+      if (widget.onday != null) widget.onday!();
+    });
   }
 
   @override
@@ -79,7 +108,9 @@ class _CalenderWidgetState extends State<CalenderWidget> {
       ),
       enabledDayPredicate: (day) => !_isHoliday(day),
       onFormatChanged: (format) {
-        setState(() {});
+        setState(() {
+          _calendarFormat = format;
+        });
       },
       onDaySelected: (selectedDay, focusedDay) async {
         setState(() {
@@ -87,7 +118,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
           _selectedDay = selectedDay;
           appProvider.createSelectedDate(_selectedDay ?? DateTime.now());
         });
-        await widget.onday!();
+        if (widget.onday != null) await widget.onday!();
 
         log(_selectedDay.toString());
         log(widget.focusedDay.toString());
@@ -148,7 +179,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
     );
   }
 
-  Future getHoliday() async {
+  Future<void> getHoliday() async {
     AppProvider appProvider = Provider.of(context, listen: false);
 
     final result = await ProfileApis.getHoliday(

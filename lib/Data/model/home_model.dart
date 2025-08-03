@@ -50,10 +50,12 @@ class SliderModel {
   String? image;
   bool isActive;
   dynamic? sortOrder;
+  int? categoryId;
 
   SliderModel({
     required this.id,
     required this.title,
+    required this.categoryId,
     required this.titleAr,
     required this.image,
     required this.isActive,
@@ -64,6 +66,7 @@ class SliderModel {
         id: json["id"],
         title: json["title"],
         titleAr: json["titleAr"],
+        categoryId: json["categoryId"],
         image: json["image"],
         isActive: json["isActive"],
         sortOrder: json["sortOrder"],
@@ -72,6 +75,7 @@ class SliderModel {
   Map<String, dynamic> toJson() => {
         "id": id,
         "title": title,
+        "categoryId": categoryId,
         "titleAr": titleAr,
         "image": image,
         "isActive": isActive,
