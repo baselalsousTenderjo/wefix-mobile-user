@@ -144,14 +144,14 @@ class _AppoitmentDetailsScreenState extends State<AppoitmentDetailsScreen>
                             overlayColor: MaterialStateProperty.all(
                               AppColors(context).primaryColor.withOpacity(.2),
                             ),
-                            value: needsMaterial,
+                            value: appProvider.isMaterialFromProvider ?? false,
                             onChanged: (value) {
                               appProvider.isMaterailFromProvider(value);
                               setState(() => needsMaterial = value);
                             },
                           ),
                         ),
-                        if (needsMaterial) ...[
+                        if (appProvider.isMaterialFromProvider ?? false) ...[
                           WidgetTextField(
                             AppText(context, isFunction: true)
                                 .canyoutelluswhatmaterialisneeded,
@@ -182,8 +182,9 @@ class _AppoitmentDetailsScreenState extends State<AppoitmentDetailsScreen>
                                             ? advantage?.subTitleAr ?? ""
                                             : advantage?.subTitleEn ?? "",
                                         style: TextStyle(
-                                          fontSize: AppSize(context).smallText2,
-                                        ),
+                                            fontSize:
+                                                AppSize(context).smallText3,
+                                            color: AppColors.greyColor2),
                                       ),
                                       activeColor:
                                           AppColors(context).primaryColor,

@@ -17,12 +17,12 @@ if (localPropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '9'
+    flutterVersionCode = '10'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '9'
+    flutterVersionName = '10'
 }
 
 android {
@@ -47,7 +47,7 @@ android {
         applicationId "com.tenderjo.wefixapp"
         minSdkVersion 24
         targetSdkVersion 35
-        versionCode 9
+        versionCode 10
         versionName flutterVersionName
     }
 

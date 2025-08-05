@@ -18,7 +18,6 @@ import 'package:wefix/Presentation/Components/custom_cach_network_image.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Profile/Components/rating_widget.dart';
 import 'package:wefix/Presentation/Profile/Screens/Chat/messages_screen.dart';
-
 import '../../appointment/Components/attachments_widget.dart';
 
 class TicketDetailsScreen extends StatefulWidget {
@@ -54,8 +53,8 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
         title: Text(
           'Ticket #${bookingDetailsModel?.objTickets.id ?? ""}',
         ),
-        actions: [
-          const LanguageButton(),
+        actions: const [
+          LanguageButton(),
         ],
         backgroundColor: Colors.white,
         elevation: 0.5,
@@ -101,26 +100,30 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
               ),
             )
           : const SizedBox(),
-      floatingActionButton: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                downToTop(
-                  CommentsScreenById(
-                      ticketId: bookingDetailsModel?.objTickets.id ?? 0,
-                      toUserId: bookingDetailsModel?.objTickets.userId ?? 0),
+      floatingActionButton: bookingDetailsModel?.objTickets.status ==
+              "Completed"
+          ? SizedBox()
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      downToTop(
+                        CommentsScreenById(
+                            ticketId: bookingDetailsModel?.objTickets.id ?? 0,
+                            toUserId:
+                                bookingDetailsModel?.objTickets.userId ?? 0),
+                      ),
+                    );
+                  },
+                  backgroundColor: AppColors(context).primaryColor,
+                  child: const Icon(Icons.chat_bubble),
                 ),
-              );
-            },
-            backgroundColor: AppColors(context).primaryColor,
-            child: const Icon(Icons.chat_bubble),
-          ),
-        ],
-      ),
+              ],
+            ),
       body: loading == true
           ? LinearProgressIndicator(
               color: AppColors(context).primaryColor,
@@ -165,11 +168,15 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                                 .toString()
                                 .substring(0, 10)),
                         bookingDetailsModel?.objTickets.type != "corrective"
-                            ? SizedBox()
-                            : _buildRow(AppText(context).price, "",
-                                leftValue:
-                                    "${bookingDetailsModel?.objTickets.totalPrice} ${AppText(context).jod}",
-                                rightValue: ""),
+                            ? const SizedBox()
+                            : bookingDetailsModel?.objTickets.totalPrice == null
+                                ? SizedBox()
+                                : _buildRow(
+                                    AppText(context).price,
+                                    "",
+                                    leftValue:
+                                        "${bookingDetailsModel?.objTickets.totalPrice} ${AppText(context).jod}",
+                                  ),
                       ],
                     ),
                   ),
@@ -177,7 +184,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                   bookingDetailsModel?.objTickets.servcieTickets.isEmpty == true
                       ? const SizedBox()
                       : _buildSection(
-                          '🛠️ ${AppText(context).services}',
+                          '👷‍♂️ ${AppText(context).services}',
                           bookingDetailsModel
                                       ?.objTickets.servcieTickets.isEmpty ==
                                   true
@@ -189,7 +196,26 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemBuilder: (context, index) {
                                     return Text(
-                                        "${languageProvider.lang == "ar" ? bookingDetailsModel?.objTickets.servcieTickets[index].nameAr : bookingDetailsModel?.objTickets.servcieTickets[index].name}");
+                                        "${languageProvider.lang == "ar" ? bookingDetailsModel?.objTickets.servcieTickets[index].nameAr : bookingDetailsModel?.objTickets.servcieTickets[index].name} ${bookingDetailsModel?.objTickets.servcieTickets[index].quantity != null ? " x ${bookingDetailsModel?.objTickets.servcieTickets[index].quantity}" : ""}");
+                                  },
+                                )),
+                  bookingDetailsModel?.objTickets.advantagesTickets.isEmpty ==
+                          true
+                      ? const SizedBox()
+                      : _buildSection(
+                          '🛠️ ${AppText(context).technicianGender}',
+                          bookingDetailsModel
+                                      ?.objTickets.advantagesTickets.isEmpty ==
+                                  true
+                              ? const SizedBox()
+                              : ListView.builder(
+                                  itemCount: bookingDetailsModel
+                                      ?.objTickets.advantagesTickets.length,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    return Text(
+                                        "${languageProvider.lang == "ar" ? bookingDetailsModel?.objTickets.advantagesTickets[index].name : bookingDetailsModel?.objTickets.advantagesTickets[index].nameAr} ${bookingDetailsModel?.objTickets.advantagesTickets[index].price} ${AppText(context).jod} ");
                                   },
                                 )),
                   _buildSection(
@@ -218,7 +244,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                           const SizedBox(height: 5),
                           bookingDetailsModel?.objTickets.type.toLowerCase() ==
                                   "preventive"
-                              ? SizedBox()
+                              ? const SizedBox()
                               : Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -243,32 +269,25 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                                   ],
                                 ),
                           const SizedBox(height: 5),
-                          bookingDetailsModel?.objTickets.type.toLowerCase() ==
-                                  "preventive"
-                              ? SizedBox()
-                              : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                        "👷‍♀️ ${AppText(context).isWithFemale} : ",
-                                        style: TextStyle(
-                                            color: AppColors.blackColor1,
-                                            fontSize:
-                                                AppSize(context).smallText2)),
-                                    Text(
-                                        bookingDetailsModel
-                                                    ?.objTickets.isWithFemale ==
-                                                true
-                                            ? AppText(context).yes
-                                            : AppText(context).no,
-                                        style: TextStyle(
-                                            color: AppColors.blackColor1,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize:
-                                                AppSize(context).smallText2)),
-                                  ],
-                                ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("👷‍♀️ ${AppText(context).isWithFemale} : ",
+                                  style: TextStyle(
+                                      color: AppColors.blackColor1,
+                                      fontSize: AppSize(context).smallText2)),
+                              Text(
+                                  bookingDetailsModel
+                                              ?.objTickets.isWithFemale ==
+                                          true
+                                      ? AppText(context).yes
+                                      : AppText(context).no,
+                                  style: TextStyle(
+                                      color: AppColors.blackColor1,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: AppSize(context).smallText2)),
+                            ],
+                          ),
                         ],
                       )),
                   const Divider(
@@ -298,8 +317,8 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                     color: AppColors.backgroundColor,
                     height: 30,
                   ),
-                  bookingDetailsModel?.objTickets.type != "corrective"
-                      ? SizedBox()
+                  bookingDetailsModel?.objTickets.type == "previntive"
+                      ? const SizedBox()
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -433,31 +452,35 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(AppText(context, isFunction: true).attachmentPreview,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    return AttachmentsWidget(
-                      image: bookingDetailsModel?.objTickets.ticketImages[index]
-                          .toString()
-                          .split("-")
-                          .last,
-                      url: bookingDetailsModel?.objTickets.ticketImages[index],
-                    );
-                  },
-                  itemCount:
-                      bookingDetailsModel?.objTickets.ticketImages.length,
-                  shrinkWrap: true),
-              const SizedBox(height: 10),
-            ],
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(AppText(context, isFunction: true).attachmentPreview,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      return AttachmentsWidget(
+                        image: bookingDetailsModel
+                            ?.objTickets.ticketImages[index]
+                            .toString()
+                            .split("-")
+                            .last,
+                        url:
+                            bookingDetailsModel?.objTickets.ticketImages[index],
+                      );
+                    },
+                    itemCount:
+                        bookingDetailsModel?.objTickets.ticketImages.length,
+                    shrinkWrap: true),
+                const SizedBox(height: 10),
+              ],
+            ),
           ),
         );
       },
@@ -493,23 +516,25 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
               ],
             ],
           ),
-          Row(
-            children: [
-              SizedBox(
-                child: Text("${right} : ",
-                    style: TextStyle(
-                        color: AppColors.greyColor5,
-                        fontSize: AppSize(context).smallText2)),
-              ),
-              if (rightValue != null) ...[
-                const SizedBox(width: 4),
-                Text(rightValue,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: AppSize(context).smallText2)),
-              ],
-            ],
-          ),
+          rightValue == null
+              ? const SizedBox()
+              : Row(
+                  children: [
+                    SizedBox(
+                      child: Text("${right}  ${":"} ",
+                          style: TextStyle(
+                              color: AppColors.greyColor5,
+                              fontSize: AppSize(context).smallText2)),
+                    ),
+                    if (rightValue != null) ...[
+                      const SizedBox(width: 4),
+                      Text(rightValue,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: AppSize(context).smallText2)),
+                    ],
+                  ],
+                ),
         ],
       ),
     );

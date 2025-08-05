@@ -58,9 +58,11 @@ class ObjTickets {
   List<dynamic> ticketMaterials;
   List<dynamic> maintenanceTickets;
   List<ServcieTicket> servcieTickets;
+  List<AdvantageTicket> advantagesTickets;
 
   ObjTickets({
     required this.id,
+    required this.advantagesTickets,
     required this.totalPrice,
     required this.title,
     required this.titleAr,
@@ -125,6 +127,8 @@ class ObjTickets {
             List<dynamic>.from(json["maintenanceTickets"].map((x) => x)),
         servcieTickets: List<ServcieTicket>.from(
             json["servcieTickets"].map((x) => ServcieTicket.fromJson(x))),
+        advantagesTickets: List<AdvantageTicket>.from(
+            json["advantageTickets"].map((x) => AdvantageTicket.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -167,15 +171,48 @@ class ServcieTicket {
   String name;
   String nameAr;
   dynamic price;
+  dynamic quantity;
 
   ServcieTicket({
     required this.id,
     required this.name,
     required this.nameAr,
     required this.price,
+    required this.quantity,
   });
 
   factory ServcieTicket.fromJson(Map<String, dynamic> json) => ServcieTicket(
+        id: json["id"],
+        name: json["name"],
+        nameAr: json["nameAr"],
+        price: json["price"],
+        quantity: json["quantity"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "nameAr": nameAr,
+        "price": price,
+        "quantity": quantity,
+      };
+}
+
+class AdvantageTicket {
+  int id;
+  String name;
+  String nameAr;
+  dynamic price;
+
+  AdvantageTicket({
+    required this.id,
+    required this.name,
+    required this.nameAr,
+    required this.price,
+  });
+
+  factory AdvantageTicket.fromJson(Map<String, dynamic> json) =>
+      AdvantageTicket(
         id: json["id"],
         name: json["name"],
         nameAr: json["nameAr"],

@@ -270,7 +270,7 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
 
   @override
   void dispose() {
-    // Cancel the timer when the widget is disposed
+    noteController.clear();
     _timer?.cancel();
     super.dispose();
   }
