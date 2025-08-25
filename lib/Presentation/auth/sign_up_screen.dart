@@ -23,7 +23,9 @@ import 'package:wefix/Presentation/Profile/Screens/content_screen.dart';
 import 'package:wefix/Presentation/auth/login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  final String? phone;
+
+  const SignUpScreen({super.key, this.phone});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -38,6 +40,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String locationName = 'Loading...';
 
   TextEditingController firstName = TextEditingController();
+  TextEditingController lastName = TextEditingController();
+
   TextEditingController location = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
@@ -55,9 +59,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   var formKey = GlobalKey<FormState>();
 
+  Future<bool> isUserFromJordanGPS() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isNotEmpty) {
+        String? countryCode = placemarks.first.isoCountryCode;
+        log("Country Code: $countryCode");
+        return countryCode?.toUpperCase() == 'JO';
+      }
+    } catch (e) {
+      print("Error detecting location: $e");
+    }
+
+    return false;
+  }
+
   @override
   void initState() {
+    phone.text = widget.phone ?? "";
     _getLocationName();
+    isUserFromJordanGPS();
     super.initState();
   }
 
@@ -104,6 +130,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(
                   height: 5,
                 ),
+
+                WidgetTextField(
+                  AppText(context, isFunction: true).lastName,
+                  fillColor: AppColors.greyColorback,
+                  haveBorder: false,
+                  controller: lastName,
+                  validator: (p0) {
+                    if (lastName.text.isEmpty) {
+                      return AppText(context, isFunction: true).required;
+                    }
+                    return null;
+                  },
+                  radius: 5,
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
                 WidgetTextField(
                   AppText(context, isFunction: true).email,
                   fillColor: AppColors.greyColorback,
@@ -111,6 +154,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   radius: 5,
                   controller: email,
                   keyboardType: TextInputType.emailAddress,
+                  validator: (p0) {
+                    if (isUserFromJordanGPS() == false) {
+                      if (email.text.isEmpty) {
+                        return AppText(context, isFunction: true).required;
+                      } else if (!regExp2.hasMatch(email.text)) {
+                        return AppText(context, isFunction: true).invalidEmail;
+                      }
+                      return null;
+                    } else {
+                      return null;
+                    }
+                  },
                 ),
                 const SizedBox(
                   height: 5,

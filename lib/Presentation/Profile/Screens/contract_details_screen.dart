@@ -146,8 +146,11 @@ class _ContractScreenState extends State<ContractScreen> {
                                         children: [
                                           Text(
                                               "${AppText(context).consultations} : "),
-                                          Text(
-                                              "${contractDetails?.customerPackages.consultation}"),
+                                          Text(contractDetails?.customerPackages
+                                                      .consultation ==
+                                                  100
+                                              ? AppText(context).unlimited
+                                              : "${contractDetails?.customerPackages.consultation}"),
                                         ],
                                       ),
                                       contractDetails?.customerPackages

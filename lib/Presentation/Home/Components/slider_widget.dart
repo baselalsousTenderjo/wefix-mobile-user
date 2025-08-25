@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
@@ -5,6 +7,7 @@ import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Presentation/Components/custom_cach_network_image.dart';
 import 'package:wefix/Presentation/SubCategory/Screens/sub_services_screen.dart';
+import 'package:wefix/layout_screen.dart';
 
 class SliderWidget extends StatefulWidget {
   final List<String> images;
@@ -27,7 +30,16 @@ class _SliderWidgetState extends State<SliderWidget> {
 
         return InkWell(
           onTap: () {
-            if (widget.catId != null && index < widget.catId!.length) {
+            log('Image tapped: $image at index: $index');
+            if (widget.catId?[index] == 0) {
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+                builder: (context) {
+                  return const HomeLayout(
+                    index: 2,
+                  );
+                },
+              ), (route) => false);
+            } else {
               Navigator.push(
                 context,
                 downToTop(

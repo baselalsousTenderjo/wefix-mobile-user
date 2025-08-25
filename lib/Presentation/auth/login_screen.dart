@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_svg/svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
@@ -34,7 +35,6 @@ List<String> scopes = const <String>[
   'https://www.googleapis.com/auth/contacts.readonly',
 ];
 
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -53,7 +53,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-
   final LocalAuthentication authFingerPrint = LocalAuthentication();
   bool isLoadingFace = false;
   bool issupport = false;
@@ -69,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     isBiometricAuthAvailable();
+    requestNotificationPermission(context);
     checkBiometrics();
     super.initState();
   }
@@ -113,13 +113,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: AppSize(context).height * 0.02),
                       // * Phone Number
                       WidgetPhoneField(
-                        validator: (p0) {
-                          if (phone.text.isEmpty) {
-                            return "Requierd";
-                          } else {
-                            return null;
-                          }
-                        },
+                        // validator: (p0) {
+                        //   if (phone.text.isEmpty) {
+                        //     return "Requierd";
+                        //   } else {
+                        //     return null;
+                        //   }
+                        // },
                         message:
                             phone.text.isEmpty ? "required" : "invalidPhone",
                         onCountryChanged: (value) {
@@ -337,6 +337,37 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
+
+  Future<void> requestNotificationPermission(BuildContext context) async {
+    // Check the current permission status
+    var status = await Permission.notification.status;
+
+    if (status.isDenied) {
+      // Ask user for permission
+      var result = await Permission.notification.request();
+
+      if (result.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notifications enabled!')),
+        );
+      } else if (result.isDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notifications denied.')),
+        );
+      } else if (result.isPermanentlyDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Notifications permanently denied. Please enable in settings.')),
+        );
+      }
+    } else if (status.isGranted) {
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text('Notifications already enabled.')),
+      // );
+    }
+  }
+
   Future login() async {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     try {
@@ -367,6 +398,14 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (context) => WidgetDialog(
               title: AppText(context, isFunction: true).warning,
               desc: AppText(context, isFunction: true).theUsername,
+              bottonText: "${AppText(context, isFunction: true).createAccount}",
+              onTap: () {
+                Navigator.push(
+                    context,
+                    downToTop(SignUpScreen(
+                      phone: phone.text.substring(4, 13),
+                    )));
+              },
               isError: true,
             ),
           );

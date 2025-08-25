@@ -7,7 +7,7 @@ import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/home_model.dart';
 import 'package:wefix/Presentation/Components/custom_cach_network_image.dart';
 import 'package:wefix/Presentation/SubCategory/Screens/sub_services_screen.dart';
-
+import 'package:wefix/layout_screen.dart';
 import '../../../Data/Constant/theme/color_constant.dart';
 
 class PopularServicesSection extends StatefulWidget {
@@ -31,15 +31,23 @@ class _PopularServicesSectionState extends State<PopularServicesSection> {
         itemBuilder: (context, index) {
           return InkWell(
             onTap: () {
-              Navigator.push(
-                context,
-                downToTop(SubServicesScreen(
-                  catId: widget.services[index].id,
-                  title: languageProvider.lang == "ar"
-                      ? widget.services[index].nameAr?? ""
-                      : widget.services[index].name ?? "",
-                )),
-              );
+              widget.services[index].name == "Annual contract"
+                  ? Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+                      builder: (context) {
+                        return HomeLayout(
+                          index: 2,
+                        );
+                      },
+                    ), (route) => false)
+                  : Navigator.push(
+                      context,
+                      downToTop(SubServicesScreen(
+                        catId: widget.services[index].id,
+                        title: languageProvider.lang == "ar"
+                            ? widget.services[index].nameAr ?? ""
+                            : widget.services[index].name ?? "",
+                      )),
+                    );
             },
             child: _mostRequestedItem(
               context,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:bot_toast/bot_toast.dart';
@@ -23,14 +24,31 @@ import 'Data/model/user_model.dart';
 
 final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  log('Handling a background message: ${message.messageId}');
+  log('Message data: ${message.data}');
+  // For background, show a system notification using flutter_local_notifications
+}
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await Permission.notification.isDenied.then((value) {
+    if (value) {
+      Permission.notification.request();
+    }
+  });
+
+  // REGISTER BACKGROUND HANDLER BEFORE runApp
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await CacheHelper.init();
 
   SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+  );
 
   UserModel? userModel = MainManagements.handelUserData();
   String? token;
@@ -40,6 +58,7 @@ void main() async {
     log(e.toString());
   }
   HttpOverrides.global = MyHttpOverrides();
+
   runApp(
     MultiProvider(
       providers: [
@@ -60,10 +79,34 @@ void main() async {
   );
 }
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+Future<void> requestNotificationPermission(BuildContext context) async {
+  // Check the current permission status
+  var status = await Permission.notification.status;
 
-  log('Handling a background message: ${message.messageId}');
+  if (status.isDenied) {
+    // Ask user for permission
+    var result = await Permission.notification.request();
+
+    if (result.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifications enabled!')),
+      );
+    } else if (result.isDenied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifications denied.')),
+      );
+    } else if (result.isPermanentlyDenied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Notifications permanently denied. Please enable in settings.')),
+      );
+    }
+  } else if (status.isGranted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Notifications already enabled.')),
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -81,17 +124,25 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
+    super.initState();
     initConnectivity();
+    requestNotificationPermission(context);
+
     MainManagements.handelNotification(
-        context: context,
-        handler: _firebaseMessagingBackgroundHandler,
-        navigatorKey: _navigatorKey);
-    MainManagements.handelToken(context: context, token: widget.token ?? '');
+      context: context,
+      handler: _firebaseMessagingBackgroundHandler,
+      navigatorKey: _navigatorKey,
+    );
+
+    MainManagements.handelToken(
+      context: context,
+      token: widget.token ?? '',
+    );
+
     MainManagements.handelLanguage(context: context);
+
     _streamSubscription =
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
-
-    super.initState();
   }
 
   @override
@@ -115,10 +166,7 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       builder: (context, child) {
-        // Wrap BotToastInit first
         final botToastBuilder = BotToastInit();
-
-        // Apply BotToast and clamp textScaleFactor
         return botToastBuilder(
           context,
           MediaQuery(
@@ -159,7 +207,7 @@ class _MyAppState extends State<MyApp> {
       return;
     }
     if (!mounted) {
-      return Future.value(null);
+      return;
     }
     return _updateConnectionStatus(result);
   }

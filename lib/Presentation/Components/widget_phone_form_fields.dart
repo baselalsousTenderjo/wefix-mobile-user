@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
@@ -337,7 +336,7 @@ class _WidgetPhoneFieldState extends State<WidgetPhoneField> {
         ignoreBlank: true,
         autoValidateMode: AutovalidateMode.onUserInteraction,
         initialValue: number,
-        validator: widget.validator as String? Function(String?)?,
+        // validator: widget.validator as String? Function(String?)?,
 
         textFieldController: widget.phoneController,
         formatInput: false,

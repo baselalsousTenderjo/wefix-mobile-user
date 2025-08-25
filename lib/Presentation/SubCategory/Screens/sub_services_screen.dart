@@ -455,53 +455,80 @@ class _SubServicesScreenState extends State<SubServicesScreen> {
                                                 .continuesss,
                                         loading: loading6,
                                         onTap: () {
-                                          setModalState(() {
-                                            loading6 = true;
-                                          });
-                                          chaeckAvalable().then((value) {
+                                          DateTime now = DateTime.now();
+
+                                          // Define start and end times for today
+                                          DateTime startTime = DateTime(
+                                              now.year,
+                                              now.month,
+                                              now.day,
+                                              8,
+                                              0); // 8:00 AM
+                                          DateTime endTime = DateTime(
+                                              now.year,
+                                              now.month,
+                                              now.day,
+                                              17,
+                                              0); // 5:00 PM
+
+                                          if (now.isAfter(startTime) &&
+                                              now.isBefore(endTime)) {
                                             setModalState(() {
-                                              loading6 = false;
+                                              loading6 = true;
                                             });
-                                            if (status == false) {
-                                              showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  return WidgetDialog(
-                                                      title: AppText(context,
-                                                              isFunction: true)
-                                                          .warning,
-                                                      desc: AppText(context,
-                                                              isFunction: true)
-                                                          .wearesorryapp,
-                                                      isError: true);
-                                                },
-                                              );
-                                            } else {
-                                              Navigator.pop(context);
-                                              AppProvider appProvider =
-                                                  Provider.of<AppProvider>(
-                                                      context,
-                                                      listen: false);
-
-                                              appProvider.saveAppoitmentInfo({
-                                                "TicketTypeId": 1,
-                                                "date": DateTime.now(),
-                                                "time":
-                                                    "After 90 - 120 minutes",
-                                                "services": serviceId,
-                                                "totalPrice": totalPrice,
-                                                "totalTickets": totalTickets,
-                                                "gender": "Male",
+                                            chaeckAvalable().then((value) {
+                                              setModalState(() {
+                                                loading6 = false;
                                               });
+                                              if (status == false) {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return WidgetDialog(
+                                                        title: AppText(context,
+                                                                isFunction:
+                                                                    true)
+                                                            .warning,
+                                                        desc: AppText(context,
+                                                                isFunction:
+                                                                    true)
+                                                            .wearesorryapp,
+                                                        isError: true);
+                                                  },
+                                                );
+                                              } else {
+                                                Navigator.pop(context);
+                                                AppProvider appProvider =
+                                                    Provider.of<AppProvider>(
+                                                        context,
+                                                        listen: false);
 
-                                              if (subsicripeModel?.status ==
-                                                  true) {
-                                                if ((subsicripeModel
-                                                            ?.objSubscribe
-                                                            ?.emeregencyVisit ??
-                                                        0) <=
-                                                    0) {
-                                                  showUpgradeDialog(context);
+                                                appProvider.saveAppoitmentInfo({
+                                                  "TicketTypeId": 1,
+                                                  "date": DateTime.now(),
+                                                  "time":
+                                                      "After 90 - 120 minutes",
+                                                  "services": serviceId,
+                                                  "totalPrice": totalPrice,
+                                                  "totalTickets": totalTickets,
+                                                  "gender": "Male",
+                                                });
+
+                                                if (subsicripeModel?.status ==
+                                                    true) {
+                                                  if ((subsicripeModel
+                                                              ?.objSubscribe
+                                                              ?.emeregencyVisit ??
+                                                          0) <=
+                                                      0) {
+                                                    showUpgradeDialog(context);
+                                                  } else {
+                                                    Navigator.push(
+                                                      context,
+                                                      downToTop(
+                                                          const UploadOptionsScreen()),
+                                                    );
+                                                  }
                                                 } else {
                                                   Navigator.push(
                                                     context,
@@ -509,15 +536,24 @@ class _SubServicesScreenState extends State<SubServicesScreen> {
                                                         const UploadOptionsScreen()),
                                                   );
                                                 }
-                                              } else {
-                                                Navigator.push(
-                                                  context,
-                                                  downToTop(
-                                                      const UploadOptionsScreen()),
-                                                );
                                               }
-                                            }
-                                          });
+                                            });
+                                          } else {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return WidgetDialog(
+                                                  title: AppText(context,
+                                                          isFunction: true)
+                                                      .warning,
+                                                  desc: AppText(context,
+                                                          isFunction: true)
+                                                      .thisservice,
+                                                  isError: true,
+                                                );
+                                              },
+                                            );
+                                          }
                                         },
                                       ),
                                     ),

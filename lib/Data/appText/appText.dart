@@ -28,6 +28,8 @@ class AppText {
   }
 
   String get home => getTranslation('home');
+  String get noteM => getTranslation('noteM');
+
   String get unlimited => getTranslation('unlimited');
 
   String get discount => getTranslation('discount');
@@ -63,6 +65,7 @@ class AppText {
   String get paypal => getTranslation('paypal');
 
   String get wearesorryapp => getTranslation('wearesorryapp');
+  String get thisservice => getTranslation('thisservice');
 
   String get ticketM => getTranslation('ticketM');
   String get paylater => getTranslation('paylater');

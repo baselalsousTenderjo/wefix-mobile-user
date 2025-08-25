@@ -90,7 +90,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                height: AppSize(context).height * .19,
+                height: AppSize(context).height * .25,
                 // width: AppSize(context).width * .5,
                 decoration: BoxDecoration(color: widget.color?.withOpacity(.2)),
                 child: Center(
@@ -234,9 +234,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                   FeatureWidget(
                     color: widget.color,
                     feature: AppText(context).interiorDesign,
-                    value: widget.package?.interiorDesign == null
-                        ? "\n - \n"
-                        : widget.package?.interiorDesign.toString() ?? "0",
+                    value: widget.package?.interiorDesign == "0"
+                        ? "- \n  \n"
+                        : widget.package?.interiorDesign.toString() ??
+                            "-  \n \n",
                   ),
                 ],
               ),

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Business/Bookings/bookings_apis.dart';
@@ -46,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+
     getAllHomeApis().then((value) {});
     getActiveTicket();
 
@@ -84,6 +86,9 @@ class _HomeScreenState extends State<HomeScreen>
   HomeModel? homeModel;
   bool loading = false;
   bool loading2 = false;
+  GlobalKey _one = GlobalKey();
+  GlobalKey _two = GlobalKey();
+  GlobalKey _three = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -779,6 +784,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future getAllHomeApis() async {
+    await Permission.notification.request();
     setState(() {
       loading = true;
     });

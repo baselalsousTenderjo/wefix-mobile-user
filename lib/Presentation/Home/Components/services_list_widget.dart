@@ -22,18 +22,6 @@ class ServicesWidget extends StatefulWidget {
 }
 
 class _ServicesWidgetState extends State<ServicesWidget> {
-  final List<Map<String, dynamic>> services = [
-    {'name': 'Smoke Detector', 'icon': "assets/image/wefix icon 1.png"},
-    {'name': 'Maintenance Contract', 'icon': "assets/image/wefix icon 2.png"},
-    {'name': 'Appliances Repair', 'icon': "assets/image/wefix icon 3.png"},
-    {'name': 'Smoke Detector', 'icon': "assets/image/wefix icon 1.png"},
-    {'name': 'Maintenance Contract', 'icon': "assets/image/wefix icon 2.png"},
-    {'name': 'Appliances Repair', 'icon': "assets/image/wefix icon 3.png"},
-    {'name': 'Smoke Detector', 'icon': "assets/image/wefix icon 1.png"},
-    {'name': 'Maintenance Contract', 'icon': "assets/image/wefix icon 2.png"},
-    {'name': 'Appliances Repair', 'icon': "assets/image/wefix icon 3.png"},
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -92,7 +80,7 @@ class _ServicesWidgetState extends State<ServicesWidget> {
           crossAxisCount: 3,
           mainAxisSpacing: 5,
           crossAxisSpacing: 5,
-          childAspectRatio: .95),
+          childAspectRatio: .92),
       itemCount: widget.categories.length,
       itemBuilder: (context, index) {
         return InkWell(

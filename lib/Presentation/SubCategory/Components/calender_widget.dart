@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:googleapis/dfareporting/v4.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
+import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
 import 'package:wefix/Business/orders/profile_api.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
@@ -78,7 +80,9 @@ class _CalenderWidgetState extends State<CalenderWidget> {
   @override
   Widget build(BuildContext context) {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
+    LanguageProvider languageProvider = Provider.of<LanguageProvider>(context);
     return TableCalendar(
+      locale: languageProvider.lang == "ar" ? 'ar' : "en",
       daysOfWeekHeight: AppSize(context).height * 0.03,
       calendarStyle: CalendarStyle(
         rangeHighlightColor: AppColors.redColor,
@@ -91,7 +95,7 @@ class _CalenderWidgetState extends State<CalenderWidget> {
       lastDay: DateTime.now().add(const Duration(days: 1900)),
       focusedDay: widget.focusedDay ?? DateTime.now(),
       currentDay: _selectedDay,
-      startingDayOfWeek: StartingDayOfWeek.sunday,
+      startingDayOfWeek: StartingDayOfWeek.saturday,
       weekNumbersVisible: false,
       calendarFormat: _calendarFormat,
       headerStyle: HeaderStyle(

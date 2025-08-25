@@ -172,8 +172,11 @@ class _ServiceQuintityCardWidgetState extends State<ServiceQuintityCardWidget> {
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               IconButton(
+                                padding: const EdgeInsets.all(0),
                                 icon: Icon(Icons.remove,
                                     color: AppColors(context).primaryColor),
                                 onPressed: widget.decrement,
@@ -183,9 +186,11 @@ class _ServiceQuintityCardWidgetState extends State<ServiceQuintityCardWidget> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors(context).primaryColor,
+                                  fontSize: AppSize(context).mediumText3,
                                 ),
                               ),
                               IconButton(
+                                padding: const EdgeInsets.all(0),
                                 icon: Icon(Icons.add,
                                     color: AppColors(context).primaryColor),
                                 onPressed: widget.increment,

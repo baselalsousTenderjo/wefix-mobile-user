@@ -81,7 +81,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   static GoogleSignIn? googleSignIn = GoogleSignIn(
     scopes: [
       'email',
-      'https://www.googleapis.com/auth/calendar',
+      // 'https://www.googleapis.com/auth/calendar.readonly',
       'https://www.googleapis.com/auth/calendar.events',
     ],
   );
@@ -134,6 +134,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       "08:00 - 10:00 AM": [
         const TimeOfDay(hour: 8, minute: 0),
         const TimeOfDay(hour: 10, minute: 0)
+      ],
+      "After 90 - 120 minutes": [
+        TimeOfDay.now(),
+        TimeOfDay.now(),
       ],
       "10:00 - 12:00 AM": [
         const TimeOfDay(hour: 10, minute: 0),
@@ -564,6 +568,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                           fontWeight: FontWeight.w600),
                                     ),
                                   ),
+
+                            SizedBox(
+                              height: 20,
+                            ),
+
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.redColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                // mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: AppColors.redColor,
+                                  ),
+                                  SizedBox(width: 5),
+                                  Text(
+                                    AppText(context).noteM,
+                                    style: TextStyle(
+                                        color: AppColors.redColor,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            ),
 
                             // subsicripeModel?.status == false
                             //     ? SizedBox()
