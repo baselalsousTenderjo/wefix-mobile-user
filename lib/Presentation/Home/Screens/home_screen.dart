@@ -745,6 +745,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   }
                                 }
                               }),
+                              SizedBox(height: AppSize(context).height * .01),
                               ServicesWidget(
                                   categories: startsSearch == false
                                       ? homeModel?.categories ?? []

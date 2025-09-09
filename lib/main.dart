@@ -10,6 +10,7 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:wefix/firebase_options.dart';
 // import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wefix/main_managements.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -34,7 +35,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await Permission.notification.isDenied.then((value) {
     if (value) {
       Permission.notification.request();
@@ -119,13 +122,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool isWeb = kIsWeb;
-  final Connectivity _connectivity = Connectivity();
-  late StreamSubscription<ConnectivityResult> _streamSubscription;
 
   @override
   void initState() {
     super.initState();
-    initConnectivity();
     requestNotificationPermission(context);
 
     MainManagements.handelNotification(
@@ -140,15 +140,6 @@ class _MyAppState extends State<MyApp> {
     );
 
     MainManagements.handelLanguage(context: context);
-
-    _streamSubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
-  }
-
-  @override
-  void dispose() {
-    _streamSubscription.cancel();
-    super.dispose();
   }
 
   @override
@@ -196,27 +187,6 @@ class _MyAppState extends State<MyApp> {
         userModel: widget.userModel,
       ),
     );
-  }
-
-  Future<void> initConnectivity() async {
-    late ConnectivityResult result;
-    try {
-      result = await _connectivity.checkConnectivity();
-    } on PlatformException catch (e) {
-      log(e.toString());
-      return;
-    }
-    if (!mounted) {
-      return;
-    }
-    return _updateConnectionStatus(result);
-  }
-
-  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-    AppProvider appProvider = Provider.of<AppProvider>(context);
-    setState(() {
-      appProvider.connectivityResult = result;
-    });
   }
 }
 
