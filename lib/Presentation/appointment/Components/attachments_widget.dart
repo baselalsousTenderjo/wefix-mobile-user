@@ -23,7 +23,9 @@ class AttachmentsWidget extends StatelessWidget {
               ? SvgPicture.asset("assets/icon/vid.svg", width: 40)
               : url!.endsWith("m4a")
                   ? SvgPicture.asset("assets/icon/mp4.svg", width: 40)
-                  : SvgPicture.asset("assets/icon/imge.svg", width: 40),
+                  : url!.endsWith("pdf")
+                      ? SvgPicture.asset("assets/icon/pdf.svg", width: 40)
+                      : SvgPicture.asset("assets/icon/imge.svg", width: 40),
           title: Text("$image"),
           trailing: IconButton(
             icon: Icon(Icons.remove_red_eye),

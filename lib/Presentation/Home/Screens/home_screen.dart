@@ -27,6 +27,7 @@ import 'package:wefix/Presentation/Home/Components/services_list_widget.dart';
 import 'package:wefix/Presentation/Home/Components/special_offer_widget.dart';
 import 'package:wefix/Presentation/Home/Components/steps_widget.dart';
 import 'package:wefix/Presentation/Home/components/slider_widget.dart';
+import 'package:wefix/Presentation/Profile/Screens/booking_details_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/notifications_screen.dart';
 import 'package:wefix/Presentation/SubCategory/Screens/sub_services_screen.dart';
 import 'package:wefix/Presentation/appointment/Components/border_animated_widget.dart';
@@ -241,15 +242,18 @@ class _HomeScreenState extends State<HomeScreen>
                       children: [
                         Stack(
                           children: [
-                            SliderWidget(
-                              catId: homeModel?.sliders
-                                      .map((e) => e.categoryId ?? 0)
-                                      .toList() ??
-                                  [],
-                              images: homeModel?.sliders
-                                      .map((e) => e.image ?? "")
-                                      .toList() ??
-                                  [],
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SliderWidget(
+                                catId: homeModel?.sliders
+                                        .map((e) => e.categoryId ?? 0)
+                                        .toList() ??
+                                    [],
+                                images: homeModel?.sliders
+                                        .map((e) => e.image ?? "")
+                                        .toList() ??
+                                    [],
+                              ),
                             ),
                           ],
                         ),
@@ -272,144 +276,153 @@ class _HomeScreenState extends State<HomeScreen>
                                       ),
                                     ),
                                     const SizedBox(height: 20),
-                                    Padding(
-                                      padding: const EdgeInsets.all(0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          appProvider.lang == "en"
-                                              ? Column(
-                                                  children: [
-                                                    ticketModel!.tickets[0]
-                                                                .process
-                                                                .toString()
-                                                                .toLowerCase() ==
-                                                            "request registered"
-                                                        ? Image.asset(
-                                                            "assets/image/1en.png",
-                                                            width:
-                                                                AppSize(context)
-                                                                        .width *
-                                                                    .9,
-                                                          )
-                                                        : ticketModel!
-                                                                    .tickets[0]
-                                                                    .process
-                                                                    .toString()
-                                                                    .toLowerCase() ==
-                                                                "visit scheduled"
-                                                            ? Image.asset(
-                                                                "assets/image/2en.png",
-                                                                width: AppSize(
-                                                                            context)
-                                                                        .width *
-                                                                    .9,
-                                                              )
-                                                            : ticketModel!
-                                                                        .tickets[
-                                                                            0]
-                                                                        .process
-                                                                        .toString()
-                                                                        .toLowerCase() ==
-                                                                    "ready to visit"
-                                                                ? Image.asset(
-                                                                    "assets/image/3en.png",
-                                                                    width: AppSize(context)
-                                                                            .width *
-                                                                        .9,
-                                                                  )
-                                                                : ticketModel!
-                                                                            .tickets[
-                                                                                0]
-                                                                            .process
-                                                                            .toString()
-                                                                            .toLowerCase() ==
-                                                                        "awaiting rating"
-                                                                    ? Image
-                                                                        .asset(
-                                                                        "assets/image/4en.png",
-                                                                        width: AppSize(context).width *
-                                                                            .9,
-                                                                      )
-                                                                    : ticketModel!.tickets[0].isWithMaterial ==
-                                                                            true
-                                                                        ? Image
-                                                                            .asset(
-                                                                            "assets/image/4en.png",
-                                                                            width:
-                                                                                AppSize(context).width * .9,
-                                                                          )
-                                                                        : const SizedBox()
-                                                  ],
-                                                )
-                                              : Column(
-                                                  children: [
-                                                    ticketModel!.tickets[0]
-                                                                .process
-                                                                .toString()
-                                                                .toLowerCase() ==
-                                                            "request registered"
-                                                        ? Image.asset(
-                                                            "assets/image/1-01-01.png",
-                                                            width:
-                                                                AppSize(context)
-                                                                        .width *
-                                                                    .9,
-                                                          )
-                                                        : ticketModel!
-                                                                    .tickets[0]
-                                                                    .process
-                                                                    .toString()
-                                                                    .toLowerCase() ==
-                                                                "visit scheduled"
-                                                            ? Image.asset(
-                                                                "assets/image/2-01-01.png",
-                                                                width: AppSize(
-                                                                            context)
-                                                                        .width *
-                                                                    .9,
-                                                              )
-                                                            : ticketModel!
-                                                                        .tickets[
-                                                                            0]
-                                                                        .process
-                                                                        .toString()
-                                                                        .toLowerCase() ==
-                                                                    "ready to visit"
-                                                                ? Image.asset(
-                                                                    "assets/image/3-01-01.png",
-                                                                    width: AppSize(context)
-                                                                            .width *
-                                                                        .9,
-                                                                  )
-                                                                : ticketModel!
-                                                                            .tickets[
-                                                                                0]
-                                                                            .process
-                                                                            .toString()
-                                                                            .toLowerCase() ==
-                                                                        "awaiting rating"
-                                                                    ? Image
-                                                                        .asset(
-                                                                        "assets/image/4-01-01.png",
-                                                                        width: AppSize(context).width *
-                                                                            .9,
-                                                                      )
-                                                                    : ticketModel!.tickets[0].isWithMaterial ==
-                                                                            true
-                                                                        ? Image
-                                                                            .asset(
-                                                                            "assets/image/5-01.png",
-                                                                            width:
-                                                                                AppSize(context).width * .9,
-                                                                          )
-                                                                        : const SizedBox(),
-                                                  ],
-                                                )
-                                        ],
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            rightToLeft(TicketDetailsScreen(
+                                                id: ticketModel!.tickets[0].id
+                                                    .toString())));
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            appProvider.lang == "en"
+                                                ? Column(
+                                                    children: [
+                                                      ticketModel!.tickets[0]
+                                                                  .process
+                                                                  .toString()
+                                                                  .toLowerCase() ==
+                                                              "request registered"
+                                                          ? Image.asset(
+                                                              "assets/image/1en.png",
+                                                              width: AppSize(
+                                                                          context)
+                                                                      .width *
+                                                                  .9,
+                                                            )
+                                                          : ticketModel!
+                                                                      .tickets[
+                                                                          0]
+                                                                      .process
+                                                                      .toString()
+                                                                      .toLowerCase() ==
+                                                                  "visit scheduled"
+                                                              ? Image.asset(
+                                                                  "assets/image/2en.png",
+                                                                  width: AppSize(
+                                                                              context)
+                                                                          .width *
+                                                                      .9,
+                                                                )
+                                                              : ticketModel!
+                                                                          .tickets[
+                                                                              0]
+                                                                          .process
+                                                                          .toString()
+                                                                          .toLowerCase() ==
+                                                                      "ready to visit"
+                                                                  ? Image.asset(
+                                                                      "assets/image/3en.png",
+                                                                      width:
+                                                                          AppSize(context).width *
+                                                                              .9,
+                                                                    )
+                                                                  : ticketModel!
+                                                                              .tickets[
+                                                                                  0]
+                                                                              .process
+                                                                              .toString()
+                                                                              .toLowerCase() ==
+                                                                          "awaiting rating"
+                                                                      ? Image
+                                                                          .asset(
+                                                                          "assets/image/4en.png",
+                                                                          width:
+                                                                              AppSize(context).width * .9,
+                                                                        )
+                                                                      : ticketModel!.tickets[0].isWithMaterial ==
+                                                                              true
+                                                                          ? Image
+                                                                              .asset(
+                                                                              "assets/image/4en.png",
+                                                                              width: AppSize(context).width * .9,
+                                                                            )
+                                                                          : const SizedBox()
+                                                    ],
+                                                  )
+                                                : Column(
+                                                    children: [
+                                                      ticketModel!.tickets[0]
+                                                                  .process
+                                                                  .toString()
+                                                                  .toLowerCase() ==
+                                                              "request registered"
+                                                          ? Image.asset(
+                                                              "assets/image/1-01-01.png",
+                                                              width: AppSize(
+                                                                          context)
+                                                                      .width *
+                                                                  .9,
+                                                            )
+                                                          : ticketModel!
+                                                                      .tickets[
+                                                                          0]
+                                                                      .process
+                                                                      .toString()
+                                                                      .toLowerCase() ==
+                                                                  "visit scheduled"
+                                                              ? Image.asset(
+                                                                  "assets/image/2-01-01.png",
+                                                                  width: AppSize(
+                                                                              context)
+                                                                          .width *
+                                                                      .9,
+                                                                )
+                                                              : ticketModel!
+                                                                          .tickets[
+                                                                              0]
+                                                                          .process
+                                                                          .toString()
+                                                                          .toLowerCase() ==
+                                                                      "ready to visit"
+                                                                  ? Image.asset(
+                                                                      "assets/image/3-01-01.png",
+                                                                      width:
+                                                                          AppSize(context).width *
+                                                                              .9,
+                                                                    )
+                                                                  : ticketModel!
+                                                                              .tickets[
+                                                                                  0]
+                                                                              .process
+                                                                              .toString()
+                                                                              .toLowerCase() ==
+                                                                          "awaiting rating"
+                                                                      ? Image
+                                                                          .asset(
+                                                                          "assets/image/4-01-01.png",
+                                                                          width:
+                                                                              AppSize(context).width * .9,
+                                                                        )
+                                                                      : ticketModel!.tickets[0].isWithMaterial ==
+                                                                              true
+                                                                          ? Image
+                                                                              .asset(
+                                                                              "assets/image/5-01.png",
+                                                                              width: AppSize(context).width * .9,
+                                                                            )
+                                                                          : const SizedBox(),
+                                                    ],
+                                                  )
+                                          ],
+                                        ),
                                       ),
                                     ),
                                     const Divider(

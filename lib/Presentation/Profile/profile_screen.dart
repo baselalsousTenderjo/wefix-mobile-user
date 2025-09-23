@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
+import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
 import 'package:wefix/Business/orders/profile_api.dart';
 import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
-import 'package:wefix/Presentation/Components/custom_cach_network_image.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
-import 'package:wefix/Presentation/Profile/Components/saving_widget.dart';
 import 'package:wefix/Presentation/Profile/Components/web_view_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/contract_details_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/bookings_screen.dart';
@@ -17,12 +16,11 @@ import 'package:wefix/Presentation/auth/login_screen.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Presentation/Profile/Components/widget_card.dart';
 import 'package:wefix/Presentation/Profile/Screens/content_screen.dart';
-import 'package:wefix/Presentation/Profile/Screens/Chat/contacts_messages_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/profile_info_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/EditUser/edit_mobile_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/EditUser/change_password_screen.dart';
-
 import 'package:wefix/Presentation/wallet/screens/wallet_screen.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -35,14 +33,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
+    LanguageProvider languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(AppText(context).menu),
         centerTitle: true,
         automaticallyImplyLeading: false,
-        actions: [
-          const LanguageButton(),
+        actions: const [
+          LanguageButton(),
         ],
       ),
       body: SingleChildScrollView(
@@ -115,25 +115,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
               WidgetCard(
                 title: AppText(context).privacyPolicy,
                 onTap: () {
-                  Navigator.push(
-                      context,
-                      rightToLeft(WebviewScreen(
-                        url: 'https://wefixjo.com/Privacy.html',
-                        title: AppText(context, isFunction: true).privacyPolicy,
-                      )));
+                  languageProvider.lang == "ar"
+                      ? Navigator.push(
+                          context,
+                          rightToLeft(WebviewScreen(
+                            url:
+                                'https://wefixjo.com/AboutUs/PrivacyPolicyArApp',
+                            title: AppText(context, isFunction: true)
+                                .termsAndConditions,
+                          )))
+                      : Navigator.push(
+                          context,
+                          rightToLeft(WebviewScreen(
+                            url: 'https://wefixjo.com/AboutUs/PrivacyPolicyApp',
+                            title: AppText(context, isFunction: true)
+                                .termsAndConditions,
+                          )));
                 },
               ),
               const SizedBox(height: 10),
               WidgetCard(
                 title: AppText(context).termsAndConditions,
                 onTap: () {
-                  Navigator.push(
-                      context,
-                      rightToLeft(WebviewScreen(
-                        url: 'https://wefixjo.com/Terms-Conditions.html',
-                        title: AppText(context, isFunction: true)
-                            .termsAndConditions,
-                      )));
+                  languageProvider.lang == "ar"
+                      ? Navigator.push(
+                          context,
+                          rightToLeft(WebviewScreen(
+                            url:
+                                'https://wefixjo.com/AboutUs/TermAndConditionArApp',
+                            title: AppText(context, isFunction: true)
+                                .termsAndConditions,
+                          )))
+                      : Navigator.push(
+                          context,
+                          rightToLeft(WebviewScreen(
+                            url:
+                                'https://wefixjo.com/AboutUs/TermAndConditionApp',
+                            title: AppText(context, isFunction: true)
+                                .termsAndConditions,
+                          )));
                 },
               ),
               const SizedBox(height: 10),
@@ -160,6 +180,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       rightToLeft(const LoginScreen()), (route) => true);
                 },
               ),
+
+              // WidgetCard(
+              //   title: AppText(context).myProperty,
+              //   onTap: () {
+              //     Navigator.push(
+              //         context, rightToLeft(const GetAppSignatureScreen()));
+              //   },
+              // ),
             ],
           ),
         ),

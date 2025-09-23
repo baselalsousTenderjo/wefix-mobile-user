@@ -25,7 +25,7 @@ class _SliderWidgetState extends State<SliderWidget> {
   @override
   Widget build(BuildContext context) {
     return CarouselSlider(
-      key:widget.key1 ,
+      key: widget.key1,
       items: widget.images.asMap().entries.map((entry) {
         int index = entry.key;
         String image = entry.value;
@@ -57,7 +57,7 @@ class _SliderWidgetState extends State<SliderWidget> {
           child: SizedBox(
             width: AppSize(context).width,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(15),
               child: WidgetCachNetworkImage(
                 // key: widget.key1,
                 image: image,
@@ -68,8 +68,7 @@ class _SliderWidgetState extends State<SliderWidget> {
         );
       }).toList(),
       options: CarouselOptions(
-      
-        height: AppSize(context).height * .2,
+        height: AppSize(context).height * .22,
         aspectRatio: 1,
         initialPage: 0,
         enableInfiniteScroll: true,
@@ -79,7 +78,7 @@ class _SliderWidgetState extends State<SliderWidget> {
         autoPlayAnimationDuration: const Duration(milliseconds: 800),
         autoPlayCurve: Curves.fastEaseInToSlowEaseOut,
         enlargeCenterPage: true,
-        viewportFraction: .85,
+        viewportFraction: 1,
         scrollDirection: Axis.horizontal,
       ),
     );

@@ -46,9 +46,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     "assets/image/sub1.png",
     "assets/image/sub2.png",
     "assets/image/sub3.png",
+    "assets/image/sub1.png",
+    "assets/image/sub2.png",
+    "assets/image/sub3.png",
   ];
 
   List imagefooter = [
+    "assets/image/pink.png",
+    "assets/image/orang.png",
+    "assets/image/green.png",
     "assets/image/pink.png",
     "assets/image/orang.png",
     "assets/image/green.png",
@@ -63,6 +69,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   @override
   Widget build(BuildContext context) {
     List colors = [
+      AppColors.pink,
+      AppColors(context).primaryColor,
+      AppColors.green,
       AppColors.pink,
       AppColors(context).primaryColor,
       AppColors.green

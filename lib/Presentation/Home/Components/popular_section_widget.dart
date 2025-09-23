@@ -42,7 +42,7 @@ class _PopularServicesSectionState extends State<PopularServicesSection> {
                   : Navigator.push(
                       context,
                       downToTop(SubServicesScreen(
-                        catId: widget.services[index].id,
+                        catId: widget.services[index].categoryId,
                         title: languageProvider.lang == "ar"
                             ? widget.services[index].nameAr ?? ""
                             : widget.services[index].name ?? "",

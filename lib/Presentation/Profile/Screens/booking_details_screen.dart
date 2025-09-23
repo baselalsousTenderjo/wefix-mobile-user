@@ -102,7 +102,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
           : const SizedBox(),
       floatingActionButton: bookingDetailsModel?.objTickets.status ==
               "Completed"
-          ? SizedBox()
+          ? const SizedBox()
           : Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.end,
@@ -157,8 +157,8 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                         _buildRow(
                             AppText(context).title, AppText(context).status,
                             rightValue: bookingDetailsModel?.objTickets.status,
-                            leftValue: bookingDetailsModel?.objTickets.type !=
-                                    "corrective"
+                            leftValue: bookingDetailsModel?.objTickets.type ==
+                                    "preventive"
                                 ? AppText(context).preventivemaintenancevisit
                                 : bookingDetailsModel?.objTickets.title),
                         _buildRow(
@@ -167,10 +167,10 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                             rightValue: bookingDetailsModel?.objTickets.date
                                 .toString()
                                 .substring(0, 10)),
-                        bookingDetailsModel?.objTickets.type != "corrective"
+                        bookingDetailsModel?.objTickets.type == "preventive"
                             ? const SizedBox()
                             : bookingDetailsModel?.objTickets.totalPrice == null
-                                ? SizedBox()
+                                ? const SizedBox()
                                 : _buildRow(
                                     AppText(context).price,
                                     "",
@@ -195,8 +195,16 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemBuilder: (context, index) {
-                                    return Text(
-                                        "${languageProvider.lang == "ar" ? bookingDetailsModel?.objTickets.servcieTickets[index].nameAr : bookingDetailsModel?.objTickets.servcieTickets[index].name} ${bookingDetailsModel?.objTickets.servcieTickets[index].quantity != null ? " x ${bookingDetailsModel?.objTickets.servcieTickets[index].quantity}" : ""}");
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                            "${languageProvider.lang == "ar" ? bookingDetailsModel?.objTickets.servcieTickets[index].nameAr : bookingDetailsModel?.objTickets.servcieTickets[index].name} ${bookingDetailsModel?.objTickets.servcieTickets[index].quantity != null ? " x ${bookingDetailsModel?.objTickets.servcieTickets[index].quantity}" : ""}"),
+                                        Text(
+                                            "${bookingDetailsModel?.objTickets.servcieTickets[index].price} ${AppText(context).jod}"),
+                                      ],
+                                    );
                                   },
                                 )),
                   bookingDetailsModel?.objTickets.advantagesTickets.isEmpty ==
@@ -364,21 +372,26 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                       : _buildSection(
                           '🧰 ${AppText(context).ticketM}',
                           Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children:
-                                bookingDetailsModel?.objTickets.ticketMaterials
-                                        .map((tool) => Chip(
-                                              label: Text(
-                                                  "${tool["title"]}  x ${tool["quantity"]}" ??
-                                                      ""),
-                                              backgroundColor:
-                                                  AppColors(context)
-                                                      .primaryColor
+                            spacing: 3,
+                            runSpacing: 3,
+                            children: bookingDetailsModel
+                                    ?.objTickets.ticketMaterials
+                                    .map((tool) => Chip(
+                                          label: Text(
+                                              "${tool["title"]}  x ${tool["quantity"]}" ??
+                                                  ""),
+                                          backgroundColor: tool["status"] ==
+                                                  "Pending"
+                                              ? AppColors(context)
+                                                  .primaryColor
+                                                  .withOpacity(.3)
+                                              : tool["status"] == "Rejected"
+                                                  ? Colors.red.withOpacity(.3)
+                                                  : Colors.green
                                                       .withOpacity(.3),
-                                            ))
-                                        .toList() ??
-                                    [],
+                                        ))
+                                    .toList() ??
+                                [],
                           )),
                   bookingDetailsModel?.objTickets.ticketMaterials.isEmpty ==
                           true
