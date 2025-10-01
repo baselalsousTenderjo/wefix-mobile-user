@@ -15,7 +15,6 @@ import 'package:wefix/Presentation/Components/widget_form_text.dart';
 import 'package:wefix/Presentation/Loading/loading_text.dart';
 import 'package:wefix/Presentation/Subscriptions/Components/featuer_widget.dart';
 
-
 class SubscriptionCard extends StatefulWidget {
   final String? title;
   final String? image;
@@ -95,6 +94,13 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      widget.isRecommended == true
+                          ? Image.asset(
+                              "assets/image/favourites.png",
+                              width: 40,
+                              height: 40,
+                            )
+                          : const SizedBox.shrink(),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Row(

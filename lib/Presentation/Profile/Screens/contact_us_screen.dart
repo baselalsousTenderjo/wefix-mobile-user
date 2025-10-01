@@ -98,7 +98,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _sectionContainer(
-                    title: AppText(context).emergency,
+                    title: AppText(context).emergencyContactus,
                     children: [
                       _listTile(
                           infoContactModel?.languages.emegancyPhone

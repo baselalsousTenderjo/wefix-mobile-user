@@ -77,7 +77,7 @@ class MainManagements {
               Navigator.push(navigatorKey.currentState!.context,
                   downToTop(NotificationsScreen()));
             },
-            contentPadding: EdgeInsets.all(8.0),
+            contentPadding: const EdgeInsets.all(8.0),
             align: Alignment.topCenter,
             title: (w) => Column(
                   mainAxisSize: MainAxisSize.min,

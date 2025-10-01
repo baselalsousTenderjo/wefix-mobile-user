@@ -66,30 +66,36 @@ class _AppoitmentDetailsScreenState extends State<AppoitmentDetailsScreen>
   ];
 
   List<Map> content = [
-   {
-  "title": AppText(navigatorKey.currentState!.context).editAppointmentTime,
-  "description": AppText(navigatorKey.currentState!.context).editAppointmentTimeDescription,
-  "image": "assets/image/date.png",
-  "isTop": false
-},
-{
-  "title": AppText(navigatorKey.currentState!.context).addAdditionalServices,
-  "description": AppText(navigatorKey.currentState!.context).addAdditionalServicesDescription,
-  "image": "assets/image/Layer 12.png",
-  "isTop": false
-},
-{
-  "title": AppText(navigatorKey.currentState!.context).viewYourAttachments,
-  "description": AppText(navigatorKey.currentState!.context).viewYourAttachmentsDescription,
-  "image": "assets/image/file.png",
-  "isTop": true
-},
-{
-  "title": AppText(navigatorKey.currentState!.context).continueYourAppointment,
-  "description": AppText(navigatorKey.currentState!.context).continueYourAppointmentDescription,
-  "image": "assets/image/cont.png",
-  "isTop": true
-}
+    {
+      "title": AppText(navigatorKey.currentState!.context).editAppointmentTime,
+      "description": AppText(navigatorKey.currentState!.context)
+          .editAppointmentTimeDescription,
+      "image": "assets/image/date.png",
+      "isTop": false
+    },
+    {
+      "title":
+          AppText(navigatorKey.currentState!.context).addAdditionalServices,
+      "description": AppText(navigatorKey.currentState!.context)
+          .addAdditionalServicesDescription,
+      "image": "assets/image/Layer 12.png",
+      "isTop": false
+    },
+    {
+      "title": AppText(navigatorKey.currentState!.context).viewYourAttachments,
+      "description": AppText(navigatorKey.currentState!.context)
+          .viewYourAttachmentsDescription,
+      "image": "assets/image/file.png",
+      "isTop": true
+    },
+    {
+      "title":
+          AppText(navigatorKey.currentState!.context).continueYourAppointment,
+      "description": AppText(navigatorKey.currentState!.context)
+          .continueYourAppointmentDescription,
+      "image": "assets/image/cont.png",
+      "isTop": true
+    }
   ];
 
   @override
@@ -252,12 +258,38 @@ class _AppoitmentDetailsScreenState extends State<AppoitmentDetailsScreen>
                                           ),
                                           activeColor:
                                               AppColors(context).primaryColor,
-                                          secondary: SvgPicture.network(
-                                            advantage?.icon ?? "",
-                                            height:
-                                                AppSize(context).height * .05,
-                                            width: AppSize(context).width * .1,
-                                          ),
+                                          secondary: advantage?.icon
+                                                      .endsWith("svg") ??
+                                                  false
+                                              ? SvgPicture.network(
+                                                  advantage?.icon ?? "",
+                                                  height:
+                                                      AppSize(context).height *
+                                                          .05,
+                                                  width:
+                                                      AppSize(context).width *
+                                                          .1,
+                                                )
+                                              : Image.network(
+                                                  advantage?.icon ?? "",
+                                                  height:
+                                                      AppSize(context).height *
+                                                          .05,
+                                                  width:
+                                                      AppSize(context).width *
+                                                          .1,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return Icon(
+                                                      Icons.image_not_supported,
+                                                      size: AppSize(context)
+                                                              .width *
+                                                          .1,
+                                                      color:
+                                                          AppColors.greyColor2,
+                                                    );
+                                                  },
+                                                ),
                                           title: Text(
                                             languageProvider.lang == "ar"
                                                 ? advantage?.titleAr ?? ""

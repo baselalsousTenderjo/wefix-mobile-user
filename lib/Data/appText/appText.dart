@@ -163,6 +163,8 @@ String get placeOrderAndChoosePaymentMethodDescription => getTranslation('placeO
   String get selectDateTime => getTranslation('selectDateTime');
   String get later => getTranslation('later');
   String get emergency => getTranslation('emergency');
+  String get emergencyContactus => getTranslation('emergencyContactus');
+
   String get bad => getTranslation('bad');
   String get good => getTranslation('good');
   String get happy => getTranslation('happy');

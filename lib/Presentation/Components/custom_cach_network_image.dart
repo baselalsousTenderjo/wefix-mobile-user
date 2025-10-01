@@ -22,6 +22,9 @@ class WidgetCachNetworkImage extends StatelessWidget {
     return CachedNetworkImage(
       height: height,
       width: width,
+      memCacheHeight: height?.toInt(), // request scaled-down image
+      memCacheWidth: width?.toInt(),
+
       imageUrl: image.replaceAll(' ', ''),
       imageBuilder: (context, imageProvider) => Container(
         decoration: BoxDecoration(
