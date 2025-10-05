@@ -33,7 +33,7 @@ android {
         applicationId = "com.tenderjo.wefixapp"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 16
+        versionCode = 17
         versionName = flutter.versionName
     }
 
