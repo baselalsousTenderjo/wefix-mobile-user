@@ -1,7 +1,7 @@
 class EndPoints {
-  // static String baseUrl = 'https://api.wefixjo.com/';
+  static String baseUrl = 'https://api.wefixjo.com/';
   // static String baseUrl = 'https://apitestwefix.oneit.website/';
-  static String baseUrl = 'https://wefixapi.oneit.website/';
+  // static String baseUrl = 'https://wefixapi.oneit.website/';
 
   // * Authantication
   static String signUp = 'users/Signup';

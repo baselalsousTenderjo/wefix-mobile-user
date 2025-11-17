@@ -786,6 +786,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           extraTickets;
 
       double finalPrice = extraPrice + totalExtra;
+       int ticketCount =
+        calculateTotalTickets(appointmentInfo, subsicripeModel, isSubscribed);
 
       if (finalPrice > 0) {
         return "$allowedTickets ${AppText(context).ticket} + ${AppText(context).jod} ${finalPrice.toStringAsFixed(2)}";

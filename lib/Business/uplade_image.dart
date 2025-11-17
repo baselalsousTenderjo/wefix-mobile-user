@@ -14,7 +14,7 @@ class UpladeImages {
         'authrization': token,
       };
       var request = http.MultipartRequest('POST',
-          Uri.parse('https://wefixApi.oneit.website/Common/uploadMultiFiles'));
+          Uri.parse('https://api.wefixjo.com/Common/uploadMultiFiles'));
       request.files.add(await http.MultipartFile.fromPath('file', file.path));
       request.headers.addAll(headers);
 

@@ -472,57 +472,57 @@ class _AppoitmentDetailsScreenState extends State<AppoitmentDetailsScreen>
                             : const Divider(
                                 color: AppColors.backgroundColor,
                               ),
-                        Text(
-                          "🏠 Branch name",
-                          style: TextStyle(
-                            fontSize: AppSize(context).smallText1,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
+                        // Text(
+                        //   "🏠 Branch name",
+                        //   style: TextStyle(
+                        //     fontSize: AppSize(context).smallText1,
+                        //     fontWeight: FontWeight.bold,
+                        //   ),
+                        // ),
+                        // SizedBox(
+                        //   height: 5,
+                        // ),
 
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Container(
-                            width: AppSize(context).width,
-                            height: AppSize(context).height * 0.06,
-                            decoration: BoxDecoration(
-                              color: AppColors.backgroundColor,
-                              borderRadius: BorderRadius.circular(7),
-                              border: Border.all(color: AppColors.greyColor3),
-                            ),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: DropdownButton<String>(
-                                  isDense: true,
-                                  isExpanded: true,
-                                  underline: const SizedBox(),
-                                  value: selectedType,
-                                  hint: const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    child: Text(""),
-                                  ),
-                                  items: branchesModel?.branches
-                                      .map((item) => DropdownMenuItem(
-                                            value: item.id.toString(),
-                                            child: Text(item.name),
-                                          ))
-                                      .toList(),
-                                  onChanged: (value) {
-                                    appProvider.setRealStateId(value ?? "");
-                                    setState(() {
-                                      selectedType = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        // Padding(
+                        //   padding: const EdgeInsets.only(bottom: 12),
+                        //   child: Container(
+                        //     width: AppSize(context).width,
+                        //     height: AppSize(context).height * 0.06,
+                        //     decoration: BoxDecoration(
+                        //       color: AppColors.backgroundColor,
+                        //       borderRadius: BorderRadius.circular(7),
+                        //       border: Border.all(color: AppColors.greyColor3),
+                        //     ),
+                        //     child: Center(
+                        //       child: Padding(
+                        //         padding: const EdgeInsets.all(8.0),
+                        //         child: DropdownButton<String>(
+                        //           isDense: true,
+                        //           isExpanded: true,
+                        //           underline: const SizedBox(),
+                        //           value: selectedType,
+                        //           hint: const Padding(
+                        //             padding: EdgeInsets.symmetric(
+                        //                 horizontal: 8, vertical: 4),
+                        //             child: Text(""),
+                        //           ),
+                        //           items: branchesModel?.branches
+                        //               .map((item) => DropdownMenuItem(
+                        //                     value: item.id.toString(),
+                        //                     child: Text(item.name),
+                        //                   ))
+                        //               .toList(),
+                        //           onChanged: (value) {
+                        //             appProvider.setRealStateId(value ?? "");
+                        //             setState(() {
+                        //               selectedType = value;
+                        //             });
+                        //           },
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
