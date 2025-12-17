@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
@@ -49,12 +48,12 @@ class _B2BHomeState extends State<B2BHome> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _HeaderSection(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 4),
               _TicketSummarySection(
                 subsicripeModel: widget.subsicripeModel,
                 ticketStatistics: ticketStatistics,
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 10),
               loading == true
                   ? LinearProgressIndicator(
                       backgroundColor: AppColors.secoundryColor,
@@ -63,20 +62,19 @@ class _B2BHomeState extends State<B2BHome> {
                   : _LastTicketsSection(
                       ticketModel: ticketModel,
                     ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 4),
               CustomBotton(
                 title: "Add Ticket",
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const SubServicesScreen(
-                          title: "Add Ticket", catId: 0),
+                      builder: (context) => const SubServicesScreen(title: "Add Ticket", catId: 0),
                     ),
                   );
                 },
               ),
-              SizedBox(height: 25),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -98,10 +96,8 @@ class _B2BHomeState extends State<B2BHome> {
         // Convert MMS tickets format to TicketModel format
         final allTickets = ticketsData['all']?['tickets'] ?? [];
         final tickets = allTickets.map<Ticket>((ticket) {
-          final ticketDate = ticket['ticketDate'] != null
-              ? DateTime.parse(ticket['ticketDate'])
-              : DateTime.now();
-          
+          final ticketDate = ticket['ticketDate'] != null ? DateTime.parse(ticket['ticketDate']) : DateTime.now();
+
           return Ticket(
             id: ticket['id'] ?? 0,
             customerId: 0, // Not available from MMS
@@ -116,9 +112,7 @@ class _B2BHomeState extends State<B2BHome> {
             promoCode: null,
             requestedDate: ticketDate,
             selectedDate: ticketDate,
-            selectedDateTime: ticket['ticketTimeFrom'] != null && ticket['ticketTimeTo'] != null
-                ? '${ticket['ticketTimeFrom']} - ${ticket['ticketTimeTo']}'
-                : null,
+            selectedDateTime: ticket['ticketTimeFrom'] != null && ticket['ticketTimeTo'] != null ? '${ticket['ticketTimeFrom']} - ${ticket['ticketTimeTo']}' : null,
             timeFrom: ticket['ticketTimeFrom'],
             timeTo: ticket['ticketTimeTo'],
             teamNo: null,
@@ -132,7 +126,7 @@ class _B2BHomeState extends State<B2BHome> {
             createdBy: 0,
             customerPackageId: null,
             totalPrice: 0.0,
-            serviceprovide: null,
+            serviceprovide: ticket['technician']?['name'] ?? null,
             description: ticket['ticketDescription'] ?? '',
             descriptionAr: ticket['ticketDescription'] ?? '',
           );
@@ -167,8 +161,7 @@ class _B2BHomeState extends State<B2BHome> {
           ticketStatistics = stats;
         });
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 }
 
@@ -235,28 +228,14 @@ class _TicketSummarySectionState extends State<_TicketSummarySection> {
     // New format: {corrective: {total: X, completed: Y}, ...}
     // Old format (fallback): {corrective: X, ...}
     final correctiveData = widget.ticketStatistics?['byType']?['corrective'];
-    final correctiveCompleted = (correctiveData is Map)
-        ? (correctiveData['completed'] ?? 0).toString()
-        : (correctiveData?.toString() ?? "0");
-    final correctiveTotal = (correctiveData is Map)
-        ? (correctiveData['total'] ?? 0).toString()
-        : (correctiveData?.toString() ?? widget.subsicripeModel?.objSubscribe?.onDemandVisit.toString() ?? "0");
-
-    final preventiveData = widget.ticketStatistics?['byType']?['preventive'];
-    final preventiveCompleted = (preventiveData is Map)
-        ? (preventiveData['completed'] ?? 0).toString()
-        : (preventiveData?.toString() ?? "0");
-    final preventiveTotal = (preventiveData is Map)
-        ? (preventiveData['total'] ?? 0).toString()
-        : (preventiveData?.toString() ?? widget.subsicripeModel?.objSubscribe?.recurringVist.toString() ?? "0");
+    final correctiveCompleted = (correctiveData is Map) ? (correctiveData['completed'] ?? 0).toString() : (correctiveData?.toString() ?? "0");
+    final correctiveTotal =
+        (correctiveData is Map) ? (correctiveData['total'] ?? 0).toString() : (correctiveData?.toString() ?? widget.subsicripeModel?.objSubscribe?.onDemandVisit.toString() ?? "0");
 
     final emergencyData = widget.ticketStatistics?['byType']?['emergency'];
-    final emergencyCompleted = (emergencyData is Map)
-        ? (emergencyData['completed'] ?? 0).toString()
-        : (emergencyData?.toString() ?? "0");
-    final emergencyTotal = (emergencyData is Map)
-        ? (emergencyData['total'] ?? 0).toString()
-        : (emergencyData?.toString() ?? widget.subsicripeModel?.objSubscribe?.emeregencyVisit.toString() ?? "0");
+    final emergencyCompleted = (emergencyData is Map) ? (emergencyData['completed'] ?? 0).toString() : (emergencyData?.toString() ?? "0");
+    final emergencyTotal =
+        (emergencyData is Map) ? (emergencyData['total'] ?? 0).toString() : (emergencyData?.toString() ?? widget.subsicripeModel?.objSubscribe?.emeregencyVisit.toString() ?? "0");
 
     return Column(
       children: [
@@ -265,24 +244,14 @@ class _TicketSummarySectionState extends State<_TicketSummarySection> {
           total: correctiveTotal,
         ),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-                child: _SmallTicketCard(
-              title: "Preventive Tickets",
-              imagePath: 'assets/icon/image copy 2.png',
-              used: preventiveCompleted,
-              total: preventiveTotal,
-            )),
-            const SizedBox(width: 12),
-            Expanded(
-                child: _SmallTicketCard(
-              title: "Emergency Tickets",
-              imagePath: 'assets/icon/image.png',
-              used: emergencyCompleted,
-              total: emergencyTotal,
-            )),
-          ],
+        SizedBox(
+          width: double.infinity,
+          child: _SmallTicketCard(
+            title: "Emergency Tickets",
+            imagePath: 'assets/icon/image.png',
+            used: emergencyCompleted,
+            total: emergencyTotal,
+          ),
         ),
       ],
     );
@@ -317,8 +286,7 @@ class _CorrectiveTicketCardState extends State<_CorrectiveTicketCard> {
         children: [
           const Text(
             "Corrective Tickets",
-            style: TextStyle(
-                color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           Row(
@@ -363,8 +331,7 @@ class _SmallTicketCard extends StatefulWidget {
   final String? total;
   final String imagePath;
 
-  const _SmallTicketCard(
-      {required this.title, required this.imagePath, this.used, this.total});
+  const _SmallTicketCard({required this.title, required this.imagePath, this.used, this.total});
 
   @override
   State<_SmallTicketCard> createState() => _SmallTicketCardState();
@@ -374,49 +341,52 @@ class _SmallTicketCardState extends State<_SmallTicketCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 120,
+      height: 90,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(widget.imagePath),
           fit: BoxFit.fill,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(32),
       ),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 5),
-          Flexible(
-            child: Text(
-              widget.title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600),
-            ),
+          Text(
+            widget.title,
+            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 3),
-          CircularPercentIndicator(
-            radius: 45,
-            lineWidth: 6,
-            animation: true,
-            arcType: ArcType.HALF,
-            percent: (() {
-              final used = double.tryParse(widget.used ?? "0") ?? 0;
-              final total = double.tryParse(widget.total ?? "1") ?? 1;
-              if (total == 0) return 0.0; // avoid division by zero
-              final ratio = used / total;
-              return ratio.clamp(0.0, 1.0); // ensure between 0 and 1
-            })(),
-            arcBackgroundColor: Colors.grey.withOpacity(0.3),
-            // startAngle: 270,
-            circularStrokeCap: CircularStrokeCap.round,
-            progressColor: Theme.of(context).primaryColor,
-            center: Text("${widget.used} / ${widget.total ?? 0}",
+          const Spacer(),
+          Row(
+            children: [
+              Expanded(
+                child: LinearPercentIndicator(
+                  lineHeight: 6,
+                  percent: (() {
+                    final used = double.tryParse(widget.used ?? "0") ?? 0;
+                    final total = double.tryParse(widget.total ?? "1") ?? 1;
+                    if (total == 0) return 0.0; // avoid division by zero
+                    final ratio = used / total;
+                    return ratio.clamp(0.0, 1.0); // ensure between 0 and 1
+                  })(),
+                  animation: true,
+                  progressColor: Colors.white,
+                  backgroundColor: Colors.white.withOpacity(0.4),
+                  barRadius: const Radius.circular(6),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                "${widget.used} / ${widget.total ?? 0}",
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
-          ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              )
+            ],
+          )
         ],
       ),
     );
@@ -430,13 +400,28 @@ class _LastTicketsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // حساب الارتفاع المتاح للـ Tickets
+    double screenHeight = MediaQuery.of(context).size.height;
+    double safeAreaTop = MediaQuery.of(context).padding.top;
+    double safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    
+    // العناصر الثابتة:
+    // Header ≈ 70
+    // Ticket Summary ≈ 200
+    // "Last Tickets" Row ≈ 40
+    // Add Ticket Button ≈ 60
+    // Spacing (16+16+25+4+16) ≈ 77
+    double fixedHeight = 125 + 200 + 40 + 60 + 77 + safeAreaTop + safeAreaBottom;
+    
+    // الارتفاع المتبقي للـ PageView
+    double availableHeight = screenHeight - fixedHeight;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Text("Last Tickets",
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17)),
+            const Text("Last Tickets", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17)),
             const Spacer(),
             InkWell(
               onTap: () {
@@ -445,117 +430,125 @@ class _LastTicketsSection extends StatelessWidget {
                   rightToLeft(BookingScreen()),
                 );
               },
-              child: const Text("View All",
-                  style: TextStyle(
-                      color: Colors.orange, fontWeight: FontWeight.w500)),
+              child: const Text("View All", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w500)),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Column(children: [
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: ((ticketModel?.tickets.length ?? 0) >= 3)
-                ? 3
-                : ticketModel?.tickets.length ?? 0,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TicketDetailsScreen(
-                        id: ticketModel?.tickets[index].id.toString() ?? "",
+        const SizedBox(height: 4),
+        SizedBox(
+          height: availableHeight.clamp(300, 500), // حد أدنى 300 وأقصى 500
+          child: PageView.builder(
+            itemCount: (ticketModel?.tickets.length ?? 0) > 0 ? ((ticketModel!.tickets.length / 4).ceil()) : 0,
+            itemBuilder: (context, pageIndex) {
+              int startIndex = pageIndex * 4;
+              int endIndex = (startIndex + 4).clamp(0, ticketModel?.tickets.length ?? 0);
+              
+              return ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: endIndex - startIndex,
+                itemBuilder: (context, index) {
+                  int ticketIndex = startIndex + index;
+                  
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TicketDetailsScreen(
+                            id: ticketModel?.tickets[ticketIndex].id.toString() ?? "",
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors(context).primaryColor.withOpacity(0.2)),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        leading: ticketModel?.tickets[ticketIndex].icon == null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(30),
+                                child: Image.asset(
+                                  "assets/image/icon_logo.png",
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                ))
+                            : WidgetCachNetworkImage(
+                                image: ticketModel?.tickets[ticketIndex].icon ?? "",
+                                width: 40,
+                                height: 40,
+                              ),
+                        title: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "#${ticketModel?.tickets[ticketIndex].id}",
+                              style: TextStyle(fontSize: 12, color: AppColors(context).primaryColor),
+                            ),
+                            Text(
+                                ticketModel?.tickets[ticketIndex].description == null
+                                    ? AppText(context).preventivevisits
+                                    : ticketModel?.tickets[ticketIndex].description ?? "",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                          ],
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                DateFormat('MMM d, yyyy').format(
+                                    ticketModel?.tickets[ticketIndex].selectedDate ?? DateTime.now()),
+                                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                            if (ticketModel?.tickets[ticketIndex].serviceprovide != null)
+                              Text(
+                                ticketModel?.tickets[ticketIndex].serviceprovide ?? "",
+                                style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+                              ),
+                          ],
+                        ),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: ticketModel?.tickets[ticketIndex].status == "Pending"
+                                ? AppColors(context).primaryColor.withOpacity(.2)
+                                : ticketModel?.tickets[ticketIndex].status == "Cancelled"
+                                    ? Colors.red.withOpacity(.2)
+                                    : Colors.green.withOpacity(.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            ticketModel?.tickets[ticketIndex].status ?? "",
+                            style: TextStyle(
+                                color: ticketModel?.tickets[ticketIndex].status == "Pending"
+                                    ? AppColors(context).primaryColor
+                                    : ticketModel?.tickets[ticketIndex].status == "Cancelled"
+                                        ? Colors.red
+                                        : Colors.green,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 11),
+                          ),
+                        ),
                       ),
                     ),
                   );
                 },
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        color:
-                            AppColors(context).primaryColor.withOpacity(0.2)),
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
-                  ),
-                  child: ListTile(
-                    leading: ticketModel?.tickets[index].icon == null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(30),
-                            child: Image.asset(
-                              "assets/image/icon_logo.png",
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                            ))
-                        : WidgetCachNetworkImage(
-                            image: ticketModel?.tickets[index].icon ?? "",
-                            width: 60,
-                            height: 60,
-                          ),
-                    title: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "#${ticketModel?.tickets[index].id}",
-                          style: TextStyle(
-                              fontSize: AppSize(context).smallText3,
-                              color: AppColors(context).primaryColor),
-                        ),
-                        Text(
-                            ticketModel?.tickets[index].description == null
-                                ? AppText(context).preventivevisits
-                                : ticketModel?.tickets[index].description ?? "",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: AppSize(context).smallText1)),
-                      ],
-                    ),
-                    subtitle: Text(
-                        DateFormat('MMM d, yyyy').format(
-                            ticketModel?.tickets[index].selectedDate ??
-                                DateTime.now()),
-                        style: TextStyle(
-                            fontSize: AppSize(context).smallText2,
-                            color: Colors.grey[600])),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: ticketModel?.tickets[index].status == "Pending"
-                            ? AppColors(context).primaryColor.withOpacity(.2)
-                            : ticketModel?.tickets[index].status == "Cancelled"
-                                ? Colors.red.withOpacity(.2)
-                                : Colors.green.withOpacity(.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        ticketModel?.tickets[index].status ?? "",
-                        style: TextStyle(
-                            color:
-                                ticketModel?.tickets[index].status == "Pending"
-                                    ? AppColors(context).primaryColor
-                                    : ticketModel?.tickets[index].status ==
-                                            "Cancelled"
-                                        ? Colors.red
-                                        : Colors.green,
-                            fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  ),
-                ),
               );
             },
-          )
-        ]),
+          ),
+        ),
       ],
     );
   }
 }
-
 // ---------------- Shortcuts ----------------
 class _ShortcutsSection extends StatelessWidget {
   const _ShortcutsSection();
@@ -572,8 +565,7 @@ class _ShortcutsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Shortcuts",
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17)),
+        const Text("Shortcuts", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 17)),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -586,12 +578,10 @@ class _ShortcutsSection extends StatelessWidget {
                     border: Border.all(color: Colors.orange),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(s["icon"] as IconData,
-                      color: Colors.orange, size: 28),
+                  child: Icon(s["icon"] as IconData, color: Colors.orange, size: 28),
                 ),
                 const SizedBox(height: 6),
-                Text(s["label"].toString(),
-                    style: const TextStyle(fontSize: 13)),
+                Text(s["label"].toString(), style: const TextStyle(fontSize: 13)),
               ],
             );
           }).toList(),

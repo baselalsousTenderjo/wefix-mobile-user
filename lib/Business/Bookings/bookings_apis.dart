@@ -54,7 +54,7 @@ class BookingApi {
               createdBy: 0,
               customerPackageId: null,
               totalPrice: 0.0,
-              serviceprovide: null,
+              serviceprovide: ticket['technician']?['name'] ?? null,
               description: ticket['ticketDescription'] ?? '',
               descriptionAr: ticket['ticketDescription'] ?? '',
             );
@@ -89,7 +89,7 @@ class BookingApi {
   }
 
   static ActiveTicketModel? ticketActiveModel;
-  static Future getActiveTicket({required String token}) async {
+  static Future<ActiveTicketModel?> getActiveTicket({required String token}) async {
     try {
       final response = await HttpHelper.getData(
         query: EndPoints.activeTickets,
@@ -103,10 +103,10 @@ class BookingApi {
 
         return ticketActiveModel;
       } else {
-        return [];
+        return null;
       }
     } catch (e) {
-      return [];
+      return null;
     }
   }
 
@@ -293,10 +293,15 @@ class BookingApi {
   }
 
   // * MMS API - Get company tickets from backend-mms
-  static Future<Map<String, dynamic>?> getCompanyTicketsFromMMS({required String token}) async {
+  static Future<Map<String, dynamic>?> getCompanyTicketsFromMMS({
+    required String token,
+    int page = 1,
+    int limit = 20,
+  }) async {
     try {
+      final queryParams = '?page=$page&limit=$limit';
       final response = await HttpHelper.getData2(
-        query: EndPoints.mmsBaseUrl + EndPoints.mmsTickets,
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsTickets + queryParams,
         token: token,
       );
 

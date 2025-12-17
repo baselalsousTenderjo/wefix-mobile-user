@@ -602,6 +602,23 @@ class _HomeScreenState extends State<HomeScreen>
                                                                       ),
                                                                     ],
                                                                   ),
+                                                                  if (ticketModel?.tickets[index].serviceprovide != null)
+                                                                    Padding(
+                                                                      padding: const EdgeInsets.only(top: 5),
+                                                                      child: Row(
+                                                                        children: [
+                                                                          const Text("👤 "),
+                                                                          Text(
+                                                                            "Technician: ${ticketModel?.tickets[index].serviceprovide ?? ""}",
+                                                                            style: TextStyle(
+                                                                              fontSize: AppSize(context).smallText2,
+                                                                              fontWeight: FontWeight.w500,
+                                                                              color: Colors.grey[700],
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
                                                                 ],
                                                               ),
                                                             )

@@ -79,13 +79,17 @@ class ProfileApis {
 
       log('isSubsicribe() [ STATUS ] -> ${response.statusCode}');
 
-      final body = json.decode(response.body);
-
       if (response.statusCode == 200) {
-        subsicripeModel = SubsicripeModel.fromJson(body);
-        return subsicripeModel;
+        // Check if response body is not empty before decoding
+        if (response.body.isNotEmpty) {
+          final body = json.decode(response.body);
+          subsicripeModel = SubsicripeModel.fromJson(body);
+          return subsicripeModel;
+        } else {
+          return null;
+        }
       } else {
-        return false;
+        return null;
       }
     } catch (e) {
       log('isSubsicribe() [ ERROR ] -> $e');
