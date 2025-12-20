@@ -174,7 +174,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get phone => 'هاتف';
 
   @override
-  String get previous => 'سابق';
+  String get previous => 'السابق';
 
   @override
   String get privacyPolicy => 'سياسة الخصوصية';
@@ -342,7 +342,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterPayment => 'أدخل طريقة الدفع';
 
   @override
-  String get attachment => 'مرفق';
+  String get attachment => 'المرفقات';
 
   @override
   String get addAttachment => 'إضافة مرفق';
@@ -447,7 +447,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterCustomerPhone => 'أدخل هاتف العميل';
 
   @override
-  String get optional => '  (اختياري)';
+  String get optional => 'اختياري';
 
   @override
   String get selectPaymentMethods => 'اختر طرق الدفع';
@@ -902,4 +902,94 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get emailRequired => 'البريد الإلكتروني مطلوب';
+
+  @override
+  String get createTicket => 'إنشاء تذكرة';
+
+  @override
+  String get editTicket => 'تعديل تذكرة';
+
+  @override
+  String get updateTicket => 'تحديث تذكرة';
+
+  @override
+  String get locationDescription => 'وصف الموقع';
+
+  @override
+  String get locationMap => 'خريطة الموقع';
+
+  @override
+  String get description => 'الوصف';
+
+  @override
+  String get serviceDescription => 'وصف الخدمة';
+
+  @override
+  String get ticketType => 'نوع التذكرة';
+
+  @override
+  String get mainService => 'الخدمة الرئيسية';
+
+  @override
+  String get date => 'التاريخ';
+
+  @override
+  String get timeFrom => 'من الوقت';
+
+  @override
+  String get timeTo => 'إلى الوقت';
+
+  @override
+  String get selectDate => 'اختر التاريخ';
+
+  @override
+  String get selectTime => 'اختر الوقت';
+
+  @override
+  String get contractId => 'رقم العقد';
+
+  @override
+  String get branchId => 'رقم الفرع';
+
+  @override
+  String get zoneId => 'رقم المنطقة';
+
+  @override
+  String get teamLeaderId => 'رقم قائد الفريق';
+
+  @override
+  String get technicianId => 'رقم الفني';
+
+  @override
+  String get havingFemaleEngineer => 'مهندسة أنثى';
+
+  @override
+  String get withMaterial => 'مع مواد';
+
+  @override
+  String get ticketCreatedSuccessfully => 'تم إنشاء التذكرة بنجاح';
+
+  @override
+  String get ticketUpdatedSuccessfully => 'تم تحديث التذكرة بنجاح';
+
+  @override
+  String get ticketCreateFailed => 'فشل إنشاء التذكرة';
+
+  @override
+  String get ticketUpdateFailed => 'فشل تحديث التذكرة';
+
+  @override
+  String get ticketSummary => 'ملخص التذكرة';
+
+  @override
+  String get basicInfo => 'المعلومات الأساسية';
+
+  @override
+  String get serviceDetails => 'تفاصيل الخدمة';
+
+  @override
+  String get subService => 'الخدمة الفرعية';
+
+  @override
+  String get ticketStatus => 'حالة التذكرة';
 }

@@ -1,6 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:wefix/Business/end_points.dart';
+import 'package:wefix/Data/Api/auth_helper.dart';
 import 'package:wefix/Data/Api/http_request.dart';
 import 'package:wefix/Data/model/active_ticket_model.dart' hide Ticket;
 import 'package:wefix/Data/model/advantages_model.dart';
@@ -333,6 +338,345 @@ class BookingApi {
         return null;
       }
     } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Create ticket
+  static Future<Map<String, dynamic>?> createTicketInMMS({
+    required String token,
+    required Map<String, dynamic> ticketData,
+    BuildContext? context,
+  }) async {
+    try {
+      log('createTicketInMMS: Sending payload: $ticketData');
+      final response = await HttpHelper.postData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsCreateTicket,
+        token: token,
+        data: ticketData,
+        headers: {'x-client-type': 'mobile'},
+        context: context,
+      );
+
+      log('createTicketInMMS: Response Status: ${response.statusCode}');
+      log('createTicketInMMS: Response Body: ${response.body}');
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 201 && body['success'] == true) {
+        return body['data'];
+      } else {
+        // Log the error response for debugging
+        log('createTicketInMMS failed: Status ${response.statusCode}, Body: ${response.body}');
+        // Return error details if available
+        if (body['message'] != null) {
+          throw Exception(body['message'] as String);
+        }
+        return null;
+      }
+    } catch (e) {
+      log('createTicketInMMS exception: $e');
+      rethrow; // Re-throw to show actual error in UI
+    }
+  }
+
+  // * MMS API - Update ticket
+  static Future<Map<String, dynamic>?> updateTicketInMMS({
+    required String token,
+    required int ticketId,
+    required Map<String, dynamic> ticketData,
+    BuildContext? context,
+  }) async {
+    try {
+      final query = EndPoints.mmsBaseUrl + EndPoints.mmsUpdateTicket + ticketId.toString();
+      
+      // Use HttpHelper.putData2 if available, otherwise use http.put directly
+      var headers = <String, String>{
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Connection': 'keep-alive',
+        'Authorization': 'Bearer $token',
+        'x-client-type': 'mobile',
+      };
+      
+      final response = await http.put(
+        Uri.parse(query),
+        body: jsonEncode(ticketData),
+        headers: headers,
+      );
+
+      final body = json.decode(response.body);
+
+      // Check for auth errors
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        await AuthHelper.handleAuthError(context, isMMS: true);
+      }
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return body['data'];
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get company contracts
+  static Future<List<Map<String, dynamic>>?> getCompanyContracts({
+    required String token,
+    BuildContext? context,
+  }) async {
+    try {
+      final response = await HttpHelper.getData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsCompanyContracts,
+        token: token,
+        context: context,
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return List<Map<String, dynamic>>.from(body['data'] ?? []);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get company branches
+  static Future<List<Map<String, dynamic>>?> getCompanyBranches({
+    required String token,
+    BuildContext? context,
+  }) async {
+    try {
+      final response = await HttpHelper.getData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsCompanyBranches,
+        token: token,
+        context: context,
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return List<Map<String, dynamic>>.from(body['data'] ?? []);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get company zones
+  static Future<List<Map<String, dynamic>>?> getCompanyZones({
+    required String token,
+    BuildContext? context,
+  }) async {
+    try {
+      final response = await HttpHelper.getData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsCompanyZones,
+        token: token,
+        context: context,
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return List<Map<String, dynamic>>.from(body['data'] ?? []);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get main services
+  static Future<List<Map<String, dynamic>>?> getMainServices({
+    required String token,
+    BuildContext? context,
+  }) async {
+    try {
+      final response = await HttpHelper.getData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsMainServices,
+        token: token,
+        context: context,
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return List<Map<String, dynamic>>.from(body['data'] ?? []);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get sub services
+  static Future<List<Map<String, dynamic>>?> getSubServices({
+    required String token,
+    int? parentServiceId,
+    BuildContext? context,
+  }) async {
+    try {
+      String query = EndPoints.mmsBaseUrl + EndPoints.mmsSubServices;
+      if (parentServiceId != null) {
+        query += '?parentServiceId=$parentServiceId';
+      }
+      
+      final response = await HttpHelper.getData2(
+        query: query,
+        token: token,
+        context: context,
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return List<Map<String, dynamic>>.from(body['data'] ?? []);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get company team leaders
+  static Future<List<Map<String, dynamic>>?> getCompanyTeamLeaders({
+    required String token,
+    BuildContext? context,
+  }) async {
+    try {
+      final response = await HttpHelper.getData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsCompanyTeamLeaders,
+        token: token,
+        context: context,
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return List<Map<String, dynamic>>.from(body['data'] ?? []);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get company technicians
+  static Future<List<Map<String, dynamic>>?> getCompanyTechnicians({
+    required String token,
+    BuildContext? context,
+  }) async {
+    try {
+      final response = await HttpHelper.getData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsCompanyTechnicians,
+        token: token,
+        context: context,
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return List<Map<String, dynamic>>.from(body['data'] ?? []);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // * MMS API - Get ticket types
+  static Future<List<Map<String, dynamic>>?> getTicketTypes({
+    required String token,
+    BuildContext? context,
+  }) async {
+    try {
+      log('getTicketTypes: Fetching from ${EndPoints.mmsBaseUrl + EndPoints.mmsTicketTypes}');
+      final response = await HttpHelper.getData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsTicketTypes,
+        token: token,
+        context: context,
+      );
+      log('getTicketTypes: Response status: ${response.statusCode}');
+      final body = json.decode(response.body);
+      log('getTicketTypes: Response body: $body');
+      if (response.statusCode == 200 && body['success'] == true) {
+        final data = List<Map<String, dynamic>>.from(body['data'] ?? []);
+        log('getTicketTypes: Returning ${data.length} ticket types');
+        return data;
+      } else {
+        log('getTicketTypes: Failed - status: ${response.statusCode}, success: ${body['success']}');
+        return null;
+      }
+    } catch (e) {
+      log('getTicketTypes: Exception: $e');
+      return null;
+    }
+  }
+
+  // * MMS API - Upload multiple files
+  static Future<List<int>?> uploadFilesToMMS({
+    required String token,
+    required List<String> filePaths, // List of file paths (images, audio, documents)
+    BuildContext? context,
+  }) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(EndPoints.mmsBaseUrl + EndPoints.mmsUploadFiles),
+      );
+
+      // Add authorization header
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['x-client-type'] = 'mobile';
+
+      // Add files to the request
+      for (var filePath in filePaths) {
+        final file = File(filePath);
+        if (file.existsSync()) {
+          // Determine field name based on file type
+          // For backend-mms, we use 'files' array for all file types
+          request.files.add(
+            await http.MultipartFile.fromPath('files', file.path),
+          );
+        }
+      }
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final body = json.decode(response.body);
+
+      // Check for auth errors
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        await AuthHelper.handleAuthError(context, isMMS: true);
+        return null;
+      }
+
+      if (response.statusCode == 201 && body['success'] == true) {
+        // Extract file IDs from the response
+        final files = body['data'] as List?;
+        if (files != null) {
+          return files.map<int>((file) => file['id'] as int).toList();
+        }
+        return null;
+      } else {
+        log('uploadFilesToMMS: Failed - status: ${response.statusCode}, body: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      log('uploadFilesToMMS: Exception: $e');
       return null;
     }
   }

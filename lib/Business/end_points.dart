@@ -134,4 +134,15 @@ class EndPoints {
   static String mmsTickets = 'tickets';
   static String mmsTicketStatistics = 'tickets/statistics';
   static String mmsTicketDetails = 'tickets/'; // Append ticket ID
+  static String mmsCreateTicket = 'tickets';
+  static String mmsUpdateTicket = 'tickets/'; // Append ticket ID
+  static String mmsCompanyContracts = 'company-data/contracts';
+  static String mmsCompanyBranches = 'company-data/branches';
+  static String mmsCompanyZones = 'company-data/zones';
+  static String mmsMainServices = 'company-data/main-services';
+  static String mmsSubServices = 'company-data/sub-services';
+  static String mmsCompanyTeamLeaders = 'company-data/team-leaders';
+  static String mmsCompanyTechnicians = 'company-data/technicians';
+  static String mmsTicketTypes = 'company-data/ticket-types';
+  static String mmsUploadFiles = 'files/upload-multiple'; // New - Upload multiple files
 }

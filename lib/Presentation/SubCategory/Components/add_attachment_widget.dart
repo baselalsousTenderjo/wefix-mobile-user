@@ -141,6 +141,22 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
       appProvider.saveDesc(noteController.text);
     });
 
+    // Check if this is being used from ticket creation (has 'fromTicketCreation' flag)
+    final isFromTicketCreation = widget.data?['fromTicketCreation'] == true;
+    
+    if (isFromTicketCreation) {
+      // For ticket creation, just return the uploaded files without navigating
+      setState(() {
+        loading = false;
+      });
+      Navigator.pop(context, {
+        'uploadedFiles': uploadedFiles,
+        'note': noteController.text,
+      });
+      return;
+    }
+
+    // Original flow for appointment creation
     await UpladeFiles.upladeImagesWithPaths(
             token: '${appProvider.userModel?.token}', filePaths: extractedPaths)
         .then((value) {
@@ -307,6 +323,11 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
   ];
   @override
   void initState() {
+    // Initialize uploadedFiles from data if provided (for ticket creation)
+    if (widget.data != null && widget.data!['uploadedFiles'] != null) {
+      uploadedFiles = List<Map<String, String?>>.from(widget.data!['uploadedFiles'] as List);
+    }
+    
     _requestPermissionsOnce();
     try {
       WidgetsBinding.instance.addPostFrameCallback((_) {

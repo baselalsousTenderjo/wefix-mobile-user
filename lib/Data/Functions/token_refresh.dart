@@ -165,4 +165,3 @@ Future<void> _forceLogout(AppProvider appProvider, BuildContext? context) async 
     // Silent fail
   }
 }
-

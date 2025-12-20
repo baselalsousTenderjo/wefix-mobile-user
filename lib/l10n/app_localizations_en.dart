@@ -449,7 +449,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterCustomerPhone => 'Enter Customer Phone';
 
   @override
-  String get optional => '  (optional)';
+  String get optional => 'Optional';
 
   @override
   String get selectPaymentMethods => 'Select Payment Methods';
@@ -905,4 +905,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emailRequired => 'Email is required';
+
+  @override
+  String get createTicket => 'Create Ticket';
+
+  @override
+  String get editTicket => 'Edit Ticket';
+
+  @override
+  String get updateTicket => 'Update Ticket';
+
+  @override
+  String get locationDescription => 'Location Description';
+
+  @override
+  String get locationMap => 'Location Map';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get serviceDescription => 'Service Description';
+
+  @override
+  String get ticketType => 'Ticket Type';
+
+  @override
+  String get mainService => 'Main Service';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get timeFrom => 'Time From';
+
+  @override
+  String get timeTo => 'Time To';
+
+  @override
+  String get selectDate => 'Select Date';
+
+  @override
+  String get selectTime => 'Select Time';
+
+  @override
+  String get contractId => 'Contract ID';
+
+  @override
+  String get branchId => 'Branch ID';
+
+  @override
+  String get zoneId => 'Zone ID';
+
+  @override
+  String get teamLeaderId => 'Team Leader ID';
+
+  @override
+  String get technicianId => 'Technician ID';
+
+  @override
+  String get havingFemaleEngineer => 'Having Female Engineer';
+
+  @override
+  String get withMaterial => 'With Material';
+
+  @override
+  String get ticketCreatedSuccessfully => 'Ticket created successfully';
+
+  @override
+  String get ticketUpdatedSuccessfully => 'Ticket updated successfully';
+
+  @override
+  String get ticketCreateFailed => 'Failed to create ticket';
+
+  @override
+  String get ticketUpdateFailed => 'Failed to update ticket';
+
+  @override
+  String get ticketSummary => 'Ticket Summary';
+
+  @override
+  String get basicInfo => 'Basic Info';
+
+  @override
+  String get serviceDetails => 'Service Details';
+
+  @override
+  String get subService => 'Sub Service';
+
+  @override
+  String get ticketStatus => 'Ticket Status';
 }

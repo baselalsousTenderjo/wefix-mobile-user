@@ -129,10 +129,7 @@ class Authantication {
 
   static UserModel? usermodel;
   // * OTP
-  static Future<UserModel?> checkOtp(
-      {required String otp,
-      required String phone,
-      required String fcmToken}) async {
+  static Future<UserModel?> checkOtp({required String otp, required String phone, required String fcmToken}) async {
     try {
       final response = await HttpHelper.postData(
         query: EndPoints.checkOtp,
@@ -271,7 +268,7 @@ class Authantication {
           'accessToken': body['accessToken'],
           'refreshToken': body['refreshToken'],
           'tokenType': body['tokenType'] ?? 'Bearer',
-          'expiresIn': body['expiresIn'] ?? 3600,
+          'expiresIn': body['expiresIn'],
         };
       } else {
         return null;

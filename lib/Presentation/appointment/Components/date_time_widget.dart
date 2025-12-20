@@ -104,7 +104,20 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "${appProvider.appoitmentInfo["date"].toString().substring(0, 10)} - ${appProvider.appoitmentInfo["time"]}",
+                      "${(() {
+                        final dateValue = appProvider.appoitmentInfo["date"];
+                        if (dateValue == null) return '';
+                        if (dateValue is DateTime) {
+                          return DateFormat('yyyy-MM-dd').format(dateValue);
+                        }
+                        final dateStr = dateValue.toString();
+                        try {
+                          final parsedDate = DateTime.parse(dateStr);
+                          return DateFormat('yyyy-MM-dd').format(parsedDate);
+                        } catch (e) {
+                          return dateStr.length >= 10 ? dateStr.substring(0, 10) : dateStr;
+                        }
+                      })()} - ${appProvider.appoitmentInfo["time"] ?? ''}",
                       style: TextStyle(fontSize: AppSize(context).smallText2),
                     ),
                     appProvider.appoitmentInfo["TicketTypeId"] == 1
@@ -523,9 +536,9 @@ class _DateTimeWidgetState extends State<DateTimeWidget> {
       loadingTime = true;
     });
 
-    final selectedDateStr = appProvider.selectedDate.toString().isEmpty
-        ? DateTime.now().toString().substring(0, 10)
-        : appProvider.selectedDate.toString().substring(0, 10);
+    final selectedDateStr = appProvider.selectedDate != null
+        ? DateFormat('yyyy-MM-dd').format(appProvider.selectedDate!)
+        : DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     final result = await ProfileApis.getAppitmentTime(
       token: '${appProvider.userModel?.token}',

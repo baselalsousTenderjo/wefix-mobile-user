@@ -13,7 +13,7 @@ import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/custom_cach_network_image.dart';
 import 'package:wefix/Presentation/Profile/Screens/booking_details_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/bookings_screen.dart';
-import 'package:wefix/Presentation/SubCategory/Screens/sub_services_screen.dart';
+import 'package:wefix/Presentation/B2B/ticket/create_update_ticket_screen_v2.dart';
 
 import '../../l10n/app_localizations.dart';
 
@@ -70,9 +70,14 @@ class _B2BHomeState extends State<B2BHome> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SubServicesScreen(title: AppLocalizations.of(context)!.addTicket, catId: 0),
+                      builder: (context) => const CreateUpdateTicketScreenV2(),
                     ),
-                  );
+                  ).then((success) {
+                    // Refresh tickets list if ticket was created/updated successfully
+                    if (success == true) {
+                      getCompanyTickets();
+                    }
+                  });
                 },
               ),
               const SizedBox(height: 16),

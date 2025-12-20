@@ -971,7 +971,7 @@ abstract class AppLocalizations {
   /// No description provided for @optional.
   ///
   /// In en, this message translates to:
-  /// **'  (optional)'**
+  /// **'Optional'**
   String get optional;
 
   /// No description provided for @selectPaymentMethods.
@@ -1849,6 +1849,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Email is required'**
   String get emailRequired;
+
+  /// No description provided for @createTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Ticket'**
+  String get createTicket;
+
+  /// No description provided for @editTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Ticket'**
+  String get editTicket;
+
+  /// No description provided for @updateTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Ticket'**
+  String get updateTicket;
+
+  /// No description provided for @locationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Description'**
+  String get locationDescription;
+
+  /// No description provided for @locationMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Map'**
+  String get locationMap;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @serviceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Description'**
+  String get serviceDescription;
+
+  /// No description provided for @ticketType.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Type'**
+  String get ticketType;
+
+  /// No description provided for @mainService.
+  ///
+  /// In en, this message translates to:
+  /// **'Main Service'**
+  String get mainService;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @timeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Time From'**
+  String get timeFrom;
+
+  /// No description provided for @timeTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Time To'**
+  String get timeTo;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDate;
+
+  /// No description provided for @selectTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Time'**
+  String get selectTime;
+
+  /// No description provided for @contractId.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract ID'**
+  String get contractId;
+
+  /// No description provided for @branchId.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch ID'**
+  String get branchId;
+
+  /// No description provided for @zoneId.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone ID'**
+  String get zoneId;
+
+  /// No description provided for @teamLeaderId.
+  ///
+  /// In en, this message translates to:
+  /// **'Team Leader ID'**
+  String get teamLeaderId;
+
+  /// No description provided for @technicianId.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician ID'**
+  String get technicianId;
+
+  /// No description provided for @havingFemaleEngineer.
+  ///
+  /// In en, this message translates to:
+  /// **'Having Female Engineer'**
+  String get havingFemaleEngineer;
+
+  /// No description provided for @withMaterial.
+  ///
+  /// In en, this message translates to:
+  /// **'With Material'**
+  String get withMaterial;
+
+  /// No description provided for @ticketCreatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket created successfully'**
+  String get ticketCreatedSuccessfully;
+
+  /// No description provided for @ticketUpdatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket updated successfully'**
+  String get ticketUpdatedSuccessfully;
+
+  /// No description provided for @ticketCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create ticket'**
+  String get ticketCreateFailed;
+
+  /// No description provided for @ticketUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update ticket'**
+  String get ticketUpdateFailed;
+
+  /// No description provided for @ticketSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Summary'**
+  String get ticketSummary;
+
+  /// No description provided for @basicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Info'**
+  String get basicInfo;
+
+  /// No description provided for @serviceDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Details'**
+  String get serviceDetails;
+
+  /// No description provided for @subService.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub Service'**
+  String get subService;
+
+  /// No description provided for @ticketStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Status'**
+  String get ticketStatus;
 }
 
 class _AppLocalizationsDelegate
