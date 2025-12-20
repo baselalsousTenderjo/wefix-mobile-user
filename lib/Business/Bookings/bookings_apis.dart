@@ -626,7 +626,7 @@ class BookingApi {
   }
 
   // * MMS API - Upload multiple files
-  static Future<List<int>?> uploadFilesToMMS({
+  static Future<List<String>?> uploadFilesToMMS({
     required String token,
     required List<String> filePaths, // List of file paths (images, audio, documents)
     BuildContext? context,
@@ -645,6 +645,10 @@ class BookingApi {
       // Add ticket ID as referenceId (required for entity_id in database)
       request.fields['referenceId'] = ticketId.toString();
       request.fields['referenceType'] = 'TICKET_ATTACHMENT';
+      
+      // Add entity fields for legacy database columns
+      request.fields['entityId'] = ticketId.toString();
+      request.fields['entityType'] = 'user'; // TICKET_ATTACHMENT maps to 'user' entity_type
 
       // Add files to the request with metadata
       int fileIndex = 0;
@@ -655,6 +659,9 @@ class BookingApi {
           final fileStats = await file.stat();
           final fileSizeBytes = fileStats.size;
           final fileSizeMB = (fileSizeBytes / (1024 * 1024)).toStringAsFixed(2);
+          
+          // Get original filename from path
+          final originalFilename = filePath.split('/').last;
           
           // Get file extension
           final fileExtension = filePath.split('.').last.toLowerCase();
@@ -677,18 +684,69 @@ class BookingApi {
             fileType = 'other';
           }
           
+          // Determine category (legacy field)
+          final category = fileType == 'image' ? 'image' : 'contract';
+          
+          // Determine MIME type
+          String mimeType;
+          if (fileExtension == 'jpg' || fileExtension == 'jpeg') {
+            mimeType = 'image/jpeg';
+          } else if (fileExtension == 'png') {
+            mimeType = 'image/png';
+          } else if (fileExtension == 'gif') {
+            mimeType = 'image/gif';
+          } else if (fileExtension == 'bmp') {
+            mimeType = 'image/bmp';
+          } else if (fileExtension == 'webp') {
+            mimeType = 'image/webp';
+          } else if (fileExtension == 'pdf') {
+            mimeType = 'application/pdf';
+          } else if (fileExtension == 'doc') {
+            mimeType = 'application/msword';
+          } else if (fileExtension == 'docx') {
+            mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          } else if (fileExtension == 'xls') {
+            mimeType = 'application/vnd.ms-excel';
+          } else if (fileExtension == 'xlsx') {
+            mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+          } else if (fileExtension == 'mp4') {
+            mimeType = 'video/mp4';
+          } else if (fileExtension == 'avi') {
+            mimeType = 'video/x-msvideo';
+          } else if (fileExtension == 'mov') {
+            mimeType = 'video/quicktime';
+          } else if (fileExtension == 'mp3') {
+            mimeType = 'audio/mpeg';
+          } else if (fileExtension == 'wav') {
+            mimeType = 'audio/wav';
+          } else if (fileExtension == 'm4a') {
+            mimeType = 'audio/mp4';
+          } else if (fileExtension == 'aac') {
+            mimeType = 'audio/aac';
+          } else {
+            mimeType = 'application/octet-stream';
+          }
+          
           // Add file
           request.files.add(
             await http.MultipartFile.fromPath('files', file.path),
           );
           
-          // Add file metadata as fields (indexed by file)
+          // Add file metadata as fields (indexed by file) - for new columns
           request.fields['fileMetadata[$fileIndex][extension]'] = fileExtension;
           request.fields['fileMetadata[$fileIndex][sizeMB]'] = fileSizeMB;
           request.fields['fileMetadata[$fileIndex][type]'] = fileType;
           request.fields['fileMetadata[$fileIndex][path]'] = filePath;
           request.fields['fileMetadata[$fileIndex][storageProvider]'] = 'LOCAL';
           request.fields['fileMetadata[$fileIndex][description]'] = '';
+          
+          // Add legacy column fields (indexed by file)
+          request.fields['fileMetadata[$fileIndex][originalFilename]'] = originalFilename;
+          request.fields['fileMetadata[$fileIndex][mimeType]'] = mimeType;
+          request.fields['fileMetadata[$fileIndex][size]'] = fileSizeBytes.toString();
+          request.fields['fileMetadata[$fileIndex][category]'] = category;
+          request.fields['fileMetadata[$fileIndex][entityType]'] = 'user';
+          request.fields['fileMetadata[$fileIndex][entityId]'] = ticketId.toString();
           
           fileIndex++;
         }
@@ -706,10 +764,10 @@ class BookingApi {
       }
 
       if (response.statusCode == 201 && body['success'] == true) {
-        // Extract file IDs from the response
+        // Extract file IDs from the response (UUIDs as strings)
         final files = body['data'] as List?;
         if (files != null) {
-          return files.map<int>((file) => file['id'] as int).toList();
+          return files.map<String>((file) => file['id'].toString()).toList();
         }
         return null;
       } else {
