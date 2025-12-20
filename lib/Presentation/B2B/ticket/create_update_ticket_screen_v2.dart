@@ -423,28 +423,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         }
       }
 
-      // Upload attachments to backend and get file IDs
-      List<int>? uploadedFileIds;
-      if (attachmentPaths.isNotEmpty) {
-        uploadedFileIds = await BookingApi.uploadFilesToMMS(
-          token: token,
-          filePaths: attachmentPaths,
-          context: context,
-        );
-        if (uploadedFileIds == null) {
-          // Upload failed
-          setState(() {
-            isLoading = false;
-          });
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to upload attachments. Please try again.')),
-            );
-          }
-          return;
-        }
-      }
-
       // Format location map as "latitude,longitude"
       final locationMapStr = '${selectedLocation!.latitude},${selectedLocation!.longitude}';
       
@@ -476,7 +454,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         'mainServiceId': selectedMainService!.id,
         if (selectedSubService != null) 'subServiceId': selectedSubService!.id,
         if (serviceDescription.text.trim().isNotEmpty) 'serviceDescription': serviceDescription.text.trim(),
-        if (uploadedFileIds != null && uploadedFileIds.isNotEmpty) 'fileIds': uploadedFileIds, // Add file IDs
+        // Note: fileIds will be sent separately after uploading files
         // Note: customerName, tools can be added later
       };
 
@@ -485,6 +463,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         ticketData['ticketStatusId'] = selectedTicketStatus!.id;
       }
 
+      // Step 1: Create or update the ticket first
       Map<String, dynamic>? result;
       if (widget.ticketData != null) {
         result = await BookingApi.updateTicketInMMS(
@@ -499,6 +478,33 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ticketData: ticketData,
           context: context,
         );
+      }
+
+      // Step 2: If ticket created successfully and there are attachments, upload them with the ticket ID
+      if (result != null && attachmentPaths.isNotEmpty) {
+        final ticketId = result['id'] as int;
+        
+        // Upload files with the ticket ID so they're linked immediately
+        final uploadedFileIds = await BookingApi.uploadFilesToMMS(
+          token: token,
+          filePaths: attachmentPaths,
+          context: context,
+          ticketId: ticketId, // Pass ticket ID for immediate linking
+        );
+        
+        if (uploadedFileIds == null || uploadedFileIds.isEmpty) {
+          // Files upload failed, but ticket was created
+          log('Ticket created but file upload failed');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(widget.ticketData != null
+                    ? 'Ticket updated but attachments failed to upload'
+                    : 'Ticket created but attachments failed to upload'),
+              ),
+            );
+          }
+        }
       }
 
       setState(() {

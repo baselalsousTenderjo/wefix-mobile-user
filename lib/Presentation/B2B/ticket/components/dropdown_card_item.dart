@@ -26,4 +26,3 @@ class DropdownCardItem {
   @override
   int get hashCode => id.hashCode;
 }
-

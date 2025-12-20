@@ -630,6 +630,7 @@ class BookingApi {
     required String token,
     required List<String> filePaths, // List of file paths (images, audio, documents)
     BuildContext? context,
+    required int ticketId, // Ticket ID to link files to (required for entity_id)
   }) async {
     try {
       final request = http.MultipartRequest(
@@ -640,6 +641,10 @@ class BookingApi {
       // Add authorization header
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['x-client-type'] = 'mobile';
+
+      // Add ticket ID as referenceId (required for entity_id in database)
+      request.fields['referenceId'] = ticketId.toString();
+      request.fields['referenceType'] = 'TICKET_ATTACHMENT';
 
       // Add files to the request
       for (var filePath in filePaths) {
