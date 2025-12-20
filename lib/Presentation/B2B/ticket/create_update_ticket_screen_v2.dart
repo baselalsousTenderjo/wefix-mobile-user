@@ -379,25 +379,76 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   }
 
   Future<void> _submit() async {
+    // First validate form fields (text fields with validators)
     if (!_formKey.currentState!.validate()) {
+      // Form validation will show field-specific errors
       return;
     }
 
-    // Validate required fields
-    if (selectedContract == null ||
-        selectedBranch == null ||
-        selectedZone == null ||
-        selectedMainService == null ||
-        locationDescription.text.isEmpty ||
-        selectedLocation == null ||
-        selectedTeamLeader == null ||
-        selectedTechnician == null ||
-        selectedTimeFrom == null ||
-        selectedTimeTo == null ||
-        selectedTicketType == null) {
+    // Then validate all required dropdown/selection fields
+    final localizations = AppLocalizations.of(context)!;
+    final List<String> missingFields = [];
+
+    if (selectedContract == null) {
+      missingFields.add(localizations.contractId);
+    }
+    if (selectedBranch == null) {
+      missingFields.add(localizations.branchId);
+    }
+    if (selectedZone == null) {
+      missingFields.add(localizations.zoneId);
+    }
+    if (selectedMainService == null) {
+      missingFields.add(localizations.mainService);
+    }
+    if (locationDescription.text.isEmpty) {
+      missingFields.add(localizations.locationDescription);
+    }
+    if (selectedLocation == null) {
+      missingFields.add(localizations.locationMap);
+    }
+    if (selectedTeamLeader == null) {
+      missingFields.add(localizations.teamLeaderId);
+    }
+    if (selectedTechnician == null) {
+      missingFields.add(localizations.technicianId);
+    }
+    if (selectedTimeFrom == null || selectedTimeTo == null) {
+      missingFields.add('${localizations.timeFrom} - ${localizations.timeTo}');
+    }
+    if (selectedTicketType == null) {
+      missingFields.add(localizations.ticketType);
+    }
+    if (selectedTicketDate == null) {
+      missingFields.add(localizations.date);
+    }
+
+    // Show specific validation message
+    if (missingFields.isNotEmpty) {
+      final message = missingFields.length == 1
+          ? '${localizations.required}: ${missingFields.first}'
+          : '${localizations.required}: ${missingFields.join(', ')}';
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.required)),
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 4),
+          backgroundColor: Colors.red[600],
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
+        ),
       );
+      
+      // Navigate to the first tab if validation fails
+      if (_tabController.index != 0) {
+        _tabController.animateTo(0);
+      }
+      
       return;
     }
 
