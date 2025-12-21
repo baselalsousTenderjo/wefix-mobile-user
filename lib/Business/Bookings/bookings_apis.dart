@@ -20,15 +20,13 @@ class BookingApi {
       // If company admin, use MMS endpoint
       if (isCompanyAdmin) {
         final ticketsData = await getCompanyTicketsFromMMS(token: token);
-        
+
         if (ticketsData != null) {
           // Convert MMS tickets format to TicketModel format
           final allTickets = ticketsData['all']?['tickets'] ?? [];
           final tickets = allTickets.map<Ticket>((ticket) {
-            final ticketDate = ticket['ticketDate'] != null
-                ? DateTime.parse(ticket['ticketDate'])
-                : DateTime.now();
-            
+            final ticketDate = ticket['ticketDate'] != null ? DateTime.parse(ticket['ticketDate']) : DateTime.now();
+
             return Ticket(
               id: ticket['id'] ?? 0,
               customerId: 0, // Not available from MMS
@@ -43,9 +41,7 @@ class BookingApi {
               promoCode: null,
               requestedDate: ticketDate,
               selectedDate: ticketDate,
-              selectedDateTime: ticket['ticketTimeFrom'] != null && ticket['ticketTimeTo'] != null
-                  ? '${ticket['ticketTimeFrom']} - ${ticket['ticketTimeTo']}'
-                  : null,
+              selectedDateTime: ticket['ticketTimeFrom'] != null && ticket['ticketTimeTo'] != null ? '${ticket['ticketTimeFrom']} - ${ticket['ticketTimeTo']}' : null,
               timeFrom: ticket['ticketTimeFrom'],
               timeTo: ticket['ticketTimeTo'],
               teamNo: null,
@@ -73,16 +69,16 @@ class BookingApi {
         }
       } else {
         // Regular user - use OMS endpoint
-      final response = await HttpHelper.getData(
-        query: EndPoints.booking,
-        token: token,
-      );
+        final response = await HttpHelper.getData(
+          query: EndPoints.booking,
+          token: token,
+        );
 
         if (response.statusCode == 200) {
-      final body = json.decode(response.body);
-        ticketModel = TicketModel.fromJson(body);
-        return ticketModel;
-      } else {
+          final body = json.decode(response.body);
+          ticketModel = TicketModel.fromJson(body);
+          return ticketModel;
+        } else {
           ticketModel = TicketModel(tickets: []);
           return ticketModel;
         }
@@ -136,8 +132,7 @@ class BookingApi {
   }
 
   static BookingDetailsModel? bookingDetailsModel;
-  static Future getBookingDetails(
-      {required String token, required String id, bool isCompanyAdmin = false}) async {
+  static Future getBookingDetails({required String token, required String id, bool isCompanyAdmin = false}) async {
     try {
       // Use MMS endpoint for company admin, OMS endpoint for regular users
       final response = isCompanyAdmin
@@ -146,22 +141,20 @@ class BookingApi {
               token: token,
             )
           : await HttpHelper.getData(
-        query: EndPoints.bookingDetails + id,
-        token: token,
-      );
+              query: EndPoints.bookingDetails + id,
+              token: token,
+            );
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
-        
+
         if (isCompanyAdmin) {
           // Handle MMS response format
           if (body['success'] == true && body['data'] != null) {
             // Convert MMS ticket format to BookingDetailsModel format
             final ticketData = body['data'];
-            final ticketDate = ticketData['ticketDate'] != null
-                ? DateTime.parse(ticketData['ticketDate']).toIso8601String()
-                : DateTime.now().toIso8601String();
-            
+            final ticketDate = ticketData['ticketDate'] != null ? DateTime.parse(ticketData['ticketDate']).toIso8601String() : DateTime.now().toIso8601String();
+
             final bookingDetails = {
               'objTickets': {
                 'id': ticketData['id'] ?? 0,
@@ -196,7 +189,8 @@ class BookingApi {
                         // If tool is just an ID, convert to map format
                         return {'id': tool, 'title': 'Tool $tool', 'titleAr': 'أداة $tool'};
                       }
-                    }).toList() ?? [],
+                    }).toList() ??
+                    [],
                 'ticketMaterials': [],
                 'maintenanceTickets': [],
                 'servcieTickets': [],
@@ -210,8 +204,8 @@ class BookingApi {
           }
         } else {
           // Handle OMS response format (existing)
-        bookingDetailsModel = BookingDetailsModel.fromJson(body);
-        return bookingDetailsModel;
+          bookingDetailsModel = BookingDetailsModel.fromJson(body);
+          return bookingDetailsModel;
         }
       } else {
         return null;
@@ -267,12 +261,7 @@ class BookingApi {
     }
   }
 
-  static Future subsicribeNow(
-      {required String token,
-      int? id,
-      String? age,
-      String? area,
-      String? price}) async {
+  static Future subsicribeNow({required String token, int? id, String? age, String? area, String? price}) async {
     try {
       final response = await HttpHelper.postData(
         query: EndPoints.subscribe,
@@ -389,7 +378,7 @@ class BookingApi {
   }) async {
     try {
       final query = EndPoints.mmsBaseUrl + EndPoints.mmsUpdateTicket + ticketId.toString();
-      
+
       // Use HttpHelper.putData2 if available, otherwise use http.put directly
       var headers = <String, String>{
         'Content-Type': 'application/json',
@@ -398,7 +387,7 @@ class BookingApi {
         'Authorization': 'Bearer $token',
         'x-client-type': 'mobile',
       };
-      
+
       final response = await http.put(
         Uri.parse(query),
         body: jsonEncode(ticketData),
@@ -529,7 +518,7 @@ class BookingApi {
       if (parentServiceId != null) {
         query += '?parentServiceId=$parentServiceId';
       }
-      
+
       final response = await HttpHelper.getData2(
         query: query,
         token: token,
@@ -645,7 +634,7 @@ class BookingApi {
       // Add ticket ID as referenceId (required for entity_id in database)
       request.fields['referenceId'] = ticketId.toString();
       request.fields['referenceType'] = 'TICKET_ATTACHMENT';
-      
+
       // Add entity fields for legacy database columns
       request.fields['entityId'] = ticketId.toString();
       request.fields['entityType'] = 'user'; // TICKET_ATTACHMENT maps to 'user' entity_type
@@ -659,13 +648,13 @@ class BookingApi {
           final fileStats = await file.stat();
           final fileSizeBytes = fileStats.size;
           final fileSizeMB = (fileSizeBytes / (1024 * 1024)).toStringAsFixed(2);
-          
+
           // Get original filename from path
           final originalFilename = filePath.split('/').last;
-          
+
           // Get file extension
           final fileExtension = filePath.split('.').last.toLowerCase();
-          
+
           // Determine file type
           String fileType;
           if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].contains(fileExtension)) {
@@ -683,10 +672,23 @@ class BookingApi {
           } else {
             fileType = 'other';
           }
-          
+
           // Determine category (legacy field)
-          final category = fileType == 'image' ? 'image' : 'contract';
-          
+          String category;
+          if (fileType == 'image') {
+            category = 'image';
+          } else if (fileType == 'pdf') {
+            category = 'document';
+          } else if (fileType == 'doc' || fileType == 'excel') {
+            category = 'document';
+          } else if (fileType == 'video') {
+            category = 'video';
+          } else if (fileType == 'audio') {
+            category = 'audio';
+          } else {
+            category = 'other';
+          }
+
           // Determine MIME type
           String mimeType;
           if (fileExtension == 'jpg' || fileExtension == 'jpeg') {
@@ -726,12 +728,12 @@ class BookingApi {
           } else {
             mimeType = 'application/octet-stream';
           }
-          
+
           // Add file
           request.files.add(
             await http.MultipartFile.fromPath('files', file.path),
           );
-          
+
           // Add file metadata as fields (indexed by file) - for new columns
           request.fields['fileMetadata[$fileIndex][extension]'] = fileExtension;
           request.fields['fileMetadata[$fileIndex][sizeMB]'] = fileSizeMB;
@@ -739,7 +741,7 @@ class BookingApi {
           request.fields['fileMetadata[$fileIndex][path]'] = filePath;
           request.fields['fileMetadata[$fileIndex][storageProvider]'] = 'LOCAL';
           request.fields['fileMetadata[$fileIndex][description]'] = '';
-          
+
           // Add legacy column fields (indexed by file)
           request.fields['fileMetadata[$fileIndex][originalFilename]'] = originalFilename;
           request.fields['fileMetadata[$fileIndex][mimeType]'] = mimeType;
@@ -747,7 +749,7 @@ class BookingApi {
           request.fields['fileMetadata[$fileIndex][category]'] = category;
           request.fields['fileMetadata[$fileIndex][entityType]'] = 'user';
           request.fields['fileMetadata[$fileIndex][entityId]'] = ticketId.toString();
-          
+
           fileIndex++;
         }
       }
