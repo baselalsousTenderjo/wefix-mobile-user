@@ -184,7 +184,7 @@ class _B2BHomeState extends State<B2BHome> {
             customerPackageId: null,
             totalPrice: 0.0,
             serviceprovide: ticket['technician']?['name'] ?? null,
-            serviceprovideImage: ticket['technician']?['image'] ?? ticket['technician']?['profileImage'] ?? null,
+            serviceprovideImage: ticket['technician']?['profileImage'] ?? null,
             description: ticket['ticketDescription'] ?? '',
             descriptionAr: ticket['ticketDescription'] ?? '',
           );
@@ -260,7 +260,12 @@ class _HeaderSectionState extends State<_HeaderSection> {
       AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
       final token = appProvider.accessToken ?? appProvider.userModel?.token ?? "";
       if (token.isNotEmpty) {
-        final profile = await ProfileApis.getProfileData(token: token);
+        // Check if user is company personnel (roles: 18, 20, 21, 22, 26)
+        final roleId = appProvider.userModel?.customer.roleId;
+        final roleIdInt = roleId is int ? roleId : (roleId is String ? int.tryParse(roleId.toString()) : null);
+        final bool isCompany = roleIdInt != null && (roleIdInt == 18 || roleIdInt == 20 || roleIdInt == 21 || roleIdInt == 22 || roleIdInt == 26);
+        
+        final profile = await ProfileApis.getProfileData(token: token, isCompany: isCompany);
         if (mounted) {
           setState(() {
             profileModel = profile;
