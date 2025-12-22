@@ -291,6 +291,8 @@ class AppText {
       getTranslation('yourtransactionhasbeensuccessfullycompleted');
   String get estimatedTimeToArrivalminutes =>
       getTranslation('estimatedTimeToArrivalminutes');
+  String get responseTime => getTranslation('responseTime');
+  String get minutes => getTranslation('minutes');
   String get chooseTechniciaGender => getTranslation('chooseTechniciaGender');
   String get sincethematerialcostexceeds100JODanupfrontpaymentof50requiredWetouchwithyoutoconfirmthematerialprice =>
       getTranslation(

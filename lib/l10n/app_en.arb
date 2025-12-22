@@ -344,5 +344,7 @@
 "attachment" : "Attachment",
 "optional" : "Optional",
 "ticketStatus" : "Ticket Status",
-"ticketSummary" : "Ticket Summary"
+"ticketSummary" : "Ticket Summary",
+"responseTime" : "Response Time",
+"minutes" : "minutes"
 }

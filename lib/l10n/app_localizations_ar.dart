@@ -992,4 +992,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ticketStatus => 'حالة التذكرة';
+
+  @override
+  String get responseTime => 'وقت الاستجابة';
+
+  @override
+  String get minutes => 'دقائق';
 }

@@ -607,6 +607,7 @@ class _LastTicketsSection extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             // Status badge on the left
                             Container(

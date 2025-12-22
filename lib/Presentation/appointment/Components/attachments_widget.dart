@@ -1,10 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:open_file/open_file.dart';
+import 'package:http/http.dart' as http;
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Business/end_points.dart';
-import 'package:wefix/Presentation/Profile/Components/web_view_screen.dart' show WebviewScreen;
 
 class AttachmentsWidget extends StatelessWidget {
   final String? image;
@@ -104,36 +106,124 @@ class AttachmentsWidget extends StatelessWidget {
       // Build full URL from relative path if needed
       final fullUrl = _buildFullUrl(fileUrl);
       
-      // Check if URL is a web URL (http/https)
-      if (fullUrl.startsWith('http://') || fullUrl.startsWith('https://')) {
-        // Open in WebView for better viewing experience
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WebviewScreen(url: fullUrl),
+      // Check if it's a local file path (not starting with http/https)
+      final isLocalFile = !fullUrl.startsWith('http://') && !fullUrl.startsWith('https://');
+      
+      if (isLocalFile) {
+        // For local files, open directly with system default app
+        final result = await OpenFile.open(fullUrl);
+        if (result.type != ResultType.done) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not open file: ${result.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } else {
+        // For remote URLs (http/https), download first then open with native apps
+        await _downloadAndOpenFile(context, fullUrl);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening file: $e'),
+            backgroundColor: Colors.red,
           ),
         );
-      } else {
-        // For local file paths or other schemes, try to launch with external app
-        final uri = Uri.parse(fullUrl);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
+      }
+    }
+  }
+
+  Future<void> _downloadAndOpenFile(BuildContext context, String url) async {
+    try {
+      // Show loading indicator
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+                SizedBox(width: 16),
+                Text('Downloading file...'),
+              ],
+            ),
+            duration: Duration(seconds: 30),
+          ),
+        );
+      }
+
+      // Download the file
+      final response = await http.get(Uri.parse(url));
+      
+      if (response.statusCode != 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Cannot open file: $fullUrl'),
-              backgroundColor: Colors.orange,
+              content: Text('Failed to download file: ${response.statusCode}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Get temporary directory
+      final tempDir = Directory.systemTemp;
+      
+      // Extract file name from URL
+      final uri = Uri.parse(url);
+      final pathSegments = uri.pathSegments;
+      final fileName = pathSegments.isNotEmpty 
+          ? pathSegments.last 
+          : 'file_${DateTime.now().millisecondsSinceEpoch}';
+      
+      // Create temporary file path
+      final filePath = '${tempDir.path}/$fileName';
+      final file = File(filePath);
+      
+      // Write downloaded bytes to file
+      await file.writeAsBytes(response.bodyBytes);
+      
+      // Hide loading indicator
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+
+      // Open the downloaded file with native apps (gallery, PDF reader, video player, etc.)
+      final result = await OpenFile.open(filePath);
+      
+      if (result.type != ResultType.done) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Could not open file: ${result.message}'),
+              backgroundColor: Colors.red,
             ),
           );
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error opening file: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error downloading/opening file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

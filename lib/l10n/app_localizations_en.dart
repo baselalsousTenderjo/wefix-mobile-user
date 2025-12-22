@@ -995,4 +995,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ticketStatus => 'Ticket Status';
+
+  @override
+  String get responseTime => 'Response Time';
+
+  @override
+  String get minutes => 'minutes';
 }

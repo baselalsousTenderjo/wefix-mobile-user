@@ -1,9 +1,15 @@
 import 'dart:developer';
+import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Business/Bookings/bookings_apis.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
@@ -586,15 +592,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         fieldErrors['locationDescription'] = '${localizations.locationDescription} ${localizations.required}';
         isValid = false;
       }
-      if (selectedLocation == null) {
-        fieldErrors['locationMap'] = '${localizations.locationMap} ${localizations.required}';
-        isValid = false;
-      }
+      // Location map is optional - no validation needed
       if (selectedTicketDate == null) {
         fieldErrors['date'] = '${localizations.date} ${localizations.required}';
         isValid = false;
       }
-      if (selectedTimeFrom == null || selectedTimeTo == null) {
+      
+      // Time slots are not required for Emergency tickets
+      final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
+                          selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+      if (!isEmergency && (selectedTimeFrom == null || selectedTimeTo == null)) {
         fieldErrors['time'] = '${localizations.timeFrom} - ${localizations.timeTo} ${localizations.required}';
         isValid = false;
       }
@@ -700,16 +707,17 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     if (locationDescription.text.isEmpty) {
       missingFields.add(localizations.locationDescription);
     }
-    if (selectedLocation == null) {
-      missingFields.add(localizations.locationMap);
-    }
+    // Location map is optional - not added to missing fields
     if (selectedTeamLeader == null) {
       missingFields.add(localizations.teamLeaderId);
     }
     if (selectedTechnician == null) {
       missingFields.add(localizations.technicianId);
     }
-    if (selectedTimeFrom == null || selectedTimeTo == null) {
+    // Time slots are not required for Emergency tickets
+    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
+                        selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+    if (!isEmergency && (selectedTimeFrom == null || selectedTimeTo == null)) {
       missingFields.add('${localizations.timeFrom} - ${localizations.timeTo}');
     }
     if (selectedTicketType == null) {
@@ -841,8 +849,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           }
         }
 
-        // Format location map as "latitude,longitude"
-        final locationMapStr = '${selectedLocation!.latitude},${selectedLocation!.longitude}';
+        // Format location map as "latitude,longitude" (optional)
+        final locationMapStr = selectedLocation != null 
+            ? '${selectedLocation!.latitude},${selectedLocation!.longitude}'
+            : null;
         
         // Use selected time strings directly (already in HH:mm:ss format)
         final timeFromStr = selectedTimeFrom!;
@@ -880,7 +890,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         'branchId': selectedBranch!.id,
         'zoneId': selectedZone!.id,
         'locationDescription': locationDescription.text.trim(),
-        'locationMap': locationMapStr, // Required: latitude,longitude format
+        if (locationMapStr != null) 'locationMap': locationMapStr, // Optional: latitude,longitude format
         'ticketTypeId': selectedTicketType!.id,
         'ticketDate': ticketDateStr,
         'ticketTimeFrom': timeFromStr,
@@ -1320,6 +1330,18 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 setState(() {
                   selectedTicketType = item;
                   fieldErrors.remove('ticketType');
+                  
+                  // If Emergency is selected, auto-select today's date
+                  final isEmergency = item.title.toLowerCase() == 'emergency' || 
+                                     item.data?['name']?.toString().toLowerCase() == 'emergency';
+                  if (isEmergency) {
+                    selectedTicketDate = DateTime.now();
+                    // Clear time slots for Emergency
+                    selectedTimeFrom = null;
+                    selectedTimeTo = null;
+                    // Clear time field error if it exists
+                    fieldErrors.remove('time');
+                  }
                 });
               },
             ),
@@ -1336,8 +1358,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           const SizedBox(height: 16),
 
           // Time Slot Dropdown (combined time from and time to)
-          _buildTimeSlotDropdown(localizations),
-          const SizedBox(height: 16),
+          // Hide time slots for Emergency tickets - show response time instead
+          if (selectedTicketType?.title.toLowerCase() != 'emergency' && 
+              selectedTicketType?.data?['name']?.toString().toLowerCase() != 'emergency') ...[
+            _buildTimeSlotDropdown(localizations),
+            const SizedBox(height: 16),
+          ] else if (selectedTicketType?.title.toLowerCase() == 'emergency' || 
+                     selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency') ...[
+            _buildResponseTimeDisplay(localizations),
+            const SizedBox(height: 16),
+          ],
 
           // Team Leader Dropdown (hidden for Team Leaders, visible for Admins)
           if (isTeamLeaderVisible) ...[
@@ -1722,7 +1752,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${localizations.locationMap} *',
+          localizations.locationMap,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -1876,6 +1906,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   }
 
   Widget _buildDatePicker(AppLocalizations localizations) {
+    // Check if Emergency ticket type is selected
+    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
+                        selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1888,7 +1922,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: () async {
+          onTap: isEmergency ? null : () async {
             final date = await showDatePicker(
               context: context,
               initialDate: selectedTicketDate ?? DateTime.now(),
@@ -1925,38 +1959,42 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               });
             }
           },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.greyColorback,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: AppColors(context).primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    selectedTicketDate != null
-                        ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!)
-                        : localizations.selectDate,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: selectedTicketDate != null ? Colors.black87 : Colors.grey,
+          child: Opacity(
+            opacity: isEmergency ? 0.6 : 1.0,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.greyColorback,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    color: AppColors(context).primaryColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      selectedTicketDate != null
+                          ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!)
+                          : localizations.selectDate,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: selectedTicketDate != null ? Colors.black87 : Colors.grey,
+                      ),
                     ),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.grey[600],
-                ),
-              ],
+                  if (!isEmergency)
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.grey[600],
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -2075,6 +2113,50 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 ),
               ],
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResponseTimeDisplay(AppLocalizations localizations) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          localizations.responseTime,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.greyColorback,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.access_time,
+                color: AppColors(context).primaryColor,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '90 - 120 ${localizations.minutes}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -2256,23 +2338,510 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             children: uploadedFiles.asMap().entries.map((entry) {
               final index = entry.key;
               final file = entry.value;
-              return Chip(
-                label: Text(
-                  file['filename'] ?? 
+              final fileName = file['filename'] ?? 
                   file['image']?.split('/').last ?? 
+                  file['file']?.split('/').last ??
                   file['audio']?.split('/').last ?? 
-                  'File ${index + 1}',
+                  'File ${index + 1}';
+              final filePath = file['file'] ?? file['image'] ?? file['audio'];
+              
+              return InkWell(
+                onTap: filePath != null ? () {
+                  _viewFile(filePath, file);
+                } : null,
+                child: Chip(
+                  avatar: Icon(
+                    file['file'] != null 
+                        ? Icons.insert_drive_file 
+                        : file['image'] != null 
+                            ? Icons.image 
+                            : Icons.audiotrack,
+                    size: 18,
+                  ),
+                  label: Text(
+                    fileName,
+                    style: TextStyle(
+                      color: filePath != null ? Colors.blue : Colors.grey,
+                      decoration: filePath != null ? TextDecoration.underline : null,
+                    ),
+                  ),
+                  onDeleted: () {
+                    setState(() {
+                      uploadedFiles.removeAt(index);
+                    });
+                  },
                 ),
-                onDeleted: () {
-                  setState(() {
-                    uploadedFiles.removeAt(index);
-                  });
-                },
               );
             }).toList(),
           ),
         ],
       ],
     );
+  }
+
+  // Helper function to detect file type
+  String _getFileType(String filePath, Map<String, String?> file) {
+    // Check file map first
+    if (file['image'] != null) {
+      final path = file['image']!;
+      if (path.toLowerCase().endsWith('.mp4') || path.toLowerCase().endsWith('.mov') || 
+          path.toLowerCase().endsWith('.avi') || path.toLowerCase().endsWith('.mkv')) {
+        return 'video';
+      }
+      return 'image';
+    }
+    if (file['audio'] != null) return 'audio';
+    if (file['file'] != null) {
+      final path = file['file']!.toLowerCase();
+      if (path.endsWith('.pdf') || path.endsWith('.doc') || path.endsWith('.docx') ||
+          path.endsWith('.xls') || path.endsWith('.xlsx') || path.endsWith('.txt')) {
+        return 'document';
+      }
+      if (path.endsWith('.mp4') || path.endsWith('.mov') || 
+          path.endsWith('.avi') || path.endsWith('.mkv')) {
+        return 'video';
+      }
+      if (path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.m4a') ||
+          path.endsWith('.aac') || path.endsWith('.ogg')) {
+        return 'audio';
+      }
+      if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') ||
+          path.endsWith('.gif') || path.endsWith('.webp') || path.endsWith('.bmp')) {
+        return 'image';
+      }
+    }
+    
+    // Fallback: check file extension from path
+    final path = filePath.toLowerCase();
+    if (path.endsWith('.mp4') || path.endsWith('.mov') || 
+        path.endsWith('.avi') || path.endsWith('.mkv')) {
+      return 'video';
+    }
+    if (path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.m4a') ||
+        path.endsWith('.aac') || path.endsWith('.ogg')) {
+      return 'audio';
+    }
+    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') ||
+        path.endsWith('.gif') || path.endsWith('.webp') || path.endsWith('.bmp')) {
+      return 'image';
+    }
+    if (path.endsWith('.pdf') || path.endsWith('.doc') || path.endsWith('.docx') ||
+        path.endsWith('.xls') || path.endsWith('.xlsx') || path.endsWith('.txt')) {
+      return 'document';
+    }
+    
+    return 'unknown';
+  }
+
+  // View file in appropriate viewer
+  void _viewFile(String filePath, Map<String, String?> file) {
+    final fileType = _getFileType(filePath, file);
+    final isUrl = filePath.startsWith('http://') || filePath.startsWith('https://');
+
+    if (fileType == 'image') {
+      _showImageViewer(filePath, isUrl);
+    } else if (fileType == 'video') {
+      _showVideoPlayer(filePath, isUrl);
+    } else if (fileType == 'audio') {
+      _showAudioPlayer(filePath, isUrl);
+    } else {
+      // For documents and unknown files, use open_file or url_launcher
+      if (isUrl) {
+        _openUrlInBrowser(filePath);
+      } else {
+        _openFile(filePath);
+      }
+    }
+  }
+
+  // Show image viewer
+  void _showImageViewer(String filePath, bool isUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: isUrl
+                    ? CachedNetworkImage(
+                        imageUrl: filePath,
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        errorWidget: (context, url, error) => const Icon(
+                          Icons.error,
+                          color: Colors.white,
+                          size: 50,
+                        ),
+                      )
+                    : Image.file(
+                        File(filePath),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Icon(
+                          Icons.error,
+                          color: Colors.white,
+                          size: 50,
+                        ),
+                      ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Show video player
+  void _showVideoPlayer(String filePath, bool isUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppBar(
+              backgroundColor: Colors.black,
+              leading: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: const Text('Video Player', style: TextStyle(color: Colors.white)),
+            ),
+            Flexible(
+              child: isUrl
+                  ? _VideoPlayerNetworkWidget(url: filePath)
+                  : _VideoPlayerFileWidget(filePath: filePath),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Show audio player
+  void _showAudioPlayer(String filePath, bool isUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Audio Player', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              isUrl
+                  ? _AudioPlayerNetworkWidget(url: filePath)
+                  : _AudioPlayerFileWidget(filePath: filePath),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Open URL in browser (for documents)
+  Future<void> _openUrlInBrowser(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open file URL'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening file URL: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Open local file
+  Future<void> _openFile(String filePath) async {
+    try {
+      final result = await OpenFile.open(filePath);
+      if (result.type != ResultType.done) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Could not open file: ${result.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}
+
+// Video Player Widget for local files
+class _VideoPlayerFileWidget extends StatefulWidget {
+  final String filePath;
+  const _VideoPlayerFileWidget({required this.filePath});
+
+  @override
+  State<_VideoPlayerFileWidget> createState() => _VideoPlayerFileWidgetState();
+}
+
+class _VideoPlayerFileWidgetState extends State<_VideoPlayerFileWidget> {
+  late VideoPlayerController _controller;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.file(File(widget.filePath))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialized = true;
+          });
+        }
+      });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return AspectRatio(
+      aspectRatio: _controller.value.aspectRatio,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          VideoPlayer(_controller),
+          IconButton(
+            icon: Icon(
+              _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 50,
+            ),
+            onPressed: () {
+              setState(() {
+                if (_controller.value.isPlaying) {
+                  _controller.pause();
+                } else {
+                  _controller.play();
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+// Video Player Widget for network URLs
+class _VideoPlayerNetworkWidget extends StatefulWidget {
+  final String url;
+  const _VideoPlayerNetworkWidget({required this.url});
+
+  @override
+  State<_VideoPlayerNetworkWidget> createState() => _VideoPlayerNetworkWidgetState();
+}
+
+class _VideoPlayerNetworkWidgetState extends State<_VideoPlayerNetworkWidget> {
+  late VideoPlayerController _controller;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialized = true;
+          });
+        }
+      });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return AspectRatio(
+      aspectRatio: _controller.value.aspectRatio,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          VideoPlayer(_controller),
+          IconButton(
+            icon: Icon(
+              _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 50,
+            ),
+            onPressed: () {
+              setState(() {
+                if (_controller.value.isPlaying) {
+                  _controller.pause();
+                } else {
+                  _controller.play();
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+// Audio Player Widget for local files
+class _AudioPlayerFileWidget extends StatefulWidget {
+  final String filePath;
+  const _AudioPlayerFileWidget({required this.filePath});
+
+  @override
+  State<_AudioPlayerFileWidget> createState() => _AudioPlayerFileWidgetState();
+}
+
+class _AudioPlayerFileWidgetState extends State<_AudioPlayerFileWidget> {
+  late AudioPlayer _audioPlayer;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, size: 50),
+          onPressed: () async {
+            if (_isPlaying) {
+              await _audioPlayer.pause();
+            } else {
+              await _audioPlayer.play(DeviceFileSource(widget.filePath));
+            }
+            setState(() {
+              _isPlaying = !_isPlaying;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+}
+
+// Audio Player Widget for network URLs
+class _AudioPlayerNetworkWidget extends StatefulWidget {
+  final String url;
+  const _AudioPlayerNetworkWidget({required this.url});
+
+  @override
+  State<_AudioPlayerNetworkWidget> createState() => _AudioPlayerNetworkWidgetState();
+}
+
+class _AudioPlayerNetworkWidgetState extends State<_AudioPlayerNetworkWidget> {
+  late AudioPlayer _audioPlayer;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, size: 50),
+          onPressed: () async {
+            if (_isPlaying) {
+              await _audioPlayer.pause();
+            } else {
+              await _audioPlayer.play(UrlSource(widget.url));
+            }
+            setState(() {
+              _isPlaying = !_isPlaying;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 }
