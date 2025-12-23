@@ -784,7 +784,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedtoCancelOrder => 'Failed to Cancel Order';
 
   @override
-  String get personalInformtion => 'Personal Informtion';
+  String get personalInformtion => 'Personal Information';
 
   @override
   String get yourinformationhasbeenupdatedsuccessfully =>
@@ -930,7 +930,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateTicket => 'Update Ticket';
 
   @override
-  String get locationDescription => 'Location Description';
+  String get ticketTitle => 'Ticket Title';
 
   @override
   String get locationMap => 'Location Map';

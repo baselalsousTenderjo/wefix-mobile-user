@@ -17,7 +17,7 @@ import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/profile_model.dart';
 
-import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
+// import 'package:wefix/Presentation/Components/custom_botton_widget.dart'; // Not needed - profile is readonly
 import 'package:wefix/Presentation/Components/language_icon.dart';
 import 'package:wefix/Presentation/Components/widget_dialog.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
@@ -268,38 +268,39 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ),
+                          ),
                         ),
                       ),
                     ),
-                    Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: AppColors(context).primaryColor),
-                          borderRadius: BorderRadius.circular(50),
-                          boxShadow: const [
-                            BoxShadow(
-                                blurRadius: 0,
-                                blurStyle: BlurStyle.outer,
-                                offset: Offset(0.1, 0))
-                          ],
-                          color: Colors.white),
-                      child: Center(
-                        child: IconButton(
-                            splashRadius: 20,
-                            onPressed: () async {
-                              showBottom();
-                              setState(() {});
-                            },
-                            icon: Icon(
-                              Icons.edit,
-                              color: AppColors(context).primaryColor,
-                              size: 20,
-                            )),
-                      ),
-                    ),
+                    // Edit icon removed - profile is readonly for now
+                    // Container(
+                    //   width: 35,
+                    //   height: 35,
+                    //   decoration: BoxDecoration(
+                    //       border: Border.all(
+                    //           color: AppColors(context).primaryColor),
+                    //       borderRadius: BorderRadius.circular(50),
+                    //       boxShadow: const [
+                    //         BoxShadow(
+                    //             blurRadius: 0,
+                    //             blurStyle: BlurStyle.outer,
+                    //             offset: Offset(0.1, 0))
+                    //       ],
+                    //       color: Colors.white),
+                    //   child: Center(
+                    //     child: IconButton(
+                    //         splashRadius: 20,
+                    //         onPressed: () async {
+                    //           showBottom();
+                    //           setState(() {});
+                    //         },
+                    //         icon: Icon(
+                    //           Icons.edit,
+                    //           color: AppColors(context).primaryColor,
+                    //           size: 20,
+                    //         )),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -337,14 +338,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               "abdallah",
                               fillColor: AppColors.greyColorback,
                               controller: firstName,
-                              validator: (p0) {
-                                if (firstName.text.isEmpty) {
-                                  return AppText(context, isFunction: true)
-                                      .required;
-                                } else {
-                                  return null;
-                                }
-                              },
+                              readOnly: true,
                               haveBorder: false,
                               radius: 5,
                             ),
@@ -369,14 +363,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               "abuasab",
                               fillColor: AppColors.greyColorback,
                               controller: lastName,
-                              validator: (p0) {
-                                if (lastName.text.isEmpty) {
-                                  return AppText(context, isFunction: true)
-                                      .required;
-                                } else {
-                                  return null;
-                                }
-                              },
+                              readOnly: true,
                               haveBorder: false,
                               radius: 5,
                             ),
@@ -398,15 +385,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       controller: email,
                       keyboardType: TextInputType.emailAddress,
                       fillColor: AppColors.greyColorback,
-                      validator: (p0) {
-                        if (email.text.isEmpty) {
-                          return AppText(context, isFunction: true).required;
-                        } else if (!regExp2.hasMatch(email.text)) {
-                          return AppText(context, isFunction: true)
-                              .invalidEmail;
-                        }
-                        return null;
-                      },
+                      readOnly: true,
                       haveBorder: false,
                       radius: 5,
                     ),
@@ -417,23 +396,24 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(
-          right: AppSize(context).width * 0.04,
-          left: AppSize(context).width * 0.04,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 10,
-          top: AppSize(context).height * 0.02,
-        ),
-        child: CustomBotton(
-          title: AppText(context).update,
-          loading: loadingEdit,
-          onTap: () {
-            if (formKey.currentState!.validate()) {
-              editProfile();
-            }
-          },
-        ),
-      ),
+      // Update button removed - profile is readonly for now
+      // bottomNavigationBar: Padding(
+      //   padding: EdgeInsets.only(
+      //     right: AppSize(context).width * 0.04,
+      //     left: AppSize(context).width * 0.04,
+      //     bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+      //     top: AppSize(context).height * 0.02,
+      //   ),
+      //   child: CustomBotton(
+      //     title: AppText(context).update,
+      //     loading: loadingEdit,
+      //     onTap: () {
+      //       if (formKey.currentState!.validate()) {
+      //         editProfile();
+      //       }
+      //     },
+      //   ),
+      // ),
     );
   }
 
@@ -468,9 +448,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           Provider.of<AppProvider>(context, listen: false);
       final token = appProvider.accessToken ?? appProvider.userModel?.token ?? '';
       if (token.isEmpty) {
-        setState(() {
-          loading = false;
-        });
+          setState(() {
+            loading = false;
+          });
         return;
       }
       
@@ -494,9 +474,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     } catch (e) {
       log('getUser [ ERROR ] $e');
       if (mounted) {
-        setState(() {
-          loading = false;
-        });
+      setState(() {
+        loading = false;
+      });
       }
     }
   }
@@ -525,12 +505,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         );
       } else {
         // Use old backend-oms endpoint for regular users
-        await ProfileApis.editProfile(
-          email: email.text,
-          firstName: firstName.text,
+      await ProfileApis.editProfile(
+        email: email.text,
+        firstName: firstName.text,
           image: imageFile == null ? (imageProfile ?? "") : "",
-          lastName: lastName.text,
-          token: appProvider.userModel?.token ?? '',
+        lastName: lastName.text,
+        token: appProvider.userModel?.token ?? '',
         );
         // For old endpoint, we need to reload profile data
         updatedProfile = await ProfileApis.getProfileData(
@@ -555,14 +535,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         await getUser();
         
         if (mounted) {
-          showDialog(
-            context: context,
+        showDialog(
+          context: context,
             builder: (context) => WidgetDialog(
               title: AppLocalizations.of(context)!.successfully,
               desc: AppLocalizations.of(context)!.yourinformationhasbeenupdatedsuccessfully,
-              isError: false,
-            ),
-          );
+            isError: false,
+          ),
+        );
         }
       } else {
         if (mounted) {
@@ -577,8 +557,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         }
       }
       
-      setState(() {
-        loadingEdit = false;
+        setState(() {
+          loadingEdit = false;
       });
     } catch (e) {
       log('editProfile() error = > $e');
@@ -601,7 +581,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Future uploadFile({bool? isCavar = false}) async {
     // Image will be uploaded directly when saving profile
     // No need to upload separately anymore
-    setState(() {
+        setState(() {
       // Just update the preview, actual upload happens in editProfile()
     });
   }
@@ -662,7 +642,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           Expanded(
                             child: Text(
                               AppLocalizations.of(context)!.selectaPictureFromGallery,
-                              textAlign: TextAlign.start,
+                            textAlign: TextAlign.start,
                               style: TextStyle(
                                 color: AppColors.blackColor1,
                                 fontSize: AppSize(context).mediumText4,
@@ -707,7 +687,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           Expanded(
                             child: Text(
                               AppLocalizations.of(context)!.takeaPictureFromCamera,
-                              textAlign: TextAlign.start,
+                            textAlign: TextAlign.start,
                               style: TextStyle(
                                 color: AppColors.blackColor1,
                                 fontSize: AppSize(context).mediumText4,

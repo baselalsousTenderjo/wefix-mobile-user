@@ -35,10 +35,26 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _tab1ScrollController = ScrollController();
+  final ScrollController _tab2ScrollController = ScrollController();
+  
+  // GlobalKeys for scrolling to error fields
+  final GlobalKey _contractKey = GlobalKey();
+  final GlobalKey _branchKey = GlobalKey();
+  final GlobalKey _zoneKey = GlobalKey();
+  final GlobalKey _ticketTypeKey = GlobalKey();
+  final GlobalKey _ticketTitleKey = GlobalKey();
+  final GlobalKey _dateKey = GlobalKey();
+  final GlobalKey _timeKey = GlobalKey();
+  final GlobalKey _teamLeaderKey = GlobalKey();
+  final GlobalKey _technicianKey = GlobalKey();
+  final GlobalKey _mainServiceKey = GlobalKey();
+  final GlobalKey _subServiceKey = GlobalKey();
+  
   bool isLoading = false;
 
   // Controllers
-  final TextEditingController locationDescription = TextEditingController();
+  final TextEditingController ticketTitle = TextEditingController();
   final TextEditingController serviceDescription = TextEditingController();
 
   // Selected items
@@ -143,9 +159,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       }
     }
     
-    log('Initial role check - roleId raw: $currentUserRoleId (${currentUserRoleId.runtimeType}), parsed: $roleIdInt');
-    log('User info - ID: ${appProvider.userModel?.customer.id}, Name: ${appProvider.userModel?.customer.name}');
-    
     // Set visibility immediately based on role
     // Role IDs: 18 = Admin, 20 = Team Leader
     if (mounted) {
@@ -153,15 +166,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         if (roleIdInt == 20) {
           // Team Leader: Hide dropdown
           isTeamLeaderVisible = false;
-          log('✅ Team Leader detected (roleId: 20) - hiding Team Leader dropdown');
         } else if (roleIdInt == 18) {
           // Admin: Show dropdown
           isTeamLeaderVisible = true;
-          log('✅ Admin detected (roleId: 18) - showing Team Leader dropdown');
         } else {
           // Unknown role: Show dropdown by default
           isTeamLeaderVisible = true;
-          log('⚠️ Unknown role (roleId: $roleIdInt) - showing Team Leader dropdown by default');
         }
       });
     }
@@ -182,11 +192,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       return;
     }
 
-    // Load all data in parallel
+    // Load all data in parallel (zones will be loaded when branch is selected)
     final results = await Future.wait([
       BookingApi.getCompanyContracts(token: token, context: context),
       BookingApi.getCompanyBranches(token: token, context: context),
-      BookingApi.getCompanyZones(token: token, context: context),
+      // Zones will be loaded when branch is selected, so we don't load them here
+      Future.value(null), // Placeholder for zones
       BookingApi.getMainServices(token: token, context: context),
       BookingApi.getSubServices(token: token, context: context),
       BookingApi.getCompanyTeamLeaders(token: token, context: context),
@@ -222,17 +233,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             )).toList();
       }
 
-      // Zones
-      final zonesData = results[2];
-      if (zonesData is List<Map<String, dynamic>> && zonesData.isNotEmpty) {
-        zones = zonesData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['zoneTitle'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['zoneNumber'] as String?,
-              icon: Icons.map,
-              data: item,
-            )).toList();
-      }
+      // Zones - will be loaded when branch is selected, so skip here
+      // zones will be populated by _loadZonesForBranch()
 
       // Main Services
       final mainServicesData = results[3];
@@ -284,7 +286,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
       // Ticket Types
       final ticketTypesData = results[7];
-      log('Ticket Types Data: $ticketTypesData');
       if (ticketTypesData != null) {
         final ticketTypesList = List<Map<String, dynamic>>.from(ticketTypesData as List);
         if (ticketTypesList.isNotEmpty) {
@@ -296,31 +297,22 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 data: item,
               )).toList();
           
-          log('Ticket Types mapped: ${ticketTypes.length} items');
-          
           // Find "Corrective" ticket type (case-insensitive) or use first one
           try {
             selectedTicketType = ticketTypes.firstWhere(
               (type) => type.title.toLowerCase().contains('corrective'),
             );
-            log('Auto-selected Corrective ticket type: ${selectedTicketType?.title}');
           } catch (e) {
             // If "Corrective" not found, use first ticket type
             if (ticketTypes.isNotEmpty) {
               selectedTicketType = ticketTypes.first;
-              log('Auto-selected first ticket type: ${selectedTicketType?.title}');
             }
           }
-        } else {
-          log('Ticket Types Data is empty list');
         }
-      } else {
-        log('Ticket Types Data is null');
       }
 
       // Ticket Statuses
       final ticketStatusesData = results[8];
-      log('Ticket Statuses Data: $ticketStatusesData');
       if (ticketStatusesData != null) {
         final ticketStatusesList = List<Map<String, dynamic>>.from(ticketStatusesData as List);
         if (ticketStatusesList.isNotEmpty) {
@@ -331,19 +323,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 icon: Icons.info_outline,
                 data: item,
               )).toList();
-          
-          log('Ticket Statuses mapped: ${ticketStatuses.length} items');
-        } else {
-          log('Ticket Statuses Data is empty list');
         }
-      } else {
-        log('Ticket Statuses Data is null');
       }
 
       // Auto-select first items
       if (contracts.isNotEmpty) selectedContract = contracts.first;
-      if (branches.isNotEmpty) selectedBranch = branches.first;
-      if (zones.isNotEmpty) selectedZone = zones.first;
+      if (branches.isNotEmpty) {
+        selectedBranch = branches.first;
+        // Load zones for the first branch
+        _loadZonesForBranch(branches.first.id);
+      }
       if (mainServices.isNotEmpty) {
         selectedMainService = mainServices.first;
         // Load sub services for the first main service
@@ -373,9 +362,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           }
         }
       }
-      
-      log('Role check in _loadInitialData - roleId: $currentUserRoleId (${currentUserRoleId.runtimeType}), parsed: $roleIdInt, userId: $currentUserId');
-      log('Team Leaders list size: ${teamLeaders.length}');
       
       // Check if current user is in the team leaders list
       // Strategy: Check by ID first, then by name as fallback
@@ -422,20 +408,15 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         setState(() {
           isTeamLeaderVisible = false;
         });
-        log('Team Leader confirmed - hiding dropdown');
-        
         // Find current user in team leaders list
         try {
           selectedTeamLeader = teamLeaders.firstWhere(
             (leader) => leader.id == currentUserId,
           );
-          log('Team Leader auto-selected: ${selectedTeamLeader?.title} (ID: ${selectedTeamLeader?.id})');
         } catch (e) {
           // If current user not found in team leaders list, use first one
-          log('Warning: Current Team Leader (ID: $currentUserId) not found in team leaders list');
           if (teamLeaders.isNotEmpty) {
-          selectedTeamLeader = teamLeaders.first;
-            log('Fallback: Using first team leader in list');
+            selectedTeamLeader = teamLeaders.first;
           }
         }
       } else if (teamLeaders.isNotEmpty) {
@@ -444,10 +425,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         setState(() {
           isTeamLeaderVisible = true;
         });
-        log('Admin or other role confirmed - showing dropdown');
         selectedTeamLeader = teamLeaders.first;
-      } else {
-        log('No team leaders available');
       }
       
       // Auto-select first technician
@@ -478,8 +456,54 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
   void _populateFieldsFromTicketData(Map<String, dynamic> data) {
     setState(() {
-      locationDescription.text = data['locationDescription'] ?? '';
+      ticketTitle.text = data['ticketTitle'] ?? '';
       serviceDescription.text = data['serviceDescription'] ?? '';
+      
+      // Populate contract
+      if (data['contract'] != null && contracts.isNotEmpty) {
+        try {
+          final contractId = data['contract']['id'] as int?;
+          if (contractId != null) {
+            selectedContract = contracts.firstWhere(
+              (contract) => contract.id == contractId,
+            );
+          }
+        } catch (e) {
+          log('Could not find matching contract: $e');
+        }
+      }
+      
+      // Populate branch and load zones
+      if (data['branch'] != null && branches.isNotEmpty) {
+        try {
+          final branchId = data['branch']['id'] as int?;
+          if (branchId != null) {
+            selectedBranch = branches.firstWhere(
+              (branch) => branch.id == branchId,
+            );
+            // Load zones for the selected branch
+            _loadZonesForBranch(branchId).then((_) {
+              // After zones are loaded, select the zone from ticket data
+              if (data['zone'] != null && zones.isNotEmpty) {
+                try {
+                  final zoneId = data['zone']['id'] as int?;
+                  if (zoneId != null) {
+                    setState(() {
+                      selectedZone = zones.firstWhere(
+                        (zone) => zone.id == zoneId,
+                      );
+                    });
+                  }
+                } catch (e) {
+                  // Zone not found
+                }
+              }
+            });
+          }
+        } catch (e) {
+          // Branch not found
+        }
+      }
       
       // Populate ticket status if editing
       if (data['ticketStatus'] != null && ticketStatuses.isNotEmpty) {
@@ -489,10 +513,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             selectedTicketStatus = ticketStatuses.firstWhere(
               (status) => status.id == statusId,
             );
-            log('Populated ticket status: ${selectedTicketStatus?.title}');
           }
         } catch (e) {
-          log('Could not find matching ticket status: $e');
           // Default to first status if available
           if (ticketStatuses.isNotEmpty) {
             selectedTicketStatus = ticketStatuses.first;
@@ -501,7 +523,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       } else if (ticketStatuses.isNotEmpty) {
         // If no status in ticket data, default to first status
         selectedTicketStatus = ticketStatuses.first;
-        log('Defaulted to first ticket status: ${selectedTicketStatus?.title}');
       }
       // TODO: Map other fields when APIs are available
     });
@@ -540,6 +561,44 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     });
   }
 
+  Future<void> _loadZonesForBranch(int branchId) async {
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final token = appProvider.accessToken ?? appProvider.userModel?.token ?? '';
+
+    if (token.isEmpty) {
+      return;
+    }
+
+    final zonesData = await BookingApi.getCompanyZones(
+      token: token,
+      branchId: branchId,
+      context: context,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      if (zonesData != null) {
+        zones = zonesData.map((item) => DropdownCardItem(
+              id: item['id'] as int,
+              title: item['title'] as String? ?? item['zoneTitle'] as String? ?? '',
+              subtitle: item['subtitle'] as String? ?? item['zoneNumber'] as String?,
+              icon: Icons.map,
+              data: item,
+            )).toList();
+        // Auto-select first zone if available
+        if (zones.isNotEmpty) {
+          selectedZone = zones.first;
+        } else {
+          selectedZone = null;
+        }
+      } else {
+        zones = [];
+        selectedZone = null;
+      }
+    });
+  }
+
   void _showDropdownBottomSheet({
     required String title,
     required List<DropdownCardItem> items,
@@ -560,6 +619,11 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     final localizations = AppLocalizations.of(context)!;
     fieldErrors.clear();
     bool isValid = true;
+
+    // Validate form fields first (TextFields with validators)
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+      isValid = false;
+    }
 
     // For Technicians, only validate ticket status
     if (widget.isTechnician) {
@@ -588,8 +652,9 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         fieldErrors['ticketType'] = '${localizations.ticketType} ${localizations.required}';
         isValid = false;
       }
-      if (locationDescription.text.trim().isEmpty) {
-        fieldErrors['locationDescription'] = '${localizations.locationDescription} ${localizations.required}';
+      // Ticket title is required
+      if (ticketTitle.text.trim().isEmpty) {
+        fieldErrors['ticketTitle'] = '${localizations.ticketTitle} ${localizations.required}';
         isValid = false;
       }
       // Location map is optional - no validation needed
@@ -628,6 +693,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
     if (!isValid) {
       setState(() {});
+      
+      // Scroll to the first field with error
+      _scrollToFirstError();
+      
       // Show error message
       final errorMessages = fieldErrors.values.where((e) => e != null).cast<String>().toList();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -651,6 +720,85 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     return isValid;
   }
 
+  // Scroll to the first field with error
+  void _scrollToFirstError() {
+    if (fieldErrors.isEmpty) return;
+    
+    // Get the first error key
+    final firstErrorKey = fieldErrors.keys.first;
+    GlobalKey? targetKey;
+    ScrollController? scrollController;
+    
+    // Determine which tab we're in and which scroll controller to use
+    if (_tabController.index == 0) {
+      scrollController = _tab1ScrollController;
+      // Map error keys to GlobalKeys for Tab 1
+      switch (firstErrorKey) {
+        case 'contract':
+          targetKey = _contractKey;
+          break;
+        case 'branch':
+          targetKey = _branchKey;
+          break;
+        case 'zone':
+          targetKey = _zoneKey;
+          break;
+        case 'ticketType':
+          targetKey = _ticketTypeKey;
+          break;
+        case 'ticketTitle':
+          targetKey = _ticketTitleKey;
+          break;
+        case 'date':
+          targetKey = _dateKey;
+          break;
+        case 'time':
+          targetKey = _timeKey;
+          break;
+        case 'teamLeader':
+          targetKey = _teamLeaderKey;
+          break;
+        case 'technician':
+          targetKey = _technicianKey;
+          break;
+      }
+    } else if (_tabController.index == 1) {
+      scrollController = _tab2ScrollController;
+      // Map error keys to GlobalKeys for Tab 2
+      switch (firstErrorKey) {
+        case 'mainService':
+          targetKey = _mainServiceKey;
+          break;
+        case 'subService':
+          targetKey = _subServiceKey;
+          break;
+      }
+    }
+    
+    // Scroll to the target field
+    if (targetKey != null && scrollController != null && scrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final RenderObject? renderObject = targetKey!.currentContext?.findRenderObject();
+        if (renderObject != null && renderObject is RenderBox) {
+          final position = renderObject.localToGlobal(Offset.zero);
+          final scrollOffset = scrollController!.offset + position.dy - 100; // 100px padding from top
+          scrollController.animateTo(
+            scrollOffset.clamp(0.0, scrollController.position.maxScrollExtent),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } else if (scrollController != null && scrollController.hasClients) {
+      // If no specific field key, scroll to top
+      scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   void _goToNextTab() {
     if (_validateCurrentStep()) {
     if (_tabController.index < _tabController.length - 1) {
@@ -666,96 +814,26 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   }
 
   Future<void> _submit() async {
-    // For Technicians, only validate ticket status
-    if (widget.isTechnician) {
-      if (selectedTicketStatus == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a ticket status'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-    } else {
-    // First validate form fields (text fields with validators)
-    if (!_formKey.currentState!.validate()) {
-      // Form validation will show field-specific errors
-      return;
-      }
+    // Validate all tabs before submission
+    // First check Tab 1 (Basic Info)
+    if (_tabController.index != 0) {
+      _tabController.animateTo(0);
+      await Future.delayed(const Duration(milliseconds: 300));
     }
-
-    // Then validate all required dropdown/selection fields (only for Admin/Team Leader)
-    if (widget.isTechnician) {
-      // Skip validation for Technicians, they only update status
-    } else {
-    final localizations = AppLocalizations.of(context)!;
-    final List<String> missingFields = [];
-
-    if (selectedContract == null) {
-      missingFields.add(localizations.contractId);
+    if (!_validateCurrentStep()) {
+      return; // Validation will scroll to error and show message
     }
-    if (selectedBranch == null) {
-      missingFields.add(localizations.branchId);
+    
+    // Then check Tab 2 (Service Details)
+    if (_tabController.index != 1) {
+      _tabController.animateTo(1);
+      await Future.delayed(const Duration(milliseconds: 300));
     }
-    if (selectedZone == null) {
-      missingFields.add(localizations.zoneId);
+    if (!_validateCurrentStep()) {
+      return; // Validation will scroll to error and show message
     }
-    if (selectedMainService == null) {
-      missingFields.add(localizations.mainService);
-    }
-    if (locationDescription.text.isEmpty) {
-      missingFields.add(localizations.locationDescription);
-    }
-    // Location map is optional - not added to missing fields
-    if (selectedTeamLeader == null) {
-      missingFields.add(localizations.teamLeaderId);
-    }
-    if (selectedTechnician == null) {
-      missingFields.add(localizations.technicianId);
-    }
-    // Time slots are not required for Emergency tickets
-    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
-                        selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
-    if (!isEmergency && (selectedTimeFrom == null || selectedTimeTo == null)) {
-      missingFields.add('${localizations.timeFrom} - ${localizations.timeTo}');
-    }
-    if (selectedTicketType == null) {
-      missingFields.add(localizations.ticketType);
-    }
-    if (selectedTicketDate == null) {
-      missingFields.add(localizations.date);
-    }
-
-    // Show specific validation message
-    if (missingFields.isNotEmpty) {
-      final message = missingFields.length == 1
-          ? '${localizations.required}: ${missingFields.first}'
-          : '${localizations.required}: ${missingFields.join(', ')}';
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 4),
-          backgroundColor: Colors.red[600],
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
-          ),
-        ),
-      );
-      
-      // Navigate to the first tab if validation fails
-      if (_tabController.index != 0) {
-        _tabController.animateTo(0);
-      }
-      
-      return;
-      }
-    }
+    
+    // All validations passed, proceed with submission
 
     setState(() {
       isLoading = true;
@@ -889,7 +967,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         'contractId': selectedContract!.id,
         'branchId': selectedBranch!.id,
         'zoneId': selectedZone!.id,
-        'locationDescription': locationDescription.text.trim(),
+        'ticketTitle': ticketTitle.text.trim(),
         if (locationMapStr != null) 'locationMap': locationMapStr, // Optional: latitude,longitude format
         'ticketTypeId': selectedTicketType!.id,
         'ticketDate': ticketDateStr,
@@ -897,7 +975,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         'ticketTimeTo': timeToStr,
           'assignToTeamLeaderId': teamLeaderId, // Use validated team leader ID
         'assignToTechnicianId': selectedTechnician!.id,
-        'ticketDescription': locationDescription.text.trim(),
+        'ticketDescription': ticketTitle.text.trim(),
         'havingFemaleEngineer': false,
         'withMaterial': false,
         'mainServiceId': selectedMainService!.id,
@@ -1041,7 +1119,9 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   @override
   void dispose() {
     _tabController.dispose();
-    locationDescription.dispose();
+    _tab1ScrollController.dispose();
+    _tab2ScrollController.dispose();
+    ticketTitle.dispose();
     serviceDescription.dispose();
     super.dispose();
   }
@@ -1169,6 +1249,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     // For Technicians, only show ticket status dropdown and notes field
     if (widget.isTechnician) {
       return SingleChildScrollView(
+        controller: _tab1ScrollController,
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1253,99 +1334,162 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     
     // For Admin/Team Leader, show all fields
     return SingleChildScrollView(
+      controller: _tab1ScrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Ticket Title Field (moved to top)
+          Container(
+            key: _ticketTitleKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+            WidgetTextField(
+              localizations.ticketTitle,
+              controller: ticketTitle,
+            maxLines: 4,
+            fillColor: AppColors.greyColorback,
+            haveBorder: false,
+            radius: 5,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return localizations.required;
+              }
+              return null;
+            },
+                onChanged: (value) {
+                  if (value.isNotEmpty) {
+                    setState(() {
+                      fieldErrors.remove('ticketTitle');
+                    });
+                  }
+                },
+              ),
+              if (fieldErrors['ticketTitle'] != null) ...[
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Text(
+                    fieldErrors['ticketTitle']!,
+                    style: TextStyle(
+                      color: Colors.red[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          ),
+          const SizedBox(height: 16),
+
           // Contract Reference Dropdown
-          _buildDropdownCard(
-            title: '${localizations.contractId} *',
-            selectedItem: selectedContract,
-            items: contracts,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.contractId,
-              items: contracts,
+          Container(
+            key: _contractKey,
+            child: _buildDropdownCard(
+              title: '${localizations.contractId} *',
               selectedItem: selectedContract,
-              onSelected: (item) {
-                setState(() {
-                  selectedContract = item;
-                  fieldErrors.remove('contract');
-                });
-              },
+              items: contracts,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.contractId,
+                items: contracts,
+                selectedItem: selectedContract,
+                onSelected: (item) {
+                  setState(() {
+                    selectedContract = item;
+                    fieldErrors.remove('contract');
+                  });
+                },
+              ),
+              errorMessage: fieldErrors['contract'],
             ),
-            errorMessage: fieldErrors['contract'],
           ),
           const SizedBox(height: 16),
 
           // Branch Dropdown
-          _buildDropdownCard(
-            title: '${localizations.branchId} *',
-            selectedItem: selectedBranch,
-            items: branches,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.branchId,
-              items: branches,
+          Container(
+            key: _branchKey,
+            child: _buildDropdownCard(
+              title: '${localizations.branchId} *',
               selectedItem: selectedBranch,
-              onSelected: (item) {
-                setState(() {
-                  selectedBranch = item;
-                  fieldErrors.remove('branch');
-                });
-              },
+              items: branches,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.branchId,
+                items: branches,
+                selectedItem: selectedBranch,
+                onSelected: (item) {
+                  setState(() {
+                    selectedBranch = item;
+                    selectedZone = null; // Reset zone when branch changes
+                    zones = []; // Clear zones list
+                    fieldErrors.remove('branch');
+                    fieldErrors.remove('zone');
+                  });
+                  // Load zones for the selected branch
+                  _loadZonesForBranch(item.id);
+                },
+              ),
+              errorMessage: fieldErrors['branch'],
             ),
-            errorMessage: fieldErrors['branch'],
           ),
           const SizedBox(height: 16),
 
           // Zone Dropdown
-          _buildDropdownCard(
-            title: '${localizations.zoneId} *',
-            selectedItem: selectedZone,
-            items: zones,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.zoneId,
-              items: zones,
+          Container(
+            key: _zoneKey,
+            child: _buildDropdownCard(
+              title: '${localizations.zoneId} *',
               selectedItem: selectedZone,
-              onSelected: (item) {
-                setState(() {
-                  selectedZone = item;
-                  fieldErrors.remove('zone');
-                });
-              },
+              items: zones,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.zoneId,
+                items: zones,
+                selectedItem: selectedZone,
+                onSelected: (item) {
+                  setState(() {
+                    selectedZone = item;
+                    fieldErrors.remove('zone');
+                  });
+                },
+              ),
+              errorMessage: fieldErrors['zone'],
             ),
-            errorMessage: fieldErrors['zone'],
           ),
           const SizedBox(height: 16),
 
           // Ticket Type Dropdown
-          _buildDropdownCard(
-            title: '${localizations.ticketType} *',
-            selectedItem: selectedTicketType,
-            items: ticketTypes,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.ticketType,
-              items: ticketTypes,
+          Container(
+            key: _ticketTypeKey,
+            child: _buildDropdownCard(
+              title: '${localizations.ticketType} *',
               selectedItem: selectedTicketType,
-              onSelected: (item) {
-                setState(() {
-                  selectedTicketType = item;
-                  fieldErrors.remove('ticketType');
-                  
-                  // If Emergency is selected, auto-select today's date
-                  final isEmergency = item.title.toLowerCase() == 'emergency' || 
-                                     item.data?['name']?.toString().toLowerCase() == 'emergency';
-                  if (isEmergency) {
-                    selectedTicketDate = DateTime.now();
-                    // Clear time slots for Emergency
-                    selectedTimeFrom = null;
-                    selectedTimeTo = null;
-                    // Clear time field error if it exists
-                    fieldErrors.remove('time');
-                  }
-                });
-              },
+              items: ticketTypes,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.ticketType,
+                items: ticketTypes,
+                selectedItem: selectedTicketType,
+                onSelected: (item) {
+                  setState(() {
+                    selectedTicketType = item;
+                    fieldErrors.remove('ticketType');
+                    
+                    // If Emergency is selected, auto-select today's date
+                    final isEmergency = item.title.toLowerCase() == 'emergency' || 
+                                       item.data?['name']?.toString().toLowerCase() == 'emergency';
+                    if (isEmergency) {
+                      selectedTicketDate = DateTime.now();
+                      // Clear time slots for Emergency
+                      selectedTimeFrom = null;
+                      selectedTimeTo = null;
+                      // Clear time field error if it exists
+                      fieldErrors.remove('time');
+                    }
+                  });
+                },
+              ),
+              errorMessage: fieldErrors['ticketType'],
             ),
-            errorMessage: fieldErrors['ticketType'],
           ),
           const SizedBox(height: 16),
 
@@ -1354,14 +1498,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           const SizedBox(height: 16),
 
           // Date Picker
-          _buildDatePicker(localizations),
+          Container(
+            key: _dateKey,
+            child: _buildDatePicker(localizations),
+          ),
           const SizedBox(height: 16),
 
           // Time Slot Dropdown (combined time from and time to)
           // Hide time slots for Emergency tickets - show response time instead
           if (selectedTicketType?.title.toLowerCase() != 'emergency' && 
               selectedTicketType?.data?['name']?.toString().toLowerCase() != 'emergency') ...[
-            _buildTimeSlotDropdown(localizations),
+            Container(
+              key: _timeKey,
+              child: _buildTimeSlotDropdown(localizations),
+            ),
             const SizedBox(height: 16),
           ] else if (selectedTicketType?.title.toLowerCase() == 'emergency' || 
                      selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency') ...[
@@ -1371,43 +1521,49 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
           // Team Leader Dropdown (hidden for Team Leaders, visible for Admins)
           if (isTeamLeaderVisible) ...[
-          _buildDropdownCard(
-            title: '${localizations.teamLeaderId} *',
-            selectedItem: selectedTeamLeader,
-            items: teamLeaders,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.teamLeaderId,
-              items: teamLeaders,
+          Container(
+            key: _teamLeaderKey,
+            child: _buildDropdownCard(
+              title: '${localizations.teamLeaderId} *',
               selectedItem: selectedTeamLeader,
-              onSelected: (item) {
-                setState(() {
-                  selectedTeamLeader = item;
-                    fieldErrors.remove('teamLeader');
-                });
-              },
+              items: teamLeaders,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.teamLeaderId,
+                items: teamLeaders,
+                selectedItem: selectedTeamLeader,
+                onSelected: (item) {
+                  setState(() {
+                    selectedTeamLeader = item;
+                      fieldErrors.remove('teamLeader');
+                  });
+                },
+              ),
+                errorMessage: fieldErrors['teamLeader'],
             ),
-              errorMessage: fieldErrors['teamLeader'],
           ),
           const SizedBox(height: 16),
           ],
 
           // Technician Dropdown
-          _buildDropdownCard(
-            title: '${localizations.technicianId} *',
-            selectedItem: selectedTechnician,
-            items: technicians,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.technicianId,
-              items: technicians,
+          Container(
+            key: _technicianKey,
+            child: _buildDropdownCard(
+              title: '${localizations.technicianId} *',
               selectedItem: selectedTechnician,
-              onSelected: (item) {
-                setState(() {
-                  selectedTechnician = item;
-                  fieldErrors.remove('technician');
-                });
-              },
+              items: technicians,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.technicianId,
+                items: technicians,
+                selectedItem: selectedTechnician,
+                onSelected: (item) {
+                  setState(() {
+                    selectedTechnician = item;
+                    fieldErrors.remove('technician');
+                  });
+                },
+              ),
+              errorMessage: fieldErrors['technician'],
             ),
-            errorMessage: fieldErrors['technician'],
           ),
           const SizedBox(height: 16),
 
@@ -1430,47 +1586,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             ),
             const SizedBox(height: 16),
           ],
-
-          // Description Field
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-          WidgetTextField(
-            localizations.locationDescription,
-            controller: locationDescription,
-            maxLines: 4,
-            fillColor: AppColors.greyColorback,
-            haveBorder: false,
-            radius: 5,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return localizations.required;
-              }
-              return null;
-            },
-                onChanged: (value) {
-                  if (value.isNotEmpty) {
-                    setState(() {
-                      fieldErrors.remove('locationDescription');
-                    });
-                  }
-                },
-              ),
-              if (fieldErrors['locationDescription'] != null) ...[
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    fieldErrors['locationDescription']!,
-                    style: TextStyle(
-                      color: Colors.red[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
         ],
       ),
     );
@@ -1478,20 +1593,23 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
   Widget _buildTab2(AppLocalizations localizations) {
     return SingleChildScrollView(
+      controller: _tab2ScrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Main Service Dropdown
-          _buildDropdownCard(
-            title: '${localizations.mainService} *',
-            selectedItem: selectedMainService,
-            items: mainServices,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.mainService,
-              items: mainServices,
+          Container(
+            key: _mainServiceKey,
+            child: _buildDropdownCard(
+              title: '${localizations.mainService} *',
               selectedItem: selectedMainService,
-              onSelected: (item) async {
+              items: mainServices,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.mainService,
+                items: mainServices,
+                selectedItem: selectedMainService,
+                onSelected: (item) async {
                 setState(() {
                   selectedMainService = item;
                   selectedSubService = null; // Reset sub service when main service changes
@@ -1503,25 +1621,29 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             ),
             errorMessage: fieldErrors['mainService'],
           ),
+          ),
           const SizedBox(height: 16),
 
           // Sub Service Dropdown
-          _buildDropdownCard(
-            title: '${localizations.subService} *',
-            selectedItem: selectedSubService,
-            items: subServices,
-            onTap: () => _showDropdownBottomSheet(
-              title: localizations.subService,
-              items: subServices,
+          Container(
+            key: _subServiceKey,
+            child: _buildDropdownCard(
+              title: '${localizations.subService} *',
               selectedItem: selectedSubService,
-              onSelected: (item) {
-                setState(() {
-                  selectedSubService = item;
-                  fieldErrors.remove('subService');
-                });
-              },
+              items: subServices,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.subService,
+                items: subServices,
+                selectedItem: selectedSubService,
+                onSelected: (item) {
+                  setState(() {
+                    selectedSubService = item;
+                    fieldErrors.remove('subService');
+                  });
+                },
+              ),
+              errorMessage: fieldErrors['subService'],
             ),
-            errorMessage: fieldErrors['subService'],
           ),
           const SizedBox(height: 16),
 
@@ -1565,102 +1687,120 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Contract Reference
-          _buildSummaryRow(
-            label: localizations.contractId,
-            value: selectedContract?.title ?? '-',
-            icon: Icons.description,
-          ),
-          const SizedBox(height: 16),
+          if (selectedContract != null && selectedContract!.title.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.contractId,
+              value: selectedContract!.title,
+              icon: Icons.description,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Branch
-          _buildSummaryRow(
-            label: localizations.branchId,
-            value: selectedBranch?.title ?? '-',
-            icon: Icons.business,
-          ),
-          const SizedBox(height: 16),
+          if (selectedBranch != null && selectedBranch!.title.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.branchId,
+              value: selectedBranch!.title,
+              icon: Icons.business,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Zone
-          _buildSummaryRow(
-            label: localizations.zoneId,
-            value: selectedZone?.title ?? '-',
-            icon: Icons.map,
-          ),
-          const SizedBox(height: 16),
+          if (selectedZone != null && selectedZone!.title.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.zoneId,
+              value: selectedZone!.title,
+              icon: Icons.map,
+            ),
+            const SizedBox(height: 16),
+          ],
 
-          // Location Description
-          _buildSummaryRow(
-            label: localizations.locationDescription,
-            value: locationDescription.text.isNotEmpty ? locationDescription.text : '-',
-            icon: Icons.location_on,
-          ),
-          const SizedBox(height: 16),
+          // Ticket Title (only show if filled)
+          if (ticketTitle.text.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.ticketTitle,
+              value: ticketTitle.text,
+              icon: Icons.title,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Date
-          _buildSummaryRow(
-            label: localizations.date,
-            value: selectedTicketDate != null
-                ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!)
-                : '-',
-            icon: Icons.calendar_today,
-          ),
-          const SizedBox(height: 16),
+          if (selectedTicketDate != null) ...[
+            _buildSummaryRow(
+              label: localizations.date,
+              value: DateFormat('yyyy-MM-dd').format(selectedTicketDate!),
+              icon: Icons.calendar_today,
+            ),
+            const SizedBox(height: 16),
+          ],
 
-          // Time Slot
-          _buildSummaryRow(
-            label: '${localizations.timeFrom} - ${localizations.timeTo}',
-            value: getTimeSlotDisplay(),
-            icon: Icons.access_time,
-          ),
-          const SizedBox(height: 16),
+          // Time Slot (only if filled)
+          if (selectedTimeFrom != null && selectedTimeTo != null && getTimeSlotDisplay() != '-') ...[
+            _buildSummaryRow(
+              label: '${localizations.timeFrom} - ${localizations.timeTo}',
+              value: getTimeSlotDisplay(),
+              icon: Icons.access_time,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Team Leader
-          _buildSummaryRow(
-            label: localizations.teamLeaderId,
-            value: selectedTeamLeader?.title ?? '-',
-            icon: Icons.person_outline,
-          ),
-          const SizedBox(height: 16),
+          if (selectedTeamLeader != null && selectedTeamLeader!.title.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.teamLeaderId,
+              value: selectedTeamLeader!.title,
+              icon: Icons.person_outline,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Technician
-          _buildSummaryRow(
-            label: localizations.technicianId,
-            value: selectedTechnician?.title ?? '-',
-            icon: Icons.engineering,
-          ),
-          const SizedBox(height: 16),
+          if (selectedTechnician != null && selectedTechnician!.title.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.technicianId,
+              value: selectedTechnician!.title,
+              icon: Icons.engineering,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Ticket Type
-          _buildSummaryRow(
-            label: localizations.ticketType,
-            value: selectedTicketType?.title ?? '-',
-            icon: Icons.category,
-          ),
-          const SizedBox(height: 16),
+          if (selectedTicketType != null && selectedTicketType!.title.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.ticketType,
+              value: selectedTicketType!.title,
+              icon: Icons.category,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Ticket Status (only for editing)
-          if (widget.ticketData != null && selectedTicketStatus != null) ...[
+          if (widget.ticketData != null && selectedTicketStatus != null && selectedTicketStatus!.title.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.ticketStatus,
-              value: selectedTicketStatus?.title ?? '-',
+              value: selectedTicketStatus!.title,
               icon: Icons.info_outline,
             ),
             const SizedBox(height: 16),
           ],
 
           // Main Service
-          _buildSummaryRow(
-            label: localizations.mainService,
-            value: selectedMainService?.title ?? '-',
-            icon: Icons.build,
-          ),
-          const SizedBox(height: 16),
+          if (selectedMainService != null && selectedMainService!.title.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.mainService,
+              value: selectedMainService!.title,
+              icon: Icons.build,
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Sub Service
-          if (selectedSubService != null) ...[
+          if (selectedSubService != null && selectedSubService!.title.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.subService,
-              value: selectedSubService?.title ?? '-',
+              value: selectedSubService!.title,
               icon: Icons.settings,
             ),
             const SizedBox(height: 16),
@@ -1687,12 +1827,13 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ],
 
           // Attachments count
-          if (uploadedFiles.isNotEmpty)
+          if (uploadedFiles.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.attachment,
               value: '${uploadedFiles.length} file(s)',
               icon: Icons.attach_file,
             ),
+          ],
         ],
       ),
     );
@@ -1703,6 +1844,11 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     required String value,
     required IconData icon,
   }) {
+    // Don't show row if value is empty, null, or just '-'
+    if (value.isEmpty || value.trim().isEmpty || value.trim() == '-') {
+      return const SizedBox.shrink();
+    }
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

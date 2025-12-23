@@ -927,7 +927,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get updateTicket => 'تحديث تذكرة';
 
   @override
-  String get locationDescription => 'وصف الموقع';
+  String get ticketTitle => 'عنوان التذكرة';
 
   @override
   String get locationMap => 'خريطة الموقع';

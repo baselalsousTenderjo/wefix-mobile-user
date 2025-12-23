@@ -1512,7 +1512,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
       return _TicketLocationMap(
         latitude: lat!,
         longitude: lng!,
-        locationDescription: fullTicketData?['locationDescription'] ?? 
+        locationDescription: fullTicketData?['ticketTitle'] ?? 
                             bookingDetailsModel?.objTickets.customerAddress ?? '',
         locationMap: locationMapStr ?? '',
       );

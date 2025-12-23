@@ -197,8 +197,6 @@ class _HomeScreenState extends State<HomeScreen>
     }
     final isB2BUser = roleIdInt != null && (roleIdInt == 18 || roleIdInt == 20 || roleIdInt == 21 || roleIdInt == 22);
     
-    log('HomeScreen - currentUserRoleId: $currentUserRoleId, roleIdInt: $roleIdInt, isB2BUser: $isB2BUser');
-    
     return isB2BUser
         ? loading5 == true
             ? Center(

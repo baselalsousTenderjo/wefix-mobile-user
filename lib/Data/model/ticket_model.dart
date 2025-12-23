@@ -55,6 +55,7 @@ class Ticket {
   String? description;
   String? descriptionAr;
   String? icon;
+  String? mainServiceTitle;
   bool? cancelButton;
 
   Ticket({
@@ -64,6 +65,7 @@ class Ticket {
     required this.ticketTypeId,
     this.rating,
     this.icon,
+    this.mainServiceTitle,
     this.cancelButton,
     this.isRated,
     this.type,
@@ -102,6 +104,7 @@ class Ticket {
         promoCode: json["promoCode"],
         rating: json["rating"],
         icon: json["icon"],
+        mainServiceTitle: json["mainServiceTitle"],
         requestedDate: DateTime.parse(json["requestedDate"]),
         selectedDate: DateTime.parse(json["selectedDate"]),
         selectedDateTime: json["selectedDateTime"],
@@ -136,6 +139,7 @@ class Ticket {
         "timeTo": timeTo,
         "type": type,
         "icon": icon,
+        "mainServiceTitle": mainServiceTitle,
         "teamNo": teamNo,
         "isRated": isRated,
         "status": status,

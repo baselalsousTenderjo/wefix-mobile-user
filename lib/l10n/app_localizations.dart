@@ -1619,7 +1619,7 @@ abstract class AppLocalizations {
   /// No description provided for @personalInformtion.
   ///
   /// In en, this message translates to:
-  /// **'Personal Informtion'**
+  /// **'Personal Information'**
   String get personalInformtion;
 
   /// No description provided for @yourinformationhasbeenupdatedsuccessfully.
@@ -1892,11 +1892,11 @@ abstract class AppLocalizations {
   /// **'Update Ticket'**
   String get updateTicket;
 
-  /// No description provided for @locationDescription.
+  /// No description provided for @ticketTitle.
   ///
   /// In en, this message translates to:
-  /// **'Location Description'**
-  String get locationDescription;
+  /// **'Ticket Title'**
+  String get ticketTitle;
 
   /// No description provided for @locationMap.
   ///

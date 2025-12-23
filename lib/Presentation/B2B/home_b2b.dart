@@ -153,7 +153,17 @@ class _B2BHomeState extends State<B2BHome> {
       if (ticketsData != null) {
         // Convert MMS tickets format to TicketModel format
         final allTickets = ticketsData['all']?['tickets'] ?? [];
-        final tickets = allTickets.map<Ticket>((ticket) {
+        
+        // Sort tickets by updatedAt (most recent first) and take only last 15
+        final sortedTickets = List<Map<String, dynamic>>.from(allTickets);
+        sortedTickets.sort((a, b) {
+          final aUpdated = a['updatedAt'] ?? a['createdAt'] ?? '';
+          final bUpdated = b['updatedAt'] ?? b['createdAt'] ?? '';
+          return bUpdated.toString().compareTo(aUpdated.toString());
+        });
+        final last15Tickets = sortedTickets.take(15).toList();
+        
+        final tickets = last15Tickets.map<Ticket>((ticket) {
           final ticketDate = ticket['ticketDate'] != null ? DateTime.parse(ticket['ticketDate']) : DateTime.now();
 
           return Ticket(
@@ -163,6 +173,7 @@ class _B2BHomeState extends State<B2BHome> {
             ticketTypeId: ticket['ticketType']?['id'] ?? 0,
             rating: null,
             icon: ticket['mainService']?['image'] ?? ticket['mainService']?['icon'] ?? null, // Main service image
+            mainServiceTitle: ticket['mainService']?['name'] ?? ticket['mainService']?['title'] ?? null,
             cancelButton: null,
             isRated: null,
             type: ticket['ticketType']?['name'],
@@ -174,7 +185,7 @@ class _B2BHomeState extends State<B2BHome> {
             timeTo: ticket['ticketTimeTo'],
             teamNo: null,
             status: ticket['ticketStatus']?['name'] ?? 'Pending',
-            location: ticket['locationDescription'] ?? '',
+            location: ticket['ticketTitle'] ?? '',
             longitude: null,
             latitude: null,
             gender: null,
@@ -699,6 +710,34 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
           children: [
             Text(AppLocalizations.of(context)!.lastTickets, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17)),
             const Spacer(),
+            // Ticket count in green circle (current page / total)
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  () {
+                    final totalTickets = widget.ticketModel?.tickets.length ?? 0;
+                    final ticketsPerPage = 3;
+                    final startIndex = _currentPage * ticketsPerPage;
+                    final endIndex = (startIndex + ticketsPerPage).clamp(0, totalTickets);
+                    final currentCount = endIndex;
+                    return "$currentCount / $totalTickets";
+                  }(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -720,11 +759,11 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
               });
             },
             itemCount: (widget.ticketModel?.tickets.length ?? 0) > 0 
-                ? ((widget.ticketModel!.tickets.length / 4).ceil()) 
+                ? ((widget.ticketModel!.tickets.length / 3).ceil()) 
                 : 0,
             itemBuilder: (context, pageIndex) {
-              int startIndex = pageIndex * 4;
-              int endIndex = (startIndex + 4).clamp(0, widget.ticketModel?.tickets.length ?? 0);
+              int startIndex = pageIndex * 3;
+              int endIndex = (startIndex + 3).clamp(0, widget.ticketModel?.tickets.length ?? 0);
               
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -748,118 +787,270 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                       );
                     },
                     child: Container(
-                      margin: const EdgeInsets.only(bottom: 4),
+                      margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors(context).primaryColor.withOpacity(0.2)),
-                        borderRadius: BorderRadius.circular(12),
                         color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.all(12),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Status badge on the left
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
-                                    ? AppColors(context).primaryColor.withOpacity(.2)
-                                    : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
-                                        ? Colors.red.withOpacity(.2)
-                                        : Colors.green.withOpacity(.2),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                widget.ticketModel?.tickets[ticketIndex].status ?? "",
-                                style: TextStyle(
-                                    color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
-                                        ? AppColors(context).primaryColor
-                                        : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
-                                            ? Colors.red
-                                            : Colors.green,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Technician image (primary) or initials (fallback)
-                            _isValidImage(widget.ticketModel?.tickets[ticketIndex].serviceprovideImage)
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(22),
-                                    child: CachedNetworkImage(
-                                      imageUrl: _buildImageUrl(widget.ticketModel?.tickets[ticketIndex].serviceprovideImage),
-                                      width: 36,
-                                      height: 36,
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => CircleAvatar(
-                                        radius: 18,
-                                        backgroundColor: Colors.orange.shade100,
-                                        child: const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
+                            // Avatar on the left
+                            Column(
+                              children: [
+                                _isValidImage(widget.ticketModel?.tickets[ticketIndex].serviceprovideImage)
+                                    ? ClipOval(
+                                        child: CachedNetworkImage(
+                                          imageUrl: _buildImageUrl(widget.ticketModel?.tickets[ticketIndex].serviceprovideImage),
+                                          width: 48,
+                                          height: 48,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) => CircleAvatar(
+                                            backgroundColor: Colors.orange.shade100,
+                                            radius: 24,
+                                            child: const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(strokeWidth: 2),
+                                            ),
+                                          ),
+                                          errorWidget: (context, url, error) => CircleAvatar(
+                                            backgroundColor: Colors.orange.shade100,
+                                            radius: 24,
+                                            child: Text(
+                                              _getInitials(widget.ticketModel?.tickets[ticketIndex].serviceprovide ?? ""),
+                                              style: TextStyle(
+                                                color: Colors.orange.shade700,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                      errorWidget: (context, url, error) => CircleAvatar(
-                                        radius: 18,
+                                      )
+                                    : CircleAvatar(
                                         backgroundColor: Colors.orange.shade100,
+                                        radius: 24,
                                         child: Text(
                                           _getInitials(widget.ticketModel?.tickets[ticketIndex].serviceprovide ?? ""),
                                           style: TextStyle(
                                             color: Colors.orange.shade700,
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 14,
+                                            fontSize: 16,
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  )
-                                : CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: Colors.orange.shade100,
-                                    child: Text(
-                                      _getInitials(widget.ticketModel?.tickets[ticketIndex].serviceprovide ?? ""),
-                                      style: TextStyle(
-                                        color: Colors.orange.shade700,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
+                                const SizedBox(height: 6),
+                                // Ticket ID below avatar
+                                Text(
+                                  "#${widget.ticketModel?.tickets[ticketIndex].id}",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors(context).primaryColor,
                                   ),
+                                ),
+                              ],
+                            ),
                             const SizedBox(width: 12),
-                            // Ticket details
+                            // Ticket details (Title, Date, Assignee)
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  // Ticket Title
                                   Text(
-                                    "#${widget.ticketModel?.tickets[ticketIndex].id}",
-                                    style: TextStyle(fontSize: 13, color: AppColors(context).primaryColor),
+                                    widget.ticketModel?.tickets[ticketIndex].location?.isNotEmpty == true
+                                        ? widget.ticketModel!.tickets[ticketIndex].location!
+                                        : widget.ticketModel?.tickets[ticketIndex].description?.isNotEmpty == true
+                                            ? widget.ticketModel!.tickets[ticketIndex].description!
+                                            : AppLocalizations.of(context)!.preventivevisits,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                    ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                      widget.ticketModel?.tickets[ticketIndex].description == null
-                                          ? AppLocalizations.of(context)!.preventivevisits
-                                          : widget.ticketModel?.tickets[ticketIndex].description ?? "",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                      DateFormat('MMM d, yyyy').format(
-                                          widget.ticketModel?.tickets[ticketIndex].selectedDate ?? DateTime.now()),
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                  const SizedBox(height: 6),
+                                  // Date
+                                  Builder(
+                                    builder: (context) {
+                                      final locale = Localizations.localeOf(context);
+                                      final dateFormat = DateFormat('d MMMM, yyyy', locale.languageCode);
+                                      return Text(
+                                        dateFormat.format(
+                                          widget.ticketModel?.tickets[ticketIndex].selectedDate ?? DateTime.now(),
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  // Time (format without seconds: HH:mm:ss -> HH:mm)
+                                  Builder(
+                                    builder: (context) {
+                                      // Helper function to format time without seconds
+                                      String formatTimeWithoutSeconds(String? time) {
+                                        if (time == null || time.isEmpty) return '';
+                                        // Remove seconds if present (format: HH:mm:ss or HH:mm:ss.SSS)
+                                        if (time.contains(':')) {
+                                          final parts = time.split(':');
+                                          if (parts.length >= 2) {
+                                            return '${parts[0]}:${parts[1]}';
+                                          }
+                                        }
+                                        return time;
+                                      }
+                                      
+                                      final ticket = widget.ticketModel?.tickets[ticketIndex];
+                                      String timeText = '';
+                                      
+                                      if (ticket?.timeFrom != null || ticket?.timeTo != null) {
+                                        final timeFrom = formatTimeWithoutSeconds(ticket?.timeFrom?.toString());
+                                        final timeTo = formatTimeWithoutSeconds(ticket?.timeTo?.toString());
+                                        if (timeFrom.isNotEmpty && timeTo.isNotEmpty) {
+                                          timeText = "$timeFrom - $timeTo";
+                                        } else if (timeFrom.isNotEmpty) {
+                                          timeText = timeFrom;
+                                        } else if (timeTo.isNotEmpty) {
+                                          timeText = timeTo;
+                                        }
+                                      } else if (ticket?.selectedDateTime != null) {
+                                        // Format selectedDateTime (remove seconds if present)
+                                        timeText = formatTimeWithoutSeconds(ticket!.selectedDateTime);
+                                      }
+                                      
+                                      if (timeText.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            timeText,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
                                   if (widget.ticketModel?.tickets[ticketIndex].serviceprovide != null) ...[
-                                    const SizedBox(height: 3),
+                                    const SizedBox(height: 4),
+                                    // Assignee/Technician name
                                     Text(
-                                      widget.ticketModel?.tickets[ticketIndex].serviceprovide ?? "",
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
+                                      widget.ticketModel!.tickets[ticketIndex].serviceprovide!,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ],
                                 ],
                               ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Main Service Info and Status badge (right column)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                // Main Service Icon (always show, with default if icon is missing)
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: _isValidImage(widget.ticketModel?.tickets[ticketIndex].icon)
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: CachedNetworkImage(
+                                            imageUrl: _buildImageUrl(widget.ticketModel!.tickets[ticketIndex].icon),
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) => Icon(
+                                              Icons.build,
+                                              color: Colors.grey.shade400,
+                                              size: 24,
+                                            ),
+                                            errorWidget: (context, url, error) => Icon(
+                                              Icons.build,
+                                              color: Colors.grey.shade400,
+                                              size: 24,
+                                            ),
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.build,
+                                          color: Colors.grey.shade400,
+                                          size: 24,
+                                        ),
+                                ),
+                                const SizedBox(height: 6),
+                                // Main Service Title
+                                if (widget.ticketModel?.tickets[ticketIndex].mainServiceTitle != null) ...[
+                                  Text(
+                                    widget.ticketModel!.tickets[ticketIndex].mainServiceTitle!,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                                // Status badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
+                                        ? Colors.orange.withOpacity(.15)
+                                        : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
+                                            ? Colors.red.withOpacity(.15)
+                                            : widget.ticketModel?.tickets[ticketIndex].status == "Completed"
+                                                ? Colors.green.withOpacity(.15)
+                                                : Colors.pink.withOpacity(.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    widget.ticketModel?.tickets[ticketIndex].statusAr ?? 
+                                    widget.ticketModel?.tickets[ticketIndex].status ?? "",
+                                    style: TextStyle(
+                                      color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
+                                          ? Colors.orange.shade700
+                                          : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
+                                              ? Colors.red.shade700
+                                              : widget.ticketModel?.tickets[ticketIndex].status == "Completed"
+                                                  ? Colors.green.shade700
+                                                  : Colors.pink.shade700,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -876,7 +1067,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
         Builder(
           builder: (context) {
             final totalPages = (widget.ticketModel?.tickets.length ?? 0) > 0 
-                ? ((widget.ticketModel!.tickets.length / 4).ceil()) 
+                ? ((widget.ticketModel!.tickets.length / 3).ceil()) 
                 : 0;
             if (totalPages <= 1) return const SizedBox.shrink();
             

@@ -305,7 +305,7 @@
     "createTicket": "إنشاء تذكرة",
     "editTicket": "تعديل تذكرة",
     "updateTicket": "تحديث تذكرة",
-    "locationDescription": "وصف الموقع",
+    "ticketTitle": "عنوان التذكرة",
     "locationMap": "خريطة الموقع",
     "description": "الوصف",
     "serviceDescription": "وصف الخدمة",

@@ -46,7 +46,7 @@ class BookingApi {
               timeTo: ticket['ticketTimeTo'],
               teamNo: null,
               status: ticket['ticketStatus']?['name'] ?? 'Pending',
-              location: ticket['locationDescription'] ?? '',
+              location: ticket['ticketTitle'] ?? '',
               longitude: null,
               latitude: null,
               gender: null,
@@ -216,7 +216,7 @@ class BookingApi {
                 'userId': null,
                 'customerName': ticketData['customerName'] ?? '',
                 'customerImage': '',
-                'customerAddress': ticketData['locationDescription'] ?? '',
+                'customerAddress': ticketData['ticketTitle'] ?? '',
                 'isWithFemale': ticketData['havingFemaleEngineer'] ?? false,
                 'latitudel': '',
                 'longitude': '',
@@ -630,13 +630,20 @@ class BookingApi {
   }
 
   // * MMS API - Get company zones
+  // Optionally filter by branchId if provided
   static Future<List<Map<String, dynamic>>?> getCompanyZones({
     required String token,
     BuildContext? context,
+    int? branchId,
   }) async {
     try {
+      String query = EndPoints.mmsBaseUrl + EndPoints.mmsCompanyZones;
+      if (branchId != null) {
+        query += '?branchId=$branchId';
+      }
+      
       final response = await HttpHelper.getData2(
-        query: EndPoints.mmsBaseUrl + EndPoints.mmsCompanyZones,
+        query: query,
         token: token,
         context: context,
       );

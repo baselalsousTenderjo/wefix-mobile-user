@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
@@ -66,13 +67,6 @@ AppProvider? _getAppProvider(BuildContext? context) {
   return null;
 }
 
-/// Check if app is currently in foreground/active state
-bool _isAppInForeground() {
-  final lifecycleState = WidgetsBinding.instance.lifecycleState;
-  // App is active/in foreground if lifecycleState is resumed
-  return lifecycleState == AppLifecycleState.resumed;
-}
-
 /// Checks if token needs refresh and refreshes it if needed
 /// Should be called before making authenticated requests
 /// Only refreshes if app is in foreground (user is actively using the app)
@@ -118,12 +112,22 @@ Future<bool> ensureValidToken(AppProvider? appProvider, BuildContext? context) a
 
   // Check if token should be refreshed (less than 30 minutes remaining)
   if (shouldRefreshToken(tokenExpiresAt)) {
-    // Only refresh token if app is in foreground (user is actively using the app)
-    if (!_isAppInForeground()) {
-      // Don't refresh if app is in background, but token is still valid
-      return true;
+    // Refresh token - allow refresh even if app was in background (now resumed)
+    final refreshed = await refreshAccessToken(appProvider);
+    
+    if (!refreshed) {
+      // Refresh failed - force logout
+      await _forceLogout(appProvider, context);
+      return false;
     }
-
+    
+    return true;
+  }
+  
+  // If token is expired but we have refresh token, try to refresh it
+  // This handles the case where app was left in background and token expired
+  if (!isTokenValid(tokenExpiresAt) && appProvider.refreshToken != null && appProvider.refreshToken!.isNotEmpty) {
+    log('Token expired, attempting refresh...');
     final refreshed = await refreshAccessToken(appProvider);
     
     if (!refreshed) {
