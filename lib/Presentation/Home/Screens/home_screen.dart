@@ -56,6 +56,22 @@ class _HomeScreenState extends State<HomeScreen>
   bool startsSearch = false;
 
   late TutorialCoachMark tutorialCoachMark;
+  
+  // GlobalKey to access B2BHome state for refreshing tickets
+  final GlobalKey<State<B2BHome>> _b2BHomeKey = GlobalKey<State<B2BHome>>();
+  
+  // Public method to refresh B2BHome tickets (called from layout_screen)
+  void refreshB2BHomeTickets() {
+    final state = _b2BHomeKey.currentState;
+    // Use dynamic to call refreshTickets method if it exists
+    if (state != null && state.mounted) {
+      try {
+        (state as dynamic).refreshTickets();
+      } catch (e) {
+        // Method doesn't exist, ignore
+      }
+    }
+  }
 
   final List<GlobalKey<State<StatefulWidget>>> keyButtons = [
     GlobalKey<State<StatefulWidget>>(),
@@ -221,6 +237,7 @@ class _HomeScreenState extends State<HomeScreen>
                     },
                   )
                 : B2BHome(
+                    key: _b2BHomeKey,
                     subsicripeModel: subsicripeModel,
                   )
         : Scaffold(

@@ -50,12 +50,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   final GlobalKey _technicianKey = GlobalKey();
   final GlobalKey _mainServiceKey = GlobalKey();
   final GlobalKey _subServiceKey = GlobalKey();
+  final GlobalKey _serviceDescriptionKey = GlobalKey();
   
   bool isLoading = false;
 
   // Controllers
   final TextEditingController ticketTitle = TextEditingController();
   final TextEditingController serviceDescription = TextEditingController();
+  
+  // State variable to store service description for summary tab
+  String _serviceDescriptionText = '';
 
   // Selected items
   DropdownCardItem? selectedContract;
@@ -99,34 +103,66 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   ];
 
   // Get available time slots based on current time
+  // For emergency tickets on today: shows slots within 120 minutes from current time
+  // For corrective/preventive tickets on today: shows all slots that haven't started yet
+  // For future dates: shows all available slots (8:00-18:00)
   List<Map<String, String>> getAvailableTimeSlots() {
     final now = DateTime.now();
     final currentHour = now.hour;
     final currentMinute = now.minute;
     final currentTimeInMinutes = currentHour * 60 + currentMinute;
+    final maxMinutes = currentTimeInMinutes + 120; // 120 minutes from now
 
+    // Check if this is an emergency ticket
+    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
+                        selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+
+    // If no date is selected, show all slots
+    if (selectedTicketDate == null) {
+      return allTimeSlots;
+    }
+
+    // Compare dates by year, month, and day only (ignore time component)
+    final selectedDateOnly = DateTime(
+      selectedTicketDate!.year,
+      selectedTicketDate!.month,
+      selectedTicketDate!.day,
+    );
+    final todayDateOnly = DateTime(now.year, now.month, now.day);
+    final isToday = selectedDateOnly.isAtSameMomentAs(todayDateOnly);
+
+    // For future dates, show all available time slots
+    if (!isToday) {
+      return allTimeSlots;
+    }
+
+    // For today, filter slots based on ticket type
     return allTimeSlots.where((slot) {
       final fromTime = slot['from']!;
-      final parts = fromTime.split(':');
-      final slotHour = int.parse(parts[0]);
-      final slotMinute = int.parse(parts[1]);
-      final slotTimeInMinutes = slotHour * 60 + slotMinute;
+      final toTime = slot['to']!;
+      
+      final fromParts = fromTime.split(':');
+      final fromHour = int.parse(fromParts[0]);
+      final fromMinute = int.parse(fromParts[1]);
+      final fromTimeInMinutes = fromHour * 60 + fromMinute;
+      
+      final toParts = toTime.split(':');
+      final toHour = int.parse(toParts[0]);
+      final toMinute = int.parse(toParts[1]);
+      final toTimeInMinutes = toHour * 60 + toMinute;
 
-      // If selected date is today, filter slots by current time
-      // Otherwise, show all slots
-      if (selectedTicketDate != null) {
-        final isToday = selectedTicketDate!.year == now.year &&
-            selectedTicketDate!.month == now.month &&
-            selectedTicketDate!.day == now.day;
-        
-        if (isToday) {
-          // Only show slots that start after current time
-          return slotTimeInMinutes > currentTimeInMinutes;
-        }
+      // Don't show past slots
+      if (fromTimeInMinutes < currentTimeInMinutes) {
+        return false;
       }
 
-      // If no date selected or date is in future, show all slots
-      return true;
+      // For emergency tickets: only show slots that start within 120 minutes
+      if (isEmergency) {
+        return fromTimeInMinutes <= maxMinutes && fromTimeInMinutes < toTimeInMinutes;
+      }
+
+      // For corrective/preventive tickets: show all future slots (no 120-minute restriction)
+      return fromTimeInMinutes < toTimeInMinutes;
     }).toList();
   }
 
@@ -137,6 +173,18 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    
+    // Initialize service description text
+    _serviceDescriptionText = serviceDescription.text;
+    
+    // Add listener to serviceDescription controller to update state variable
+    serviceDescription.addListener(() {
+      if (_serviceDescriptionText != serviceDescription.text) {
+        setState(() {
+          _serviceDescriptionText = serviceDescription.text;
+        });
+      }
+    });
     
     // Check role immediately to set isTeamLeaderVisible before UI renders
     final appProvider = Provider.of<AppProvider>(context, listen: false);
@@ -458,6 +506,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     setState(() {
       ticketTitle.text = data['ticketTitle'] ?? '';
       serviceDescription.text = data['serviceDescription'] ?? '';
+      _serviceDescriptionText = serviceDescription.text;
       
       // Populate contract
       if (data['contract'] != null && contracts.isNotEmpty) {
@@ -614,6 +663,61 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     );
   }
 
+  // Helper function to convert time string (HH:mm:ss) to minutes from midnight
+  int _timeStringToMinutes(String timeStr) {
+    final parts = timeStr.split(':');
+    final hours = int.parse(parts[0]);
+    final minutes = int.parse(parts[1]);
+    return hours * 60 + minutes;
+  }
+
+  // Validate that selected times are within 120 minutes from current time
+  // Both selectedTimeFrom and selectedTimeTo must be from current time to 120 minutes after current time
+  bool _validateTimeRange(String? timeFrom, String? timeTo) {
+    if (timeFrom == null || timeTo == null) {
+      return false;
+    }
+
+    try {
+      final now = DateTime.now();
+      final currentMinutes = now.hour * 60 + now.minute;
+      final maxMinutes = currentMinutes + 120; // 120 minutes from now
+
+      final fromMinutes = _timeStringToMinutes(timeFrom);
+      final toMinutes = _timeStringToMinutes(timeTo);
+
+      // Check: from time must be >= current time
+      if (fromMinutes < currentMinutes) {
+        return false;
+      }
+
+      // Check: from time must be <= current time + 120 minutes
+      if (fromMinutes > maxMinutes) {
+        return false;
+      }
+
+      // Check: to time must be >= current time
+      if (toMinutes < currentMinutes) {
+        return false;
+      }
+
+      // Check: to time must be <= current time + 120 minutes
+      if (toMinutes > maxMinutes) {
+        return false;
+      }
+
+      // Check: from time must be < to time
+      if (fromMinutes >= toMinutes) {
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      log('Error validating time range: $e');
+      return false;
+    }
+  }
+
   // Validate current step before navigation
   bool _validateCurrentStep() {
     final localizations = AppLocalizations.of(context)!;
@@ -654,7 +758,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       }
       // Ticket title is required
       if (ticketTitle.text.trim().isEmpty) {
-        fieldErrors['ticketTitle'] = '${localizations.ticketTitle} ${localizations.required}';
+        fieldErrors['ticketTitle'] = 'Ticket Title Required';
         isValid = false;
       }
       // Location map is optional - no validation needed
@@ -663,13 +767,24 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         isValid = false;
       }
       
-      // Time slots are not required for Emergency tickets
+      // Time slots are required for all ticket types (Corrective, Preventive, Emergency)
+      // Emergency tickets will auto-generate times if not selected, but validation still checks
       final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
                           selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+      
+      // For non-emergency tickets (Corrective, Preventive), time selection is required
       if (!isEmergency && (selectedTimeFrom == null || selectedTimeTo == null)) {
         fieldErrors['time'] = '${localizations.timeFrom} - ${localizations.timeTo} ${localizations.required}';
         isValid = false;
+      } else if (isEmergency && selectedTimeFrom != null && selectedTimeTo != null) {
+        // For emergency tickets only: validate time range must be within 120 minutes from current time
+        if (!_validateTimeRange(selectedTimeFrom, selectedTimeTo)) {
+          fieldErrors['time'] = 'Time must be from current time to 120 minutes later';
+          isValid = false;
+        }
       }
+      // Note: Emergency tickets will have time auto-generated in _submit() if not selected
+      // Note: Corrective and Preventive tickets can select any available time slot (no 120-minute restriction)
       if (isTeamLeaderVisible && selectedTeamLeader == null) {
         fieldErrors['teamLeader'] = '${localizations.teamLeaderId} ${localizations.required}';
         isValid = false;
@@ -686,6 +801,11 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       }
       if (selectedSubService == null) {
         fieldErrors['subService'] = '${localizations.subService} ${localizations.required}';
+        isValid = false;
+      }
+      // Service Description is required
+      if (serviceDescription.text.trim().isEmpty) {
+        fieldErrors['serviceDescription'] = '${localizations.serviceDescription} ${localizations.required}';
         isValid = false;
       }
     }
@@ -728,9 +848,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     final firstErrorKey = fieldErrors.keys.first;
     GlobalKey? targetKey;
     ScrollController? scrollController;
+    int targetTabIndex = _tabController.index;
     
-    // Determine which tab we're in and which scroll controller to use
-    if (_tabController.index == 0) {
+    // Determine which tab contains the error and which scroll controller to use
+    // Check if error is in Tab 1 (Basic Info)
+    if (['contract', 'branch', 'zone', 'ticketType', 'ticketTitle', 'date', 'time', 'teamLeader', 'technician'].contains(firstErrorKey)) {
+      targetTabIndex = 0;
       scrollController = _tab1ScrollController;
       // Map error keys to GlobalKeys for Tab 1
       switch (firstErrorKey) {
@@ -762,7 +885,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           targetKey = _technicianKey;
           break;
       }
-    } else if (_tabController.index == 1) {
+    } 
+    // Check if error is in Tab 2 (Service Details)
+    else if (['mainService', 'subService', 'serviceDescription'].contains(firstErrorKey)) {
+      targetTabIndex = 1;
       scrollController = _tab2ScrollController;
       // Map error keys to GlobalKeys for Tab 2
       switch (firstErrorKey) {
@@ -772,16 +898,40 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         case 'subService':
           targetKey = _subServiceKey;
           break;
+        case 'serviceDescription':
+          targetKey = _serviceDescriptionKey;
+          break;
       }
     }
     
-    // Scroll to the target field
+    // Switch to the target tab if needed
+    if (targetTabIndex != _tabController.index) {
+      _tabController.animateTo(targetTabIndex);
+      // Wait for tab animation to complete before scrolling
+      Future.delayed(const Duration(milliseconds: 350), () {
+        _scrollToField(targetKey, scrollController);
+      });
+    } else {
+      // Already on the correct tab, scroll immediately
+      _scrollToField(targetKey, scrollController);
+    }
+  }
+
+  // Helper method to scroll to a specific field
+  void _scrollToField(GlobalKey? targetKey, ScrollController? scrollController) {
     if (targetKey != null && scrollController != null && scrollController.hasClients) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final RenderObject? renderObject = targetKey!.currentContext?.findRenderObject();
+        final RenderObject? renderObject = targetKey.currentContext?.findRenderObject();
         if (renderObject != null && renderObject is RenderBox) {
+          final box = renderObject;
           final position = renderObject.localToGlobal(Offset.zero);
-          final scrollOffset = scrollController!.offset + position.dy - 100; // 100px padding from top
+          final fieldHeight = box.size.height;
+          
+          // Calculate scroll offset to show field label, field, and error message below it
+          // Increased padding (200px) to ensure field label and error message are fully visible
+          // 60px for error message below (accounting for error text height)
+          final scrollOffset = scrollController.offset + position.dy - 200 - fieldHeight - 60;
+          
           scrollController.animateTo(
             scrollOffset.clamp(0.0, scrollController.position.maxScrollExtent),
             duration: const Duration(milliseconds: 300),
@@ -821,6 +971,23 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       await Future.delayed(const Duration(milliseconds: 300));
     }
     if (!_validateCurrentStep()) {
+      // Get list of missing fields for Tab 1
+      final localizations = AppLocalizations.of(context)!;
+      final missingFields = fieldErrors.keys.map((key) {
+        switch (key) {
+          case 'contract': return localizations.contractId;
+          case 'branch': return localizations.branchId;
+          case 'zone': return localizations.zoneId;
+          case 'ticketType': return localizations.ticketType;
+          case 'ticketTitle': return localizations.ticketTitle;
+          case 'date': return localizations.date;
+          case 'time': return '${localizations.timeFrom} - ${localizations.timeTo}';
+          case 'teamLeader': return localizations.teamLeaderId;
+          case 'technician': return localizations.technicianId;
+          default: return key;
+        }
+      }).toList();
+      log('Missing required fields in Tab 1 (Basic Info): ${missingFields.join(', ')}');
       return; // Validation will scroll to error and show message
     }
     
@@ -830,6 +997,17 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       await Future.delayed(const Duration(milliseconds: 300));
     }
     if (!_validateCurrentStep()) {
+      // Get list of missing fields for Tab 2
+      final localizations = AppLocalizations.of(context)!;
+      final missingFields = fieldErrors.keys.map((key) {
+        switch (key) {
+          case 'mainService': return localizations.mainService;
+          case 'subService': return localizations.subService;
+          case 'serviceDescription': return localizations.serviceDescription;
+          default: return key;
+        }
+      }).toList();
+      log('Missing required fields in Tab 2 (Service Details): ${missingFields.join(', ')}');
       return; // Validation will scroll to error and show message
     }
     
@@ -910,7 +1088,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             ticketData['serviceDescription'] = serviceDescription.text.trim();
           }
         } else {
-          throw Exception('Ticket status is required');
+          throw Exception('Missing required fields: Ticket Status');
         }
       } else {
         // For Admin/Team Leader, process all fields
@@ -932,15 +1110,63 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             ? '${selectedLocation!.latitude},${selectedLocation!.longitude}'
             : null;
         
-        // Use selected time strings directly (already in HH:mm:ss format)
-        final timeFromStr = selectedTimeFrom!;
-        final timeToStr = selectedTimeTo!;
+        // Check if Emergency ticket type is selected
+        final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
+                            selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
         
         // Format date
         final ticketDateStr = selectedTicketDate != null
             ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!)
             : DateFormat('yyyy-MM-dd').format(DateTime.now());
 
+        // For emergency tickets, if time is not selected, generate default time (current time to +120 minutes)
+        String? timeFromStr = selectedTimeFrom;
+        String? timeToStr = selectedTimeTo;
+        
+        if (isEmergency && (selectedTimeFrom == null || selectedTimeTo == null)) {
+          final now = DateTime.now();
+          final currentMinutes = now.hour * 60 + now.minute;
+          final endMinutes = currentMinutes + 120; // 120 minutes from now
+          
+          final fromHour = (currentMinutes ~/ 60).toString().padLeft(2, '0');
+          final fromMinute = (currentMinutes % 60).toString().padLeft(2, '0');
+          final toHour = (endMinutes ~/ 60).toString().padLeft(2, '0');
+          final toMinute = (endMinutes % 60).toString().padLeft(2, '0');
+          
+          timeFromStr = '$fromHour:$fromMinute:00';
+          timeToStr = '$toHour:$toMinute:00';
+          
+          log('Emergency ticket: Generated default time slots from $timeFromStr to $timeToStr');
+        }
+
+        // Final validation: Check all required fields before building ticket data
+        final localizations = AppLocalizations.of(context)!;
+        final List<String> missingFields = [];
+        
+        if (selectedContract == null) missingFields.add(localizations.contractId);
+        if (selectedBranch == null) missingFields.add(localizations.branchId);
+        if (selectedZone == null) missingFields.add(localizations.zoneId);
+        if (selectedTicketType == null) missingFields.add(localizations.ticketType);
+        if (ticketTitle.text.trim().isEmpty) missingFields.add(localizations.ticketTitle);
+        if (selectedTicketDate == null) missingFields.add(localizations.date);
+        // Time fields are now required for all tickets (backend requirement)
+        if (timeFromStr == null || timeToStr == null) {
+          missingFields.add('${localizations.timeFrom} - ${localizations.timeTo}');
+        }
+        if (isTeamLeaderVisible && selectedTeamLeader == null) {
+          missingFields.add(localizations.teamLeaderId);
+        }
+        if (selectedTechnician == null) missingFields.add(localizations.technicianId);
+        if (selectedMainService == null) missingFields.add(localizations.mainService);
+        if (selectedSubService == null) missingFields.add(localizations.subService);
+        if (serviceDescription.text.trim().isEmpty) missingFields.add(localizations.serviceDescription);
+        
+        if (missingFields.isNotEmpty) {
+          final errorMsg = 'Missing required fields: ${missingFields.join(', ')}';
+          log(errorMsg);
+          throw Exception(errorMsg);
+        }
+        
         // Safety check: For Team Leaders, ensure they can only assign to themselves
         final currentAppProvider = Provider.of<AppProvider>(context, listen: false);
         final currentUserRoleId = currentAppProvider.userModel?.customer.roleId;
@@ -951,14 +1177,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         if (roleIdInt == 20) {
           // Team Leader: Must assign to themselves
           if (selectedTeamLeader == null || selectedTeamLeader!.id != currentUserId) {
-            // Force assign to current user
-            teamLeaderId = currentUserId ?? selectedTeamLeader!.id;
+            // Force assign to current user (currentUserId should not be null for authenticated users)
+            if (currentUserId == null) {
+              throw Exception('Current user ID is null. Please log in again.');
+            }
+            teamLeaderId = currentUserId;
             log('Team Leader: Forcing assignment to current user (ID: $teamLeaderId)');
           } else {
             teamLeaderId = selectedTeamLeader!.id;
           }
         } else {
           // Admin: Can assign to any Team Leader
+          if (selectedTeamLeader == null) {
+            throw Exception('Team Leader selection is required');
+          }
           teamLeaderId = selectedTeamLeader!.id;
         }
         // Admin/Team Leader can update all fields
@@ -971,8 +1203,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         if (locationMapStr != null) 'locationMap': locationMapStr, // Optional: latitude,longitude format
         'ticketTypeId': selectedTicketType!.id,
         'ticketDate': ticketDateStr,
-        'ticketTimeFrom': timeFromStr,
-        'ticketTimeTo': timeToStr,
+        'ticketTimeFrom': timeFromStr!,
+        'ticketTimeTo': timeToStr!,
           'assignToTeamLeaderId': teamLeaderId, // Use validated team leader ID
         'assignToTechnicianId': selectedTechnician!.id,
         'ticketDescription': ticketTitle.text.trim(),
@@ -1092,26 +1324,42 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       
       if (mounted) {
         log('_submit error: $e');
+        log('_submit error type: ${e.runtimeType}');
+        log('_submit error toString: ${e.toString()}');
+        
         // Extract error message from exception
         String errorMessage = e.toString();
         if (e is Exception) {
           errorMessage = e.toString().replaceFirst('Exception: ', '');
         }
         
-        // Show clear error message to user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              errorMessage.isNotEmpty && errorMessage != 'null'
-                  ? errorMessage
-                  : (widget.ticketData != null
-                      ? AppLocalizations.of(context)!.ticketUpdateFailed
-                      : AppLocalizations.of(context)!.ticketCreateFailed)
+        // Log full error details for debugging
+        try {
+          log('Full error details: ${e.toString()}');
+          if (e.toString().contains('Missing required fields')) {
+            log('Error contains "Missing required fields" - detailed message should be available');
+          }
+        } catch (logError) {
+          log('Error logging error details: $logError');
+        }
+        
+        // Show clear error message to user (the API should already show a detailed message)
+        // Only show generic message if the detailed message wasn't already shown
+        if (!errorMessage.contains('Missing required fields') || errorMessage == 'Missing required fields') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                errorMessage.isNotEmpty && errorMessage != 'null' && !errorMessage.contains('Missing required fields')
+                    ? errorMessage
+                    : (widget.ticketData != null
+                        ? AppLocalizations.of(context)!.ticketUpdateFailed
+                        : AppLocalizations.of(context)!.ticketCreateFailed)
+              ),
+              backgroundColor: Colors.red[600],
+              duration: const Duration(seconds: 5),
             ),
-            backgroundColor: Colors.red[600],
-            duration: const Duration(seconds: 5),
-          ),
-        );
+          );
+        }
       }
     }
   }
@@ -1171,7 +1419,14 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 children: [
                   _buildTab1(localizations),
                   _buildTab2(localizations),
-                  _buildTab3Summary(localizations),
+                  // Wrap summary in AnimatedBuilder to rebuild when tab becomes visible
+                  AnimatedBuilder(
+                    animation: _tabController,
+                    builder: (context, child) {
+                      // Force rebuild when summary tab is visible
+                      return _buildTab3Summary(localizations);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -1352,12 +1607,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             fillColor: AppColors.greyColorback,
             haveBorder: false,
             radius: 5,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return localizations.required;
-              }
-              return null;
-            },
                 onChanged: (value) {
                   if (value.isNotEmpty) {
                     setState(() {
@@ -1505,7 +1754,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           const SizedBox(height: 16),
 
           // Time Slot Dropdown (combined time from and time to)
-          // Hide time slots for Emergency tickets - show response time instead
+          // Show time picker for Corrective and Preventive tickets (required)
+          // Hide time picker for Emergency tickets (times will be auto-generated)
           if (selectedTicketType?.title.toLowerCase() != 'emergency' && 
               selectedTicketType?.data?['name']?.toString().toLowerCase() != 'emergency') ...[
             Container(
@@ -1652,13 +1902,42 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           const SizedBox(height: 16),
 
           // Service Description
-          WidgetTextField(
-            localizations.serviceDescription,
-            controller: serviceDescription,
-            maxLines: 4,
-            fillColor: AppColors.greyColorback,
-            haveBorder: false,
-            radius: 5,
+          Container(
+            key: _serviceDescriptionKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                WidgetTextField(
+                  localizations.serviceDescription,
+                  controller: serviceDescription,
+                  maxLines: 4,
+                  fillColor: AppColors.greyColorback,
+                  haveBorder: false,
+                  radius: 5,
+                  onChanged: (value) {
+                    // Clear error when user starts typing
+                    if (fieldErrors.containsKey('serviceDescription')) {
+                      setState(() {
+                        fieldErrors.remove('serviceDescription');
+                      });
+                    }
+                  },
+                ),
+                if (fieldErrors['serviceDescription'] != null) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Text(
+                      fieldErrors['serviceDescription']!,
+                      style: TextStyle(
+                        color: Colors.red[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1807,10 +2086,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ],
 
           // Service Description
-          if (serviceDescription.text.isNotEmpty) ...[
+          if (_serviceDescriptionText.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.serviceDescription,
-              value: serviceDescription.text,
+              value: _serviceDescriptionText,
               icon: Icons.description,
             ),
             const SizedBox(height: 16),
@@ -1884,6 +2163,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
+                  maxLines: null,
+                  overflow: TextOverflow.visible,
                 ),
               ],
             ),
@@ -2179,9 +2460,14 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         const SizedBox(height: 8),
         InkWell(
           onTap: () {
+            // Always allow tapping - show available slots or message
             if (availableSlots.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No available time slots for selected date')),
+                SnackBar(
+                  content: Text('No available time slots for selected date. Please select a different date.'),
+                  backgroundColor: Colors.orange,
+                  duration: const Duration(seconds: 3),
+                ),
               );
               return;
             }
@@ -2261,6 +2547,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             ),
           ),
         ),
+        // Show error message if validation failed
+        if (fieldErrors['time'] != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              fieldErrors['time']!,
+              style: TextStyle(
+                color: Colors.red[600],
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

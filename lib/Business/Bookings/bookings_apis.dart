@@ -418,15 +418,60 @@ class BookingApi {
       } else {
         // Extract error message from different possible locations
         String errorMessage = 'Failed to create ticket';
+        List<String> missingFields = [];
         
+        // Try to extract detailed error information
         if (body['error'] != null) {
-          if (body['error'] is Map && body['error']['message'] != null) {
-            errorMessage = body['error']['message'] as String;
+          if (body['error'] is Map) {
+            final errorMap = body['error'] as Map;
+            if (errorMap['message'] != null) {
+              errorMessage = errorMap['message'].toString();
+            }
+            // Check for validation errors with field names
+            if (errorMap['details'] != null) {
+              final details = errorMap['details'];
+              if (details is Map) {
+                // Extract field-level errors
+                details.forEach((key, value) {
+                  if (value != null) {
+                    missingFields.add(key.toString());
+                  }
+                });
+              } else if (details is List) {
+                // Extract error messages from array
+                missingFields.addAll(details.map((e) => e.toString()).toList());
+              }
+            }
+            // Check for missingFields array
+            if (errorMap['missingFields'] != null && errorMap['missingFields'] is List) {
+              missingFields.addAll((errorMap['missingFields'] as List).map((e) => e.toString()).toList());
+            }
           } else if (body['error'] is String) {
             errorMessage = body['error'] as String;
           }
         } else if (body['message'] != null) {
-          errorMessage = body['message'] as String;
+          errorMessage = body['message'].toString();
+        }
+        
+        // Check for validation errors in body directly
+        if (body['validationErrors'] != null && body['validationErrors'] is Map) {
+          final validationErrors = body['validationErrors'] as Map;
+          validationErrors.forEach((key, value) {
+            if (value != null) {
+              missingFields.add(key.toString());
+            }
+          });
+        }
+        
+        // Check for errors array in body
+        if (body['errors'] != null && body['errors'] is List) {
+          final errors = body['errors'] as List;
+          missingFields.addAll(errors.map((e) => e.toString()).toList());
+        }
+        
+        // Build detailed error message
+        if (missingFields.isNotEmpty) {
+          errorMessage = 'Missing required fields: ${missingFields.join(', ')}';
         }
         
         // Show error message to user
@@ -443,7 +488,6 @@ class BookingApi {
         throw Exception(errorMessage);
       }
     } catch (e) {
-      log('createTicketInMMS exception: $e');
       // Only rethrow if it's not already an Exception with a message
       if (e is Exception) {
         rethrow;
@@ -489,7 +533,6 @@ class BookingApi {
       } else if (response.statusCode == 403) {
         // Forbidden - user doesn't have permission to update tickets
         // Only Company Admins and Team Leaders can update tickets
-        log('Update ticket forbidden: ${body['message'] ?? 'Access denied'}');
         if (context != null && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

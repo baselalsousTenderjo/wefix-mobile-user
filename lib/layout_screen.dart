@@ -4,9 +4,11 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:provider/provider.dart';
+import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Data/appText/appText.dart';
-import 'package:wefix/Presentation/B2B/home_b2b.dart';
+import 'package:wefix/Presentation/B2B/ticket/create_update_ticket_screen_v2.dart';
 import 'package:wefix/Presentation/Home/Screens/home_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/contact_us_screen.dart';
 import 'package:wefix/Presentation/Profile/Screens/bookings_screen.dart';
@@ -33,6 +35,9 @@ class _HomeLayoutState extends State<HomeLayout> {
   GlobalKey keyButton3 = GlobalKey();
   GlobalKey keyButton4 = GlobalKey();
   GlobalKey keyButton5 = GlobalKey();
+  
+  // GlobalKey to access HomeScreen state
+  final GlobalKey<State<HomeScreen>> _homeScreenKey = GlobalKey<State<HomeScreen>>();
 
   @override
   void initState() {
@@ -43,8 +48,8 @@ class _HomeLayoutState extends State<HomeLayout> {
     super.initState();
   }
 
-  List<Widget> screen = [
-    HomeScreen(),
+  List<Widget> get screen => [
+    HomeScreen(key: _homeScreenKey),
     BookingScreen(),
     const SubscriptionScreen(),
     const ProfileScreen(),
@@ -148,6 +153,49 @@ class _HomeLayoutState extends State<HomeLayout> {
   }
 
   void changeBottomIndex(int index) {
+    // For company users, make the third button (index 2) navigate to create ticket screen
+    if (index == 2) {
+      final appProvider = Provider.of<AppProvider>(context, listen: false);
+      final currentUserRoleId = appProvider.userModel?.customer.roleId;
+      
+      // Parse roleId to integer
+      int? roleIdInt;
+      if (currentUserRoleId is int) {
+        roleIdInt = currentUserRoleId;
+      } else if (currentUserRoleId is String) {
+        roleIdInt = int.tryParse(currentUserRoleId);
+      } else if (currentUserRoleId != null) {
+        roleIdInt = int.tryParse(currentUserRoleId.toString());
+      }
+      
+      // Check if user is a company user (Admin 18, Team Leader 20, or Super User 26)
+      final isCompanyUser = roleIdInt != null && (roleIdInt == 18 || roleIdInt == 20 || roleIdInt == 26);
+      
+      if (isCompanyUser) {
+        // Navigate to create ticket screen for company users
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CreateUpdateTicketScreenV2(),
+          ),
+        ).then((success) {
+          // If ticket was created successfully, refresh the tickets list in B2BHome
+          if (success == true && context.mounted) {
+            // Access HomeScreen state and refresh B2BHome tickets
+            final homeScreenState = _homeScreenKey.currentState;
+            if (homeScreenState != null && homeScreenState.mounted) {
+              try {
+                (homeScreenState as dynamic).refreshB2BHomeTickets();
+              } catch (e) {
+                // Method doesn't exist, ignore
+              }
+            }
+          }
+        });
+        return; // Don't change the current index
+      }
+    }
+    
     setState(() {
       currentIndex = index;
     });
