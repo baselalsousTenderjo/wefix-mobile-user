@@ -912,10 +912,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginFailed => 'Login failed';
 
   @override
-  String get regularUser => 'Regular User';
+  String get regularUser => 'My Services';
 
   @override
-  String get companyPersonnel => 'Companies';
+  String get companyPersonnel => 'BUSINESS SERVICES';
 
   @override
   String get emailRequired => 'Email is required';

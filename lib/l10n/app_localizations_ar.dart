@@ -909,10 +909,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginFailed => 'فشل تسجيل الدخول';
 
   @override
-  String get regularUser => 'مستخدم عادي';
+  String get regularUser => 'خدماتي';
 
   @override
-  String get companyPersonnel => 'شركات';
+  String get companyPersonnel => 'خدمات الاعمال';
 
   @override
   String get emailRequired => 'البريد الإلكتروني مطلوب';

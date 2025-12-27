@@ -858,15 +858,25 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  // Date
+                                  // Date and Time inline
                                   Builder(
                                     builder: (context) {
                                       final locale = Localizations.localeOf(context);
-                                      final dateFormat = DateFormat('d MMMM, yyyy', locale.languageCode);
+                                      final dateFormat = DateFormat('d MMM, yyyy', locale.languageCode);
+                                      final dateStr = dateFormat.format(
+                                        widget.ticketModel?.tickets[ticketIndex].selectedDate ?? DateTime.now(),
+                                      );
+                                      
+                                      String timeStr = '';
+                                      if (widget.ticketModel?.tickets[ticketIndex].timeFrom != null || 
+                                          widget.ticketModel?.tickets[ticketIndex].timeTo != null) {
+                                        timeStr = "${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeFrom ?? '')} - ${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeTo ?? '')}";
+                                      } else if (widget.ticketModel?.tickets[ticketIndex].selectedDateTime != null) {
+                                        timeStr = _formatDateTimeRange(widget.ticketModel!.tickets[ticketIndex].selectedDateTime!);
+                                      }
+                                      
                                       return Text(
-                                        dateFormat.format(
-                                          widget.ticketModel?.tickets[ticketIndex].selectedDate ?? DateTime.now(),
-                                        ),
+                                        timeStr.isNotEmpty ? "$dateStr, $timeStr" : dateStr,
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey,
@@ -874,29 +884,6 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                       );
                                     },
                                   ),
-                                  // Time
-                                  if (widget.ticketModel?.tickets[ticketIndex].timeFrom != null || 
-                                      widget.ticketModel?.tickets[ticketIndex].timeTo != null) ...[
-                                    const SizedBox(height: 2),
-                                          Text(
-                                      "${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeFrom ?? '')} - ${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeTo ?? '')}",
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                  ] else ...[
-                                    if (widget.ticketModel?.tickets[ticketIndex].selectedDateTime != null) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        _formatDateTimeRange(widget.ticketModel!.tickets[ticketIndex].selectedDateTime!),
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey,
-                                        ),
-                                  ),
-                                    ],
-                                  ],
                                   if (widget.ticketModel?.tickets[ticketIndex].serviceprovide != null) ...[
                                     const SizedBox(height: 8),
                                     // Assignee/Technician name

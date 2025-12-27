@@ -1859,13 +1859,13 @@ abstract class AppLocalizations {
   /// No description provided for @regularUser.
   ///
   /// In en, this message translates to:
-  /// **'Regular User'**
+  /// **'My Services'**
   String get regularUser;
 
   /// No description provided for @companyPersonnel.
   ///
   /// In en, this message translates to:
-  /// **'Companies'**
+  /// **'BUSINESS SERVICES'**
   String get companyPersonnel;
 
   /// No description provided for @emailRequired.
