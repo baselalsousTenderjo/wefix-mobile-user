@@ -129,9 +129,9 @@ class _BranchesListScreenState extends State<BranchesListScreen>
                               onDelete: () {
                                 // TODO: Implement delete API call
                                 if (branchesModel != null && branchesModel!.branches.length > index) {
-                                  setState(() {
+                                setState(() {
                                     branchesModel!.branches.removeAt(index);
-                                  });
+                                });
                                 }
                               },
                             ),
@@ -158,16 +158,16 @@ class _BranchesListScreenState extends State<BranchesListScreen>
     
     B2bApi.getBranches(token: token, context: context).then((value) {
       if (!mounted) return;
-      setState(() {
-        loading = false;
-        branchesModel = value;
-      });
+        setState(() {
+          loading = false;
+          branchesModel = value;
+        });
     }).catchError((error) {
       if (!mounted) return;
-      setState(() {
-        loading = false;
+        setState(() {
+          loading = false;
         branchesModel = null;
-      });
+        });
     });
   }
 }
@@ -397,29 +397,29 @@ class _BranchCardState extends State<_BranchCard> {
                         ],
                       ),
                     ] else if (widget.city.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(Icons.location_on_rounded,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on_rounded,
                               size: 16, color: Colors.grey.shade700),
-                          const SizedBox(width: 5),
+                        const SizedBox(width: 5),
                           Expanded(
                             child: Text(
                               widget.city,
-                              style: TextStyle(
+                          style: TextStyle(
                                 color: Colors.grey.shade800,
-                                fontSize: 13,
+                            fontSize: 13,
                               ),
-                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
                     ],
                     if (widget.phone.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.phone_rounded,
+                    Row(
+                      children: [
+                        Icon(Icons.phone_rounded,
                               size: 16, color: Colors.grey.shade700),
                           const SizedBox(width: 5),
                           Expanded(
@@ -440,19 +440,19 @@ class _BranchCardState extends State<_BranchCard> {
                         children: [
                           Icon(Icons.email_outlined,
                               size: 14, color: Colors.grey.shade600),
-                          const SizedBox(width: 5),
+                        const SizedBox(width: 5),
                           Expanded(
                             child: Text(
                               widget.representativeEmail!,
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
                                 fontSize: 12,
                               ),
                             ),
                           ),
                         ],
-                      ),
-                    ],
+                        ),
+                      ],
                   ],
                 ),
               ),

@@ -1910,6 +1910,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get description;
 
+  /// No description provided for @problemDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem Description'**
+  String get problemDescription;
+
   /// No description provided for @serviceDescription.
   ///
   /// In en, this message translates to:

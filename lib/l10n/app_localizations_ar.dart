@@ -936,6 +936,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get description => 'الوصف';
 
   @override
+  String get problemDescription => 'وصف المشكلة';
+
+  @override
   String get serviceDescription => 'وصف الخدمة';
 
   @override

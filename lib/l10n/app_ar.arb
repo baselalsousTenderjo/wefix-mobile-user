@@ -308,6 +308,7 @@
     "ticketTitle": "عنوان التذكرة",
     "locationMap": "خريطة الموقع",
     "description": "الوصف",
+    "problemDescription": "وصف المشكلة",
     "serviceDescription": "وصف الخدمة",
     "ticketType": "نوع التذكرة",
     "mainService": "الخدمة الرئيسية",

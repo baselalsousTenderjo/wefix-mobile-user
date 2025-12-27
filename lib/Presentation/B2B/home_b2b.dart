@@ -60,38 +60,38 @@ class _B2BHomeState extends State<B2BHome> {
             final isSmallScreen = screenHeight < 700;
             
             return Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
                 bottom: bottomNavBarHeight + safeAreaBottom, // Extra padding for bottom nav
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _HeaderSection(),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _HeaderSection(),
                   SizedBox(height: isSmallScreen ? 8 : 16),
-                  _TicketSummarySection(
-                    subsicripeModel: widget.subsicripeModel,
-                    ticketStatistics: ticketStatistics,
-                  ),
-                  SizedBox(height: isSmallScreen ? 4 : 8),
-                  loading == true
-                      ? const SizedBox(
-                          height: 4,
-                          child: LinearProgressIndicator(
-                            backgroundColor: AppColors.secoundryColor,
-                            color: Colors.orange,
-                          ),
-                        )
-                      : Expanded(
-                          child: _LastTicketsSection(
-                            ticketModel: ticketModel,
-                          ),
-                        ),
-                ],
+              _TicketSummarySection(
+                subsicripeModel: widget.subsicripeModel,
+                ticketStatistics: ticketStatistics,
               ),
-            );
-          },
+                  SizedBox(height: isSmallScreen ? 4 : 8),
+              loading == true
+                  ? const SizedBox(
+                      height: 4,
+                      child: LinearProgressIndicator(
+                        backgroundColor: AppColors.secoundryColor,
+                        color: Colors.orange,
+                      ),
+                    )
+                  : Expanded(
+                      child: _LastTicketsSection(
+                        ticketModel: ticketModel,
+                      ),
+                    ),
+                ],
+                ),
+                  );
+                },
         ),
       ),
     );
@@ -878,13 +878,13 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                   if (widget.ticketModel?.tickets[ticketIndex].timeFrom != null || 
                                       widget.ticketModel?.tickets[ticketIndex].timeTo != null) ...[
                                     const SizedBox(height: 2),
-                                    Text(
+                                          Text(
                                       "${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeFrom ?? '')} - ${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeTo ?? '')}",
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
                                   ] else ...[
                                     if (widget.ticketModel?.tickets[ticketIndex].selectedDateTime != null) ...[
                                       const SizedBox(height: 2),
@@ -894,7 +894,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                           fontSize: 11,
                                           color: Colors.grey,
                                         ),
-                                      ),
+                                  ),
                                     ],
                                   ],
                                   if (widget.ticketModel?.tickets[ticketIndex].serviceprovide != null) ...[
@@ -913,33 +913,33 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                               ),
                             ),
                             // Status badge on the right
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
-                                    ? Colors.orange.withOpacity(.15)
-                                    : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
-                                        ? Colors.red.withOpacity(.15)
-                                        : widget.ticketModel?.tickets[ticketIndex].status == "Completed"
-                                            ? Colors.green.withOpacity(.15)
-                                            : Colors.pink.withOpacity(.15),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                widget.ticketModel?.tickets[ticketIndex].statusAr ?? 
-                                widget.ticketModel?.tickets[ticketIndex].status ?? "",
-                                style: TextStyle(
-                                  color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
-                                      ? Colors.orange.shade700
-                                      : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
-                                          ? Colors.red.shade700
-                                          : widget.ticketModel?.tickets[ticketIndex].status == "Completed"
-                                              ? Colors.green.shade700
-                                              : Colors.pink.shade700,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
-                                ),
-                              ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
+                                        ? Colors.orange.withOpacity(.15)
+                                        : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
+                                            ? Colors.red.withOpacity(.15)
+                                            : widget.ticketModel?.tickets[ticketIndex].status == "Completed"
+                                                ? Colors.green.withOpacity(.15)
+                                                : Colors.pink.withOpacity(.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    widget.ticketModel?.tickets[ticketIndex].statusAr ?? 
+                                    widget.ticketModel?.tickets[ticketIndex].status ?? "",
+                                    style: TextStyle(
+                                      color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
+                                          ? Colors.orange.shade700
+                                          : widget.ticketModel?.tickets[ticketIndex].status == "Cancelled"
+                                              ? Colors.red.shade700
+                                              : widget.ticketModel?.tickets[ticketIndex].status == "Completed"
+                                                  ? Colors.green.shade700
+                                                  : Colors.pink.shade700,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                             ),
                           ],
                         ),

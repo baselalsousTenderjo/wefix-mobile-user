@@ -336,7 +336,7 @@ class _BookingCardState extends State<BookingCard> {
                     fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
-              Text(
+                  Text(
                 () {
                   String dateTimeText = '';
                   if (widget.ticket?.selectedDate != null) {
@@ -356,10 +356,10 @@ class _BookingCardState extends State<BookingCard> {
                   }
                   return dateTimeText;
                 }(),
-                style: TextStyle(
-                  fontSize: AppSize(context).smallText3,
+                      style: TextStyle(
+                          fontSize: AppSize(context).smallText3,
                   fontWeight: FontWeight.normal
-                ),
+                        ),
               ),
               const SizedBox(height: 10),
               widget.status == "Rejected"
@@ -386,7 +386,7 @@ class _BookingCardState extends State<BookingCard> {
                                 ),
                               ),
                               errorWidget: (context, url, error) => CircleAvatar(
-                                backgroundColor: AppColors.backgroundColor,
+                      backgroundColor: AppColors.backgroundColor,
                                 radius: 20,
                                 child: SvgPicture.asset(
                                   "assets/icon/smile.svg",
@@ -402,12 +402,12 @@ class _BookingCardState extends State<BookingCard> {
                               "assets/icon/smile.svg",
                               color: AppColors(context).primaryColor,
                             ),
-                          ),
-                    const SizedBox(width: 10),
-                    Text(
-                      widget.ticket?.serviceprovide?.toString() ?? "Service Provider",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(width: 10),
+                        Text(
+                      widget.ticket?.serviceprovide?.toString() ?? "Service Provider",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
                   ],
                 ),
               if (widget.status == 'Pending')

@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
 import 'package:wefix/Business/Bookings/bookings_apis.dart';
+import 'package:wefix/Business/LanguageProvider/l10n_provider.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:wefix/Presentation/B2B/ticket/components/draggable_card_bottom_sheet.dart';
 import 'package:wefix/Presentation/B2B/ticket/components/dropdown_card_item.dart';
@@ -31,13 +32,12 @@ class CreateUpdateTicketScreenV2 extends StatefulWidget {
   State<CreateUpdateTicketScreenV2> createState() => _CreateUpdateTicketScreenV2State();
 }
 
-class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
-    with SingleTickerProviderStateMixin {
+class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
   final ScrollController _tab1ScrollController = ScrollController();
   final ScrollController _tab2ScrollController = ScrollController();
-  
+
   // GlobalKeys for scrolling to error fields
   final GlobalKey _contractKey = GlobalKey();
   final GlobalKey _branchKey = GlobalKey();
@@ -51,13 +51,14 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   final GlobalKey _mainServiceKey = GlobalKey();
   final GlobalKey _subServiceKey = GlobalKey();
   final GlobalKey _serviceDescriptionKey = GlobalKey();
-  
+
   bool isLoading = false;
 
   // Controllers
   final TextEditingController ticketTitle = TextEditingController();
   final TextEditingController serviceDescription = TextEditingController();
-  
+  final TextEditingController ticketDescription = TextEditingController();
+
   // State variable to store service description for summary tab
   String _serviceDescriptionText = '';
 
@@ -95,12 +96,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
   // Generate time slots from 8:00 to 18:00 in 2-hour intervals
   List<Map<String, String>> get allTimeSlots => [
-    {'from': '08:00:00', 'to': '10:00:00', 'display': '8:00 - 10:00'},
-    {'from': '10:00:00', 'to': '12:00:00', 'display': '10:00 - 12:00'},
-    {'from': '12:00:00', 'to': '14:00:00', 'display': '12:00 - 14:00'},
-    {'from': '14:00:00', 'to': '16:00:00', 'display': '14:00 - 16:00'},
-    {'from': '16:00:00', 'to': '18:00:00', 'display': '16:00 - 18:00'},
-  ];
+        {'from': '08:00:00', 'to': '10:00:00', 'display': '8:00 - 10:00'},
+        {'from': '10:00:00', 'to': '12:00:00', 'display': '10:00 - 12:00'},
+        {'from': '12:00:00', 'to': '14:00:00', 'display': '12:00 - 14:00'},
+        {'from': '14:00:00', 'to': '16:00:00', 'display': '14:00 - 16:00'},
+        {'from': '16:00:00', 'to': '18:00:00', 'display': '16:00 - 18:00'},
+      ];
 
   // Get available time slots based on current time
   // For emergency tickets on today: shows slots within 120 minutes from current time
@@ -114,8 +115,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     final maxMinutes = currentTimeInMinutes + 120; // 120 minutes from now
 
     // Check if this is an emergency ticket
-    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
-                        selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
 
     // If no date is selected, show all slots
     if (selectedTicketDate == null) {
@@ -140,12 +140,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     return allTimeSlots.where((slot) {
       final fromTime = slot['from']!;
       final toTime = slot['to']!;
-      
+
       final fromParts = fromTime.split(':');
       final fromHour = int.parse(fromParts[0]);
       final fromMinute = int.parse(fromParts[1]);
       final fromTimeInMinutes = fromHour * 60 + fromMinute;
-      
+
       final toParts = toTime.split(':');
       final toHour = int.parse(toParts[0]);
       final toMinute = int.parse(toParts[1]);
@@ -173,10 +173,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
+
     // Initialize service description text
     _serviceDescriptionText = serviceDescription.text;
-    
+
     // Add listener to serviceDescription controller to update state variable
     serviceDescription.addListener(() {
       if (_serviceDescriptionText != serviceDescription.text) {
@@ -185,11 +185,11 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         });
       }
     });
-    
+
     // Check role immediately to set isTeamLeaderVisible before UI renders
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     final currentUserRoleId = appProvider.userModel?.customer.roleId;
-    
+
     // Parse roleId - handle int, string, or null
     int? roleIdInt;
     if (currentUserRoleId == null) {
@@ -206,7 +206,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         roleIdInt = null;
       }
     }
-    
+
     // Set visibility immediately based on role
     // Role IDs: 18 = Admin, 20 = Team Leader
     if (mounted) {
@@ -223,7 +223,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         }
       });
     }
-    
+
     // Load initial data first, then populate from ticket data
     _loadInitialData().then((_) {
       if (widget.ticketData != null && mounted) {
@@ -260,25 +260,29 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       // Contracts
       final contractsData = results[0];
       if (contractsData != null) {
-        contracts = contractsData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['contractReference'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['contractTitle'] as String?,
-              icon: Icons.description,
-              data: item,
-            )).toList();
+        contracts = contractsData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['contractReference'] as String? ?? '',
+                  subtitle: item['subtitle'] as String? ?? item['contractTitle'] as String?,
+                  icon: Icons.description,
+                  data: item,
+                ))
+            .toList();
       }
 
       // Branches
       final branchesData = results[1];
       if (branchesData is List<Map<String, dynamic>> && branchesData.isNotEmpty) {
-        branches = branchesData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['branchTitle'] as String? ?? '',
-              subtitle: item['subtitle'] as String?,
-              icon: Icons.business,
-              data: item,
-            )).toList();
+        branches = branchesData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['branchTitle'] as String? ?? '',
+                  subtitle: item['subtitle'] as String?,
+                  icon: Icons.business,
+                  data: item,
+                ))
+            .toList();
       }
 
       // Zones - will be loaded when branch is selected, so skip here
@@ -287,49 +291,57 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       // Main Services
       final mainServicesData = results[3];
       if (mainServicesData is List<Map<String, dynamic>> && mainServicesData.isNotEmpty) {
-        mainServices = mainServicesData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['name'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-              icon: Icons.build,
-              data: item,
-            )).toList();
+        mainServices = mainServicesData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['name'] as String? ?? '',
+                  subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                  icon: Icons.build,
+                  data: item,
+                ))
+            .toList();
       }
 
       // Sub Services
       final subServicesData = results[4];
       if (subServicesData is List<Map<String, dynamic>> && subServicesData.isNotEmpty) {
-        subServices = subServicesData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['name'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-              icon: Icons.settings,
-              data: item,
-            )).toList();
+        subServices = subServicesData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['name'] as String? ?? '',
+                  subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                  icon: Icons.settings,
+                  data: item,
+                ))
+            .toList();
       }
 
       // Team Leaders
       final teamLeadersData = results[5];
       if (teamLeadersData is List<Map<String, dynamic>> && teamLeadersData.isNotEmpty) {
-        teamLeaders = teamLeadersData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['fullName'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['userNumber'] as String? ?? item['email'] as String?,
-              icon: Icons.person_outline,
-              data: item,
-            )).toList();
+        teamLeaders = teamLeadersData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['fullName'] as String? ?? '',
+                  subtitle: item['subtitle'] as String? ?? item['userNumber'] as String? ?? item['email'] as String?,
+                  icon: Icons.person_outline,
+                  data: item,
+                ))
+            .toList();
       }
 
       // Technicians
       final techniciansData = results[6];
       if (techniciansData is List<Map<String, dynamic>> && techniciansData.isNotEmpty) {
-        technicians = techniciansData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['fullName'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['userNumber'] as String? ?? item['email'] as String?,
-              icon: Icons.engineering,
-              data: item,
-            )).toList();
+        technicians = techniciansData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['fullName'] as String? ?? '',
+                  subtitle: item['subtitle'] as String? ?? item['userNumber'] as String? ?? item['email'] as String?,
+                  icon: Icons.engineering,
+                  data: item,
+                ))
+            .toList();
       }
 
       // Ticket Types
@@ -337,14 +349,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       if (ticketTypesData != null) {
         final ticketTypesList = List<Map<String, dynamic>>.from(ticketTypesData as List);
         if (ticketTypesList.isNotEmpty) {
-          ticketTypes = ticketTypesList.map((item) => DropdownCardItem(
-                id: item['id'] as int,
-                title: item['title'] as String? ?? item['name'] as String? ?? '',
-                subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-                icon: Icons.category,
-                data: item,
-              )).toList();
-          
+          ticketTypes = ticketTypesList
+              .map((item) => DropdownCardItem(
+                    id: item['id'] as int,
+                    title: item['title'] as String? ?? item['name'] as String? ?? '',
+                    subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                    icon: Icons.category,
+                    data: item,
+                  ))
+              .toList();
+
           // Find "Corrective" ticket type (case-insensitive) or use first one
           try {
             selectedTicketType = ticketTypes.firstWhere(
@@ -364,13 +378,15 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       if (ticketStatusesData != null) {
         final ticketStatusesList = List<Map<String, dynamic>>.from(ticketStatusesData as List);
         if (ticketStatusesList.isNotEmpty) {
-          ticketStatuses = ticketStatusesList.map((item) => DropdownCardItem(
-                id: item['id'] as int,
-                title: item['title'] as String? ?? item['name'] as String? ?? '',
-                subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-                icon: Icons.info_outline,
-                data: item,
-              )).toList();
+          ticketStatuses = ticketStatusesList
+              .map((item) => DropdownCardItem(
+                    id: item['id'] as int,
+                    title: item['title'] as String? ?? item['name'] as String? ?? '',
+                    subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                    icon: Icons.info_outline,
+                    data: item,
+                  ))
+              .toList();
         }
       }
 
@@ -387,14 +403,14 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         _loadSubServices(mainServices.first.id);
       }
       if (subServices.isNotEmpty) selectedSubService = subServices.first;
-      
+
       // Role-based UI control: Hide/show Team Leader DDL based on role
       // Strategy: Check if current user is in the team leaders list
       // If user is in the list, they are a Team Leader - hide dropdown and auto-select themselves
       // If user is NOT in the list, they are likely an Admin - show dropdown
-        final currentUserId = appProvider.userModel?.customer.id;
+      final currentUserId = appProvider.userModel?.customer.id;
       final currentUserRoleId = appProvider.userModel?.customer.roleId;
-      
+
       // Parse roleId for logging
       int? roleIdInt;
       if (currentUserRoleId != null) {
@@ -410,12 +426,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           }
         }
       }
-      
+
       // Check if current user is in the team leaders list
       // Strategy: Check by ID first, then by name as fallback
       bool isCurrentUserTeamLeader = false;
       final currentUserName = appProvider.userModel?.customer.name;
-      
+
       if (teamLeaders.isNotEmpty) {
         // First, try to find by ID
         if (currentUserId != null) {
@@ -430,8 +446,9 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             if (currentUserName != null && currentUserName.isNotEmpty) {
               try {
                 teamLeaders.firstWhere(
-                  (leader) => leader.title.toLowerCase().contains(currentUserName.toLowerCase()) ||
-                             (leader.data?['fullName'] as String?)?.toLowerCase().contains(currentUserName.toLowerCase()) == true,
+                  (leader) =>
+                      leader.title.toLowerCase().contains(currentUserName.toLowerCase()) ||
+                      (leader.data?['fullName'] as String?)?.toLowerCase().contains(currentUserName.toLowerCase()) == true,
                 );
                 isCurrentUserTeamLeader = true;
                 log('✅ Current user (Name: $currentUserName) found in Team Leaders list by name - User is a Team Leader');
@@ -448,7 +465,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           log('⚠️ Current user ID is null - cannot determine role');
         }
       }
-      
+
       // If user is Team Leader (found in list OR roleId == 20), hide Team Leader dropdown and auto-select themselves
       // Team Leaders CANNOT create tickets for another Team Leader - they can only assign to themselves
       if ((isCurrentUserTeamLeader || roleIdInt == 20) && teamLeaders.isNotEmpty) {
@@ -475,39 +492,40 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         });
         selectedTeamLeader = teamLeaders.first;
       }
-      
+
       // Auto-select first technician
       if (technicians.isNotEmpty) {
         selectedTechnician = technicians.first;
       }
 
-            // Set default date
-            selectedTicketDate = DateTime.now();
-            // Set default time from available slots based on current time
-            final now = DateTime.now();
-            final currentTimeInMinutes = now.hour * 60 + now.minute;
-            final sixteenHundredInMinutes = 16 * 60; // 16:00 = 960 minutes
-            
-            final availableSlots = getAvailableTimeSlots();
-            if (availableSlots.isNotEmpty) {
-              // Select the first available slot (which will be the next slot after current time)
-              selectedTimeFrom = availableSlots.first['from'];
-              selectedTimeTo = availableSlots.first['to'];
-            } else if (currentTimeInMinutes >= sixteenHundredInMinutes) {
-              // If current time exceeds 16:00 and no slots are available, default to the latest slot (16:00-18:00)
-              final lastSlot = allTimeSlots.last;
-              selectedTimeFrom = lastSlot['from'];
-              selectedTimeTo = lastSlot['to'];
-            }
+      // Set default date
+      selectedTicketDate = DateTime.now();
+      // Set default time from available slots based on current time
+      final now = DateTime.now();
+      final currentTimeInMinutes = now.hour * 60 + now.minute;
+      final sixteenHundredInMinutes = 16 * 60; // 16:00 = 960 minutes
+
+      final availableSlots = getAvailableTimeSlots();
+      if (availableSlots.isNotEmpty) {
+        // Select the first available slot (which will be the next slot after current time)
+        selectedTimeFrom = availableSlots.first['from'];
+        selectedTimeTo = availableSlots.first['to'];
+      } else if (currentTimeInMinutes >= sixteenHundredInMinutes) {
+        // If current time exceeds 16:00 and no slots are available, default to the latest slot (16:00-18:00)
+        final lastSlot = allTimeSlots.last;
+        selectedTimeFrom = lastSlot['from'];
+        selectedTimeTo = lastSlot['to'];
+      }
     });
   }
 
   void _populateFieldsFromTicketData(Map<String, dynamic> data) {
     setState(() {
       ticketTitle.text = data['ticketTitle'] ?? '';
+      ticketDescription.text = data['ticketDescription'] ?? '';
       serviceDescription.text = data['serviceDescription'] ?? '';
       _serviceDescriptionText = serviceDescription.text;
-      
+
       // Populate contract
       if (data['contract'] != null && contracts.isNotEmpty) {
         try {
@@ -521,7 +539,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           log('Could not find matching contract: $e');
         }
       }
-      
+
       // Populate branch and load zones
       if (data['branch'] != null && branches.isNotEmpty) {
         try {
@@ -553,7 +571,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           // Branch not found
         }
       }
-      
+
       // Populate ticket status if editing
       if (data['ticketStatus'] != null && ticketStatuses.isNotEmpty) {
         try {
@@ -595,13 +613,15 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
     setState(() {
       if (subServicesData != null) {
-        subServices = subServicesData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['name'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-              icon: Icons.settings,
-              data: item,
-            )).toList();
+        subServices = subServicesData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['name'] as String? ?? '',
+                  subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                  icon: Icons.settings,
+                  data: item,
+                ))
+            .toList();
         // Auto-select first sub service if available
         if (subServices.isNotEmpty) {
           selectedSubService = subServices.first;
@@ -628,13 +648,15 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
     setState(() {
       if (zonesData != null) {
-        zones = zonesData.map((item) => DropdownCardItem(
-              id: item['id'] as int,
-              title: item['title'] as String? ?? item['zoneTitle'] as String? ?? '',
-              subtitle: item['subtitle'] as String? ?? item['zoneNumber'] as String?,
-              icon: Icons.map,
-              data: item,
-            )).toList();
+        zones = zonesData
+            .map((item) => DropdownCardItem(
+                  id: item['id'] as int,
+                  title: item['title'] as String? ?? item['zoneTitle'] as String? ?? '',
+                  subtitle: item['subtitle'] as String? ?? item['zoneNumber'] as String?,
+                  icon: Icons.map,
+                  data: item,
+                ))
+            .toList();
         // Auto-select first zone if available
         if (zones.isNotEmpty) {
           selectedZone = zones.first;
@@ -760,18 +782,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       if (ticketTitle.text.trim().isEmpty) {
         fieldErrors['ticketTitle'] = 'Ticket Title Required';
         isValid = false;
+      } else if (ticketTitle.text.trim().length > 100) {
+        fieldErrors['ticketTitle'] = 'Ticket Title must not exceed 100 characters';
+        isValid = false;
       }
       // Location map is optional - no validation needed
       if (selectedTicketDate == null) {
         fieldErrors['date'] = '${localizations.date} ${localizations.required}';
         isValid = false;
       }
-      
+
       // Time slots are required for all ticket types (Corrective, Preventive, Emergency)
       // Emergency tickets will auto-generate times if not selected, but validation still checks
-      final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
-                          selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
-      
+      final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+
       // For non-emergency tickets (Corrective, Preventive), time selection is required
       if (!isEmergency && (selectedTimeFrom == null || selectedTimeTo == null)) {
         fieldErrors['time'] = '${localizations.timeFrom} - ${localizations.timeTo} ${localizations.required}';
@@ -813,17 +837,15 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
     if (!isValid) {
       setState(() {});
-      
+
       // Scroll to the first field with error
       _scrollToFirstError();
-      
+
       // Show error message
       final errorMessages = fieldErrors.values.where((e) => e != null).cast<String>().toList();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessages.length == 1
-              ? errorMessages.first
-              : '${localizations.required}: ${errorMessages.join(', ')}'),
+          content: Text(errorMessages.length == 1 ? errorMessages.first : '${localizations.required}: ${errorMessages.join(', ')}'),
           duration: const Duration(seconds: 4),
           backgroundColor: Colors.red[600],
           action: SnackBarAction(
@@ -843,13 +865,13 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   // Scroll to the first field with error
   void _scrollToFirstError() {
     if (fieldErrors.isEmpty) return;
-    
+
     // Get the first error key
     final firstErrorKey = fieldErrors.keys.first;
     GlobalKey? targetKey;
     ScrollController? scrollController;
     int targetTabIndex = _tabController.index;
-    
+
     // Determine which tab contains the error and which scroll controller to use
     // Check if error is in Tab 1 (Basic Info)
     if (['contract', 'branch', 'zone', 'ticketType', 'ticketTitle', 'date', 'time', 'teamLeader', 'technician'].contains(firstErrorKey)) {
@@ -885,7 +907,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           targetKey = _technicianKey;
           break;
       }
-    } 
+    }
     // Check if error is in Tab 2 (Service Details)
     else if (['mainService', 'subService', 'serviceDescription'].contains(firstErrorKey)) {
       targetTabIndex = 1;
@@ -903,7 +925,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           break;
       }
     }
-    
+
     // Switch to the target tab if needed
     if (targetTabIndex != _tabController.index) {
       _tabController.animateTo(targetTabIndex);
@@ -926,12 +948,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           final box = renderObject;
           final position = renderObject.localToGlobal(Offset.zero);
           final fieldHeight = box.size.height;
-          
+
           // Calculate scroll offset to show field label, field, and error message below it
           // Increased padding (200px) to ensure field label and error message are fully visible
           // 60px for error message below (accounting for error text height)
           final scrollOffset = scrollController.offset + position.dy - 200 - fieldHeight - 60;
-          
+
           scrollController.animateTo(
             scrollOffset.clamp(0.0, scrollController.position.maxScrollExtent),
             duration: const Duration(milliseconds: 300),
@@ -951,8 +973,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
   void _goToNextTab() {
     if (_validateCurrentStep()) {
-    if (_tabController.index < _tabController.length - 1) {
-      _tabController.animateTo(_tabController.index + 1);
+      if (_tabController.index < _tabController.length - 1) {
+        _tabController.animateTo(_tabController.index + 1);
       }
     }
   }
@@ -975,22 +997,32 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       final localizations = AppLocalizations.of(context)!;
       final missingFields = fieldErrors.keys.map((key) {
         switch (key) {
-          case 'contract': return localizations.contractId;
-          case 'branch': return localizations.branchId;
-          case 'zone': return localizations.zoneId;
-          case 'ticketType': return localizations.ticketType;
-          case 'ticketTitle': return localizations.ticketTitle;
-          case 'date': return localizations.date;
-          case 'time': return '${localizations.timeFrom} - ${localizations.timeTo}';
-          case 'teamLeader': return localizations.teamLeaderId;
-          case 'technician': return localizations.technicianId;
-          default: return key;
+          case 'contract':
+            return localizations.contractId;
+          case 'branch':
+            return localizations.branchId;
+          case 'zone':
+            return localizations.zoneId;
+          case 'ticketType':
+            return localizations.ticketType;
+          case 'ticketTitle':
+            return localizations.ticketTitle;
+          case 'date':
+            return localizations.date;
+          case 'time':
+            return '${localizations.timeFrom} - ${localizations.timeTo}';
+          case 'teamLeader':
+            return localizations.teamLeaderId;
+          case 'technician':
+            return localizations.technicianId;
+          default:
+            return key;
         }
       }).toList();
       log('Missing required fields in Tab 1 (Basic Info): ${missingFields.join(', ')}');
       return; // Validation will scroll to error and show message
     }
-    
+
     // Then check Tab 2 (Service Details)
     if (_tabController.index != 1) {
       _tabController.animateTo(1);
@@ -1001,16 +1033,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       final localizations = AppLocalizations.of(context)!;
       final missingFields = fieldErrors.keys.map((key) {
         switch (key) {
-          case 'mainService': return localizations.mainService;
-          case 'subService': return localizations.subService;
-          case 'serviceDescription': return localizations.serviceDescription;
-          default: return key;
+          case 'mainService':
+            return localizations.mainService;
+          case 'subService':
+            return localizations.subService;
+          case 'serviceDescription':
+            return localizations.serviceDescription;
+          default:
+            return key;
         }
       }).toList();
       log('Missing required fields in Tab 2 (Service Details): ${missingFields.join(', ')}');
       return; // Validation will scroll to error and show message
     }
-    
+
     // All validations passed, proceed with submission
 
     setState(() {
@@ -1044,9 +1080,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      widget.ticketData != null
-                          ? localizations.updateTicket
-                          : localizations.createTicket,
+                      widget.ticketData != null ? localizations.updateTicket : localizations.createTicket,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -1075,10 +1109,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
       // For Technicians, only allow status updates
       final ticketData = <String, dynamic>{};
-      
+
       // Extract file paths from uploaded files (only used for Admin/Team Leader)
       final List<String> attachmentPaths = [];
-      
+
       if (widget.isTechnician) {
         // Technicians can ONLY update ticket status and add notes
         if (widget.ticketData != null && selectedTicketStatus != null) {
@@ -1106,48 +1140,53 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         }
 
         // Format location map as "latitude,longitude" (optional)
-        final locationMapStr = selectedLocation != null 
-            ? '${selectedLocation!.latitude},${selectedLocation!.longitude}'
-            : null;
-        
+        final locationMapStr = selectedLocation != null ? '${selectedLocation!.latitude},${selectedLocation!.longitude}' : null;
+
         // Check if Emergency ticket type is selected
-        final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
-                            selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
-        
+        final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+
         // Format date
-        final ticketDateStr = selectedTicketDate != null
-            ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!)
-            : DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final ticketDateStr = selectedTicketDate != null ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!) : DateFormat('yyyy-MM-dd').format(DateTime.now());
 
         // For emergency tickets, if time is not selected, generate default time (current time to +120 minutes)
         String? timeFromStr = selectedTimeFrom;
         String? timeToStr = selectedTimeTo;
-        
+
         if (isEmergency && (selectedTimeFrom == null || selectedTimeTo == null)) {
           final now = DateTime.now();
           final currentMinutes = now.hour * 60 + now.minute;
           final endMinutes = currentMinutes + 120; // 120 minutes from now
-          
+
           final fromHour = (currentMinutes ~/ 60).toString().padLeft(2, '0');
           final fromMinute = (currentMinutes % 60).toString().padLeft(2, '0');
           final toHour = (endMinutes ~/ 60).toString().padLeft(2, '0');
           final toMinute = (endMinutes % 60).toString().padLeft(2, '0');
-          
+
           timeFromStr = '$fromHour:$fromMinute:00';
           timeToStr = '$toHour:$toMinute:00';
-          
+
           log('Emergency ticket: Generated default time slots from $timeFromStr to $timeToStr');
         }
 
         // Final validation: Check all required fields before building ticket data
         final localizations = AppLocalizations.of(context)!;
         final List<String> missingFields = [];
-        
+
         if (selectedContract == null) missingFields.add(localizations.contractId);
         if (selectedBranch == null) missingFields.add(localizations.branchId);
         if (selectedZone == null) missingFields.add(localizations.zoneId);
         if (selectedTicketType == null) missingFields.add(localizations.ticketType);
-        if (ticketTitle.text.trim().isEmpty) missingFields.add(localizations.ticketTitle);
+        if (ticketTitle.text.trim().isEmpty) {
+          missingFields.add(localizations.ticketTitle);
+        } else if (ticketTitle.text.trim().length > 100) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Ticket Title must not exceed 100 characters'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
         if (selectedTicketDate == null) missingFields.add(localizations.date);
         // Time fields are now required for all tickets (backend requirement)
         if (timeFromStr == null || timeToStr == null) {
@@ -1160,19 +1199,19 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         if (selectedMainService == null) missingFields.add(localizations.mainService);
         if (selectedSubService == null) missingFields.add(localizations.subService);
         if (serviceDescription.text.trim().isEmpty) missingFields.add(localizations.serviceDescription);
-        
+
         if (missingFields.isNotEmpty) {
           final errorMsg = 'Missing required fields: ${missingFields.join(', ')}';
           log(errorMsg);
           throw Exception(errorMsg);
         }
-        
+
         // Safety check: For Team Leaders, ensure they can only assign to themselves
         final currentAppProvider = Provider.of<AppProvider>(context, listen: false);
         final currentUserRoleId = currentAppProvider.userModel?.customer.roleId;
         final roleIdInt = currentUserRoleId is int ? currentUserRoleId : (currentUserRoleId is String ? int.tryParse(currentUserRoleId.toString()) : null);
         final currentUserId = currentAppProvider.userModel?.customer.id;
-        
+
         int teamLeaderId;
         if (roleIdInt == 20) {
           // Team Leader: Must assign to themselves
@@ -1194,32 +1233,32 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           teamLeaderId = selectedTeamLeader!.id;
         }
         // Admin/Team Leader can update all fields
-      // Remove subServiceId if it's null (backend doesn't accept undefined fields)
+        // Remove subServiceId if it's null (backend doesn't accept undefined fields)
         ticketData.addAll({
-        'contractId': selectedContract!.id,
-        'branchId': selectedBranch!.id,
-        'zoneId': selectedZone!.id,
-        'ticketTitle': ticketTitle.text.trim(),
-        if (locationMapStr != null) 'locationMap': locationMapStr, // Optional: latitude,longitude format
-        'ticketTypeId': selectedTicketType!.id,
-        'ticketDate': ticketDateStr,
-        'ticketTimeFrom': timeFromStr!,
-        'ticketTimeTo': timeToStr!,
+          'contractId': selectedContract!.id,
+          'branchId': selectedBranch!.id,
+          'zoneId': selectedZone!.id,
+          'ticketTitle': ticketTitle.text.trim(),
+          if (locationMapStr != null) 'locationMap': locationMapStr, // Optional: latitude,longitude format
+          'ticketTypeId': selectedTicketType!.id,
+          'ticketDate': ticketDateStr,
+          'ticketTimeFrom': timeFromStr!,
+          'ticketTimeTo': timeToStr!,
           'assignToTeamLeaderId': teamLeaderId, // Use validated team leader ID
-        'assignToTechnicianId': selectedTechnician!.id,
-        'ticketDescription': ticketTitle.text.trim(),
-        'havingFemaleEngineer': false,
-        'withMaterial': false,
-        'mainServiceId': selectedMainService!.id,
-        if (selectedSubService != null) 'subServiceId': selectedSubService!.id,
-        if (serviceDescription.text.trim().isNotEmpty) 'serviceDescription': serviceDescription.text.trim(),
-        // Note: fileIds will be sent separately after uploading files
-        // Note: customerName, tools can be added later
+          'assignToTechnicianId': selectedTechnician!.id,
+          'ticketDescription': ticketDescription.text.trim(),
+          'havingFemaleEngineer': false,
+          'withMaterial': false,
+          'mainServiceId': selectedMainService!.id,
+          if (selectedSubService != null) 'subServiceId': selectedSubService!.id,
+          if (serviceDescription.text.trim().isNotEmpty) 'serviceDescription': serviceDescription.text.trim(),
+          // Note: fileIds will be sent separately after uploading files
+          // Note: customerName, tools can be added later
         });
 
         // Add ticket status if editing
-      if (widget.ticketData != null && selectedTicketStatus != null) {
-        ticketData['ticketStatusId'] = selectedTicketStatus!.id;
+        if (widget.ticketData != null && selectedTicketStatus != null) {
+          ticketData['ticketStatusId'] = selectedTicketStatus!.id;
         }
       }
 
@@ -1228,7 +1267,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       if (widget.isTechnician && widget.ticketData == null) {
         throw Exception('Technicians can only update existing tickets, not create new ones');
       }
-      
+
       Map<String, dynamic>? result;
       if (widget.ticketData != null) {
         result = await BookingApi.updateTicketInMMS(
@@ -1249,7 +1288,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       // Only upload files for Admin/Team Leader (not for Technicians)
       if (!widget.isTechnician && result != null && attachmentPaths.isNotEmpty) {
         final ticketId = result['id'] as int;
-        
+
         // Upload files with the ticket ID so they're linked immediately
         final uploadedFileIds = await BookingApi.uploadFilesToMMS(
           token: token,
@@ -1257,16 +1296,14 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           context: context,
           ticketId: ticketId, // Pass ticket ID for immediate linking
         );
-        
+
         if (uploadedFileIds == null || uploadedFileIds.isEmpty) {
           // Files upload failed, but ticket was created
           log('Ticket created but file upload failed');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(widget.ticketData != null
-                    ? 'Ticket updated but attachments failed to upload'
-                    : 'Ticket created but attachments failed to upload'),
+                content: Text(widget.ticketData != null ? 'Ticket updated but attachments failed to upload' : 'Ticket created but attachments failed to upload'),
               ),
             );
           }
@@ -1285,9 +1322,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       if (result != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.ticketData != null
-                ? AppLocalizations.of(context)!.ticketUpdatedSuccessfully
-                : AppLocalizations.of(context)!.ticketCreatedSuccessfully),
+            content: Text(widget.ticketData != null ? AppLocalizations.of(context)!.ticketUpdatedSuccessfully : AppLocalizations.of(context)!.ticketCreatedSuccessfully),
             backgroundColor: Colors.green[600],
             duration: const Duration(seconds: 2),
           ),
@@ -1295,7 +1330,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         // Small delay before navigating back to show success message
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
-        Navigator.pop(context, true);
+          Navigator.pop(context, true);
         }
       } else if (mounted) {
         // Log the error for debugging
@@ -1304,9 +1339,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         // Only show generic message if no specific error was shown
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.ticketData != null
-                ? AppLocalizations.of(context)!.ticketUpdateFailed
-                : AppLocalizations.of(context)!.ticketCreateFailed),
+            content: Text(widget.ticketData != null ? AppLocalizations.of(context)!.ticketUpdateFailed : AppLocalizations.of(context)!.ticketCreateFailed),
             backgroundColor: Colors.red[600],
             duration: const Duration(seconds: 4),
           ),
@@ -1316,23 +1349,23 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       setState(() {
         isLoading = false;
       });
-      
+
       // Hide loading dialog
       if (mounted) {
         Navigator.of(context).pop(); // Close loading dialog
       }
-      
+
       if (mounted) {
         log('_submit error: $e');
         log('_submit error type: ${e.runtimeType}');
         log('_submit error toString: ${e.toString()}');
-        
+
         // Extract error message from exception
         String errorMessage = e.toString();
         if (e is Exception) {
           errorMessage = e.toString().replaceFirst('Exception: ', '');
         }
-        
+
         // Log full error details for debugging
         try {
           log('Full error details: ${e.toString()}');
@@ -1342,19 +1375,15 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         } catch (logError) {
           log('Error logging error details: $logError');
         }
-        
+
         // Show clear error message to user (the API should already show a detailed message)
         // Only show generic message if the detailed message wasn't already shown
         if (!errorMessage.contains('Missing required fields') || errorMessage == 'Missing required fields') {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                errorMessage.isNotEmpty && errorMessage != 'null' && !errorMessage.contains('Missing required fields')
-                    ? errorMessage
-                    : (widget.ticketData != null
-                        ? AppLocalizations.of(context)!.ticketUpdateFailed
-                        : AppLocalizations.of(context)!.ticketCreateFailed)
-              ),
+              content: Text(errorMessage.isNotEmpty && errorMessage != 'null' && !errorMessage.contains('Missing required fields')
+                  ? errorMessage
+                  : (widget.ticketData != null ? AppLocalizations.of(context)!.ticketUpdateFailed : AppLocalizations.of(context)!.ticketCreateFailed)),
               backgroundColor: Colors.red[600],
               duration: const Duration(seconds: 5),
             ),
@@ -1371,6 +1400,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     _tab2ScrollController.dispose();
     ticketTitle.dispose();
     serviceDescription.dispose();
+    ticketDescription.dispose();
     super.dispose();
   }
 
@@ -1381,9 +1411,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
-        title: Text(widget.isTechnician 
-            ? 'Change Ticket Status' 
-            : (widget.ticketData != null ? localizations.editTicket : localizations.createTicket)),
+        title: Text(widget.isTechnician ? 'Change Ticket Status' : (widget.ticketData != null ? localizations.editTicket : localizations.createTicket)),
         elevation: 0,
         centerTitle: true,
         bottom: widget.isTechnician
@@ -1391,21 +1419,28 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             : PreferredSize(
                 preferredSize: const Size.fromHeight(48),
                 child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            color: AppColors(context).primaryColor.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          indicatorSize: TabBarIndicatorSize.tab,
-          labelColor: AppColors(context).primaryColor,
-          unselectedLabelColor: Colors.grey,
-          tabs: [
-            Tab(text: localizations.basicInfo),
-            Tab(text: localizations.serviceDetails),
-            Tab(text: localizations.ticketSummary),
-          ],
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: AppColors(context).primaryColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelColor: AppColors(context).primaryColor,
+                  unselectedLabelColor: Colors.grey,
+                  tabs: [
+                    Tab(
+                      child: Text(
+                        localizations.basicInfo,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    Tab(text: localizations.serviceDetails),
+                    Tab(text: localizations.ticketSummary),
+                  ],
                 ),
-        ),
+              ),
       ),
       body: Form(
         key: _formKey,
@@ -1415,20 +1450,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               child: widget.isTechnician
                   ? _buildTab1(localizations) // Show only status dropdown for Technicians
                   : TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildTab1(localizations),
-                  _buildTab2(localizations),
-                  // Wrap summary in AnimatedBuilder to rebuild when tab becomes visible
-                  AnimatedBuilder(
-                    animation: _tabController,
-                    builder: (context, child) {
-                      // Force rebuild when summary tab is visible
-                      return _buildTab3Summary(localizations);
-                    },
-                  ),
-                ],
-              ),
+                      controller: _tabController,
+                      children: [
+                        _buildTab1(localizations),
+                        _buildTab2(localizations),
+                        // Wrap summary in AnimatedBuilder to rebuild when tab becomes visible
+                        AnimatedBuilder(
+                          animation: _tabController,
+                          builder: (context, child) {
+                            // Force rebuild when summary tab is visible
+                            return _buildTab3Summary(localizations);
+                          },
+                        ),
+                      ],
+                    ),
             ),
             // Navigation buttons
             widget.isTechnician
@@ -1451,49 +1486,43 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                     ),
                   )
                 : AnimatedBuilder(
-              animation: _tabController,
-              builder: (context, child) {
-                final isLastTab = _tabController.index == 2; // Tab 3 (summary) is index 2
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, -3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      if (_tabController.index > 0)
-                        Expanded(
-                          child: CustomBotton(
-                            title: localizations.previous,
-                            onTap: _goToPreviousTab,
-                          ),
+                    animation: _tabController,
+                    builder: (context, child) {
+                      final isLastTab = _tabController.index == 2; // Tab 3 (summary) is index 2
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: const Offset(0, -3),
+                            ),
+                          ],
                         ),
-                      if (_tabController.index > 0) const SizedBox(width: 16),
-                      Expanded(
-                        child: CustomBotton(
-                          title: isLastTab
-                              ? (widget.ticketData != null
-                                  ? localizations.updateTicket
-                                  : localizations.createTicket)
-                              : localizations.next,
-                          onTap: isLastTab
-                              ? _submit
-                              : _goToNextTab,
+                        child: Row(
+                          children: [
+                            if (_tabController.index > 0)
+                              Expanded(
+                                child: CustomBotton(
+                                  title: localizations.previous,
+                                  onTap: _goToPreviousTab,
+                                ),
+                              ),
+                            if (_tabController.index > 0) const SizedBox(width: 16),
+                            Expanded(
+                              child: CustomBotton(
+                                title: isLastTab ? (widget.ticketData != null ? localizations.updateTicket : localizations.createTicket) : localizations.next,
+                                onTap: isLastTab ? _submit : _goToNextTab,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ],
         ),
       ),
@@ -1501,6 +1530,9 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   }
 
   Widget _buildTab1(AppLocalizations localizations) {
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final isArabic = languageProvider.lang == "ar";
+    
     // For Technicians, only show ticket status dropdown and notes field
     if (widget.isTechnician) {
       return SingleChildScrollView(
@@ -1586,7 +1618,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         ),
       );
     }
-    
+
     // For Admin/Team Leader, show all fields
     return SingleChildScrollView(
       controller: _tab1ScrollController,
@@ -1594,46 +1626,158 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Ticket Title Field (moved to top)
+          // 1. Ticket Title Field
           Container(
             key: _ticketTitleKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            WidgetTextField(
-              localizations.ticketTitle,
-              controller: ticketTitle,
-            maxLines: 4,
-            fillColor: AppColors.greyColorback,
-            haveBorder: false,
-            radius: 5,
-                onChanged: (value) {
-                  if (value.isNotEmpty) {
-                    setState(() {
-                      fieldErrors.remove('ticketTitle');
-                    });
-                  }
-                },
-              ),
-              if (fieldErrors['ticketTitle'] != null) ...[
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    fieldErrors['ticketTitle']!,
-                    style: TextStyle(
-                      color: Colors.red[600],
-                      fontSize: 12,
+                Stack(
+                  children: [
+                    WidgetTextField(
+                      '${localizations.ticketTitle} *',
+                      controller: ticketTitle,
+                      maxLines: 2,
+                      maxLength: 100,
+                      fillColor: AppColors.greyColorback,
+                      haveBorder: false,
+                      radius: 5,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value.isNotEmpty) {
+                            fieldErrors.remove('ticketTitle');
+                          }
+                        });
+                      },
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      right: isArabic ? null : 12,
+                      left: isArabic ? 12 : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${ticketTitle.text.length} / 100',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (fieldErrors['ticketTitle'] != null) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Text(
+                      fieldErrors['ticketTitle']!,
+                      style: TextStyle(
+                        color: Colors.red[600],
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
-            ],
-          ),
+            ),
           ),
           const SizedBox(height: 16),
 
-          // Contract Reference Dropdown
+          // 2. Ticket Description Field
+          Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    WidgetTextField(
+                      localizations.problemDescription,
+                      controller: ticketDescription,
+                      maxLines: 3,
+                      maxLength: 500,
+                      fillColor: AppColors.greyColorback,
+                      haveBorder: false,
+                      radius: 5,
+                      onChanged: (value) {
+                        setState(() {
+                          // Clear any errors when user starts typing
+                        });
+                      },
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      right: isArabic ? null : 12,
+                      left: isArabic ? 12 : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${ticketDescription.text.length} / 500',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 3. Ticket Type Dropdown
+          Container(
+            key: _ticketTypeKey,
+            child: _buildDropdownCard(
+              title: '${localizations.ticketType} *',
+              selectedItem: selectedTicketType,
+              items: ticketTypes,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.ticketType,
+                items: ticketTypes,
+                selectedItem: selectedTicketType,
+                onSelected: (item) {
+                  setState(() {
+                    selectedTicketType = item;
+                    fieldErrors.remove('ticketType');
+
+                    // If Emergency is selected, auto-select today's date
+                    final isEmergency = item.title.toLowerCase() == 'emergency' || item.data?['name']?.toString().toLowerCase() == 'emergency';
+                    if (isEmergency) {
+                      selectedTicketDate = DateTime.now();
+                      // Clear time slots for Emergency
+                      selectedTimeFrom = null;
+                      selectedTimeTo = null;
+                      // Clear time field error if it exists
+                      fieldErrors.remove('time');
+                    }
+                  });
+                },
+              ),
+              errorMessage: fieldErrors['ticketType'],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 4. Date and Time on the same line
+          Container(
+            key: _dateKey,
+            child: _buildDateAndTimeRow(localizations),
+          ),
+          const SizedBox(height: 16),
+
+          // 5. Contract Reference Dropdown
           Container(
             key: _contractKey,
             child: _buildDropdownCard(
@@ -1656,7 +1800,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ),
           const SizedBox(height: 16),
 
-          // Branch Dropdown
+          // 6. Branch Dropdown
           Container(
             key: _branchKey,
             child: _buildDropdownCard(
@@ -1684,7 +1828,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ),
           const SizedBox(height: 16),
 
-          // Zone Dropdown
+          // 7. Zone Dropdown
           Container(
             key: _zoneKey,
             child: _buildDropdownCard(
@@ -1705,150 +1849,22 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               errorMessage: fieldErrors['zone'],
             ),
           ),
-          const SizedBox(height: 16),
-
-          // Ticket Type Dropdown
-          Container(
-            key: _ticketTypeKey,
-            child: _buildDropdownCard(
-              title: '${localizations.ticketType} *',
-              selectedItem: selectedTicketType,
-              items: ticketTypes,
-              onTap: () => _showDropdownBottomSheet(
-                title: localizations.ticketType,
-                items: ticketTypes,
-                selectedItem: selectedTicketType,
-                onSelected: (item) {
-                  setState(() {
-                    selectedTicketType = item;
-                    fieldErrors.remove('ticketType');
-                    
-                    // If Emergency is selected, auto-select today's date
-                    final isEmergency = item.title.toLowerCase() == 'emergency' || 
-                                       item.data?['name']?.toString().toLowerCase() == 'emergency';
-                    if (isEmergency) {
-                      selectedTicketDate = DateTime.now();
-                      // Clear time slots for Emergency
-                      selectedTimeFrom = null;
-                      selectedTimeTo = null;
-                      // Clear time field error if it exists
-                      fieldErrors.remove('time');
-                    }
-                  });
-                },
-              ),
-              errorMessage: fieldErrors['ticketType'],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Location Map Picker
-          _buildLocationMapPicker(localizations),
-          const SizedBox(height: 16),
-
-          // Date Picker
-          Container(
-            key: _dateKey,
-            child: _buildDatePicker(localizations),
-          ),
-          const SizedBox(height: 16),
-
-          // Time Slot Dropdown (combined time from and time to)
-          // Show time picker for Corrective and Preventive tickets (required)
-          // Hide time picker for Emergency tickets (times will be auto-generated)
-          if (selectedTicketType?.title.toLowerCase() != 'emergency' && 
-              selectedTicketType?.data?['name']?.toString().toLowerCase() != 'emergency') ...[
-            Container(
-              key: _timeKey,
-              child: _buildTimeSlotDropdown(localizations),
-            ),
-            const SizedBox(height: 16),
-          ] else if (selectedTicketType?.title.toLowerCase() == 'emergency' || 
-                     selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency') ...[
-            _buildResponseTimeDisplay(localizations),
-            const SizedBox(height: 16),
-          ],
-
-          // Team Leader Dropdown (hidden for Team Leaders, visible for Admins)
-          if (isTeamLeaderVisible) ...[
-          Container(
-            key: _teamLeaderKey,
-            child: _buildDropdownCard(
-              title: '${localizations.teamLeaderId} *',
-              selectedItem: selectedTeamLeader,
-              items: teamLeaders,
-              onTap: () => _showDropdownBottomSheet(
-                title: localizations.teamLeaderId,
-                items: teamLeaders,
-                selectedItem: selectedTeamLeader,
-                onSelected: (item) {
-                  setState(() {
-                    selectedTeamLeader = item;
-                      fieldErrors.remove('teamLeader');
-                  });
-                },
-              ),
-                errorMessage: fieldErrors['teamLeader'],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ],
-
-          // Technician Dropdown
-          Container(
-            key: _technicianKey,
-            child: _buildDropdownCard(
-              title: '${localizations.technicianId} *',
-              selectedItem: selectedTechnician,
-              items: technicians,
-              onTap: () => _showDropdownBottomSheet(
-                title: localizations.technicianId,
-                items: technicians,
-                selectedItem: selectedTechnician,
-                onSelected: (item) {
-                  setState(() {
-                    selectedTechnician = item;
-                    fieldErrors.remove('technician');
-                  });
-                },
-              ),
-              errorMessage: fieldErrors['technician'],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Ticket Status Dropdown (only for editing)
-          if (widget.ticketData != null && ticketStatuses.isNotEmpty) ...[
-            _buildDropdownCard(
-              title: 'Ticket Status *',
-              selectedItem: selectedTicketStatus,
-              items: ticketStatuses,
-              onTap: () => _showDropdownBottomSheet(
-                title: 'Ticket Status',
-                items: ticketStatuses,
-                selectedItem: selectedTicketStatus,
-                onSelected: (item) {
-                  setState(() {
-                    selectedTicketStatus = item;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
         ],
       ),
     );
   }
 
   Widget _buildTab2(AppLocalizations localizations) {
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final isArabic = languageProvider.lang == "ar";
+    
     return SingleChildScrollView(
       controller: _tab2ScrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Main Service Dropdown
+          // 1. Main Service Dropdown
           Container(
             key: _mainServiceKey,
             child: _buildDropdownCard(
@@ -1860,21 +1876,21 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 items: mainServices,
                 selectedItem: selectedMainService,
                 onSelected: (item) async {
-                setState(() {
-                  selectedMainService = item;
-                  selectedSubService = null; // Reset sub service when main service changes
-                  fieldErrors.remove('mainService');
-                });
-                // Load sub services based on selected main service
-                await _loadSubServices(item.id);
-              },
+                  setState(() {
+                    selectedMainService = item;
+                    selectedSubService = null; // Reset sub service when main service changes
+                    fieldErrors.remove('mainService');
+                  });
+                  // Load sub services based on selected main service
+                  await _loadSubServices(item.id);
+                },
+              ),
+              errorMessage: fieldErrors['mainService'],
             ),
-            errorMessage: fieldErrors['mainService'],
-          ),
           ),
           const SizedBox(height: 16),
 
-          // Sub Service Dropdown
+          // 2. Sub Service Dropdown
           Container(
             key: _subServiceKey,
             child: _buildDropdownCard(
@@ -1897,48 +1913,56 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ),
           const SizedBox(height: 16),
 
-          // Attachments
-          _buildAttachmentsSection(localizations),
-          const SizedBox(height: 16),
-
-          // Service Description
-          Container(
-            key: _serviceDescriptionKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                WidgetTextField(
-                  localizations.serviceDescription,
-                  controller: serviceDescription,
-                  maxLines: 4,
-                  fillColor: AppColors.greyColorback,
-                  haveBorder: false,
-                  radius: 5,
-                  onChanged: (value) {
-                    // Clear error when user starts typing
-                    if (fieldErrors.containsKey('serviceDescription')) {
-                      setState(() {
-                        fieldErrors.remove('serviceDescription');
-                      });
-                    }
+          // 3. Team Leader Dropdown (hidden for Team Leaders, visible for Admins)
+          if (isTeamLeaderVisible) ...[
+            Container(
+              key: _teamLeaderKey,
+              child: _buildDropdownCard(
+                title: '${localizations.teamLeaderId} *',
+                selectedItem: selectedTeamLeader,
+                items: teamLeaders,
+                onTap: () => _showDropdownBottomSheet(
+                  title: localizations.teamLeaderId,
+                  items: teamLeaders,
+                  selectedItem: selectedTeamLeader,
+                  onSelected: (item) {
+                    setState(() {
+                      selectedTeamLeader = item;
+                      fieldErrors.remove('teamLeader');
+                    });
                   },
                 ),
-                if (fieldErrors['serviceDescription'] != null) ...[
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: Text(
-                      fieldErrors['serviceDescription']!,
-                      style: TextStyle(
-                        color: Colors.red[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+                errorMessage: fieldErrors['teamLeader'],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // 4. Technician Dropdown
+          Container(
+            key: _technicianKey,
+            child: _buildDropdownCard(
+              title: '${localizations.technicianId} *',
+              selectedItem: selectedTechnician,
+              items: technicians,
+              onTap: () => _showDropdownBottomSheet(
+                title: localizations.technicianId,
+                items: technicians,
+                selectedItem: selectedTechnician,
+                onSelected: (item) {
+                  setState(() {
+                    selectedTechnician = item;
+                    fieldErrors.remove('technician');
+                  });
+                },
+              ),
+              errorMessage: fieldErrors['technician'],
             ),
           ),
+          const SizedBox(height: 16),
+
+          // 5. Attachments
+          _buildAttachmentsSection(localizations),
         ],
       ),
     );
@@ -2001,6 +2025,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               label: localizations.ticketTitle,
               value: ticketTitle.text,
               icon: Icons.title,
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Problem Description (only show if filled)
+          if (ticketDescription.text.isNotEmpty) ...[
+            _buildSummaryRow(
+              label: localizations.problemDescription,
+              value: ticketDescription.text,
+              icon: Icons.description,
             ),
             const SizedBox(height: 16),
           ],
@@ -2127,7 +2161,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     if (value.isEmpty || value.trim().isEmpty || value.trim() == '-') {
       return const SizedBox.shrink();
     }
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -2235,7 +2269,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
   void _showLocationMapBottomSheet(AppLocalizations localizations) {
     LatLng? tempLocation = selectedLocation;
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -2334,9 +2368,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
 
   Widget _buildDatePicker(AppLocalizations localizations) {
     // Check if Emergency ticket type is selected
-    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || 
-                        selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
-    
+    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2349,43 +2382,43 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: isEmergency ? null : () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: selectedTicketDate ?? DateTime.now(),
-              firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
-            );
+          onTap: isEmergency
+              ? null
+              : () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: selectedTicketDate ?? DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
 
-            if (date != null && mounted) {
-              setState(() {
-                selectedTicketDate = date;
-                // Reset time selection and get available slots for new date
-                final now = DateTime.now();
-                final currentTimeInMinutes = now.hour * 60 + now.minute;
-                final sixteenHundredInMinutes = 16 * 60; // 16:00 = 960 minutes
-                
-                // Check if selected date is today
-                final isToday = date.year == now.year &&
-                    date.month == now.month &&
-                    date.day == now.day;
-                
-                final availableSlots = getAvailableTimeSlots();
-                if (availableSlots.isNotEmpty) {
-                  selectedTimeFrom = availableSlots.first['from'];
-                  selectedTimeTo = availableSlots.first['to'];
-                } else if (isToday && currentTimeInMinutes >= sixteenHundredInMinutes) {
-                  // If current time exceeds 16:00 and no slots are available, default to the latest slot (16:00-18:00)
-                  final lastSlot = allTimeSlots.last;
-                  selectedTimeFrom = lastSlot['from'];
-                  selectedTimeTo = lastSlot['to'];
-                } else {
-                  selectedTimeFrom = null;
-                  selectedTimeTo = null;
-                }
-              });
-            }
-          },
+                  if (date != null && mounted) {
+                    setState(() {
+                      selectedTicketDate = date;
+                      // Reset time selection and get available slots for new date
+                      final now = DateTime.now();
+                      final currentTimeInMinutes = now.hour * 60 + now.minute;
+                      final sixteenHundredInMinutes = 16 * 60; // 16:00 = 960 minutes
+
+                      // Check if selected date is today
+                      final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+
+                      final availableSlots = getAvailableTimeSlots();
+                      if (availableSlots.isNotEmpty) {
+                        selectedTimeFrom = availableSlots.first['from'];
+                        selectedTimeTo = availableSlots.first['to'];
+                      } else if (isToday && currentTimeInMinutes >= sixteenHundredInMinutes) {
+                        // If current time exceeds 16:00 and no slots are available, default to the latest slot (16:00-18:00)
+                        final lastSlot = allTimeSlots.last;
+                        selectedTimeFrom = lastSlot['from'];
+                        selectedTimeTo = lastSlot['to'];
+                      } else {
+                        selectedTimeFrom = null;
+                        selectedTimeTo = null;
+                      }
+                    });
+                  }
+                },
           child: Opacity(
             opacity: isEmergency ? 0.6 : 1.0,
             child: Container(
@@ -2405,9 +2438,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      selectedTicketDate != null
-                          ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!)
-                          : localizations.selectDate,
+                      selectedTicketDate != null ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!) : localizations.selectDate,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -2425,6 +2456,270 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildDateAndTimeRow(AppLocalizations localizations) {
+    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
+    final availableSlots = getAvailableTimeSlots();
+    
+    // Get display text for selected time slot
+    String getTimeDisplayText() {
+      if (selectedTimeFrom != null && selectedTimeTo != null) {
+        try {
+          final slot = allTimeSlots.firstWhere(
+            (slot) => slot['from'] == selectedTimeFrom && slot['to'] == selectedTimeTo,
+          );
+          return slot['display'] ?? '${selectedTimeFrom} - ${selectedTimeTo}';
+        } catch (e) {
+          return '${selectedTimeFrom} - ${selectedTimeTo}';
+        }
+      }
+      return localizations.selectTime;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${localizations.date} *',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: isEmergency
+                        ? null
+                        : () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: selectedTicketDate ?? DateTime.now(),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+
+                            if (date != null && mounted) {
+                              setState(() {
+                                selectedTicketDate = date;
+                                // Reset time selection and get available slots for new date
+                                final now = DateTime.now();
+                                final currentTimeInMinutes = now.hour * 60 + now.minute;
+                                final sixteenHundredInMinutes = 16 * 60; // 16:00 = 960 minutes
+
+                                // Check if selected date is today
+                                final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+
+                                final availableSlots = getAvailableTimeSlots();
+                                if (availableSlots.isNotEmpty) {
+                                  selectedTimeFrom = availableSlots.first['from'];
+                                  selectedTimeTo = availableSlots.first['to'];
+                                } else if (isToday && currentTimeInMinutes >= sixteenHundredInMinutes) {
+                                  // If current time exceeds 16:00 and no slots are available, default to the latest slot (16:00-18:00)
+                                  final lastSlot = allTimeSlots.last;
+                                  selectedTimeFrom = lastSlot['from'];
+                                  selectedTimeTo = lastSlot['to'];
+                                } else {
+                                  selectedTimeFrom = null;
+                                  selectedTimeTo = null;
+                                }
+                              });
+                            }
+                          },
+                    child: Opacity(
+                      opacity: isEmergency ? 0.6 : 1.0,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.greyColorback,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              color: AppColors(context).primaryColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                selectedTicketDate != null ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!) : localizations.selectDate,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: selectedTicketDate != null ? Colors.black87 : Colors.grey,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (!isEmergency)
+                              Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${localizations.timeFrom} - ${localizations.timeTo} *',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () {
+                      if (selectedTicketDate == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please select a date first'),
+                            backgroundColor: Colors.orange,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
+                      
+                      if (availableSlots.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('No available time slots for selected date. Please select a different date.'),
+                            backgroundColor: Colors.orange,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Convert available time slots to DropdownCardItem list
+                      final items = availableSlots.map((slot) {
+                        final displayText = slot['display']!;
+                        final from = slot['from']!;
+                        final to = slot['to']!;
+
+                        return DropdownCardItem(
+                          id: availableSlots.indexOf(slot),
+                          title: displayText,
+                          icon: Icons.access_time,
+                          data: {'from': from, 'to': to},
+                        );
+                      }).toList();
+
+                      DropdownCardItem? currentSelected;
+                      if (selectedTimeFrom != null && selectedTimeTo != null) {
+                        try {
+                          currentSelected = items.firstWhere(
+                            (item) => item.data!['from'] == selectedTimeFrom && item.data!['to'] == selectedTimeTo,
+                          );
+                        } catch (e) {
+                          currentSelected = items.isNotEmpty ? items.first : null;
+                        }
+                      }
+
+                      DraggableCardBottomSheet.show(
+                        context: context,
+                        title: '${localizations.timeFrom} - ${localizations.timeTo}',
+                        items: items,
+                        selectedItem: currentSelected,
+                        onItemSelected: (item) {
+                          final from = item.data!['from'] as String;
+                          final to = item.data!['to'] as String;
+                          setState(() {
+                            selectedTimeFrom = from;
+                            selectedTimeTo = to;
+                          });
+                        },
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.greyColorback,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: AppColors(context).primaryColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              getTimeDisplayText(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: selectedTimeFrom != null && selectedTimeTo != null ? Colors.black87 : Colors.grey,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: Colors.grey[600],
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        // Show error messages if validation failed
+        if (fieldErrors['date'] != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              fieldErrors['date']!,
+              style: TextStyle(
+                color: Colors.red[600],
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+        if (fieldErrors['time'] != null) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              fieldErrors['time']!,
+              style: TextStyle(
+                color: Colors.red[600],
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -2477,7 +2772,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               final displayText = slot['display']!;
               final from = slot['from']!;
               final to = slot['to']!;
-              
+
               return DropdownCardItem(
                 id: availableSlots.indexOf(slot),
                 title: displayText,
@@ -2533,9 +2828,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: selectedTimeFrom != null && selectedTimeTo != null
-                          ? Colors.black87
-                          : Colors.grey,
+                      color: selectedTimeFrom != null && selectedTimeTo != null ? Colors.black87 : Colors.grey,
                     ),
                   ),
                 ),
@@ -2622,69 +2915,69 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       children: [
         InkWell(
           onTap: isDisabled ? null : onTap,
-      borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8),
           child: Opacity(
             opacity: isDisabled ? 0.6 : 1.0,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.greyColorback,
-          borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.greyColorback,
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: errorMessage != null ? Colors.red : Colors.grey[300]!,
                   width: errorMessage != null ? 2 : 1,
                 ),
-        ),
-        child: Row(
-          children: [
-            if (selectedItem?.icon != null) ...[
-              Icon(
-                selectedItem!.icon,
-                color: AppColors(context).primaryColor,
-                size: 24,
               ),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                  if (selectedItem?.icon != null) ...[
+                    Icon(
+                      selectedItem!.icon,
+                      color: AppColors(context).primaryColor,
+                      size: 24,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    selectedItem?.title ?? 'Select',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: selectedItem != null ? Colors.black87 : Colors.grey,
-                    ),
-                  ),
-                  if (selectedItem?.subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      selectedItem!.subtitle!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
+                    const SizedBox(width: 12),
                   ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          selectedItem?.title ?? 'Select',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: selectedItem != null ? Colors.black87 : Colors.grey,
+                          ),
+                        ),
+                        if (selectedItem?.subtitle != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            selectedItem!.subtitle!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.grey[600],
+                  ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_drop_down,
-              color: Colors.grey[600],
-            ),
-          ],
-        ),
-      ),
           ),
         ),
         if (errorMessage != null) ...[
@@ -2760,9 +3053,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    uploadedFiles.isEmpty
-                        ? localizations.addAttachment
-                        : '${uploadedFiles.length} file(s) attached',
+                    uploadedFiles.isEmpty ? localizations.addAttachment : '${uploadedFiles.length} file(s) attached',
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
@@ -2784,23 +3075,21 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             children: uploadedFiles.asMap().entries.map((entry) {
               final index = entry.key;
               final file = entry.value;
-              final fileName = file['filename'] ?? 
-                  file['image']?.split('/').last ?? 
-                  file['file']?.split('/').last ??
-                  file['audio']?.split('/').last ?? 
-                  'File ${index + 1}';
+              final fileName = file['filename'] ?? file['image']?.split('/').last ?? file['file']?.split('/').last ?? file['audio']?.split('/').last ?? 'File ${index + 1}';
               final filePath = file['file'] ?? file['image'] ?? file['audio'];
-              
+
               return InkWell(
-                onTap: filePath != null ? () {
-                  _viewFile(filePath, file);
-                } : null,
+                onTap: filePath != null
+                    ? () {
+                        _viewFile(filePath, file);
+                      }
+                    : null,
                 child: Chip(
                   avatar: Icon(
-                    file['file'] != null 
-                        ? Icons.insert_drive_file 
-                        : file['image'] != null 
-                            ? Icons.image 
+                    file['file'] != null
+                        ? Icons.insert_drive_file
+                        : file['image'] != null
+                            ? Icons.image
                             : Icons.audiotrack,
                     size: 18,
                   ),
@@ -2830,8 +3119,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     // Check file map first
     if (file['image'] != null) {
       final path = file['image']!;
-      if (path.toLowerCase().endsWith('.mp4') || path.toLowerCase().endsWith('.mov') || 
-          path.toLowerCase().endsWith('.avi') || path.toLowerCase().endsWith('.mkv')) {
+      if (path.toLowerCase().endsWith('.mp4') || path.toLowerCase().endsWith('.mov') || path.toLowerCase().endsWith('.avi') || path.toLowerCase().endsWith('.mkv')) {
         return 'video';
       }
       return 'image';
@@ -2839,43 +3127,35 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     if (file['audio'] != null) return 'audio';
     if (file['file'] != null) {
       final path = file['file']!.toLowerCase();
-      if (path.endsWith('.pdf') || path.endsWith('.doc') || path.endsWith('.docx') ||
-          path.endsWith('.xls') || path.endsWith('.xlsx') || path.endsWith('.txt')) {
+      if (path.endsWith('.pdf') || path.endsWith('.doc') || path.endsWith('.docx') || path.endsWith('.xls') || path.endsWith('.xlsx') || path.endsWith('.txt')) {
         return 'document';
       }
-      if (path.endsWith('.mp4') || path.endsWith('.mov') || 
-          path.endsWith('.avi') || path.endsWith('.mkv')) {
+      if (path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.avi') || path.endsWith('.mkv')) {
         return 'video';
       }
-      if (path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.m4a') ||
-          path.endsWith('.aac') || path.endsWith('.ogg')) {
+      if (path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.m4a') || path.endsWith('.aac') || path.endsWith('.ogg')) {
         return 'audio';
       }
-      if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') ||
-          path.endsWith('.gif') || path.endsWith('.webp') || path.endsWith('.bmp')) {
+      if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || path.endsWith('.gif') || path.endsWith('.webp') || path.endsWith('.bmp')) {
         return 'image';
       }
     }
-    
+
     // Fallback: check file extension from path
     final path = filePath.toLowerCase();
-    if (path.endsWith('.mp4') || path.endsWith('.mov') || 
-        path.endsWith('.avi') || path.endsWith('.mkv')) {
+    if (path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.avi') || path.endsWith('.mkv')) {
       return 'video';
     }
-    if (path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.m4a') ||
-        path.endsWith('.aac') || path.endsWith('.ogg')) {
+    if (path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.m4a') || path.endsWith('.aac') || path.endsWith('.ogg')) {
       return 'audio';
     }
-    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') ||
-        path.endsWith('.gif') || path.endsWith('.webp') || path.endsWith('.bmp')) {
+    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png') || path.endsWith('.gif') || path.endsWith('.webp') || path.endsWith('.bmp')) {
       return 'image';
     }
-    if (path.endsWith('.pdf') || path.endsWith('.doc') || path.endsWith('.docx') ||
-        path.endsWith('.xls') || path.endsWith('.xlsx') || path.endsWith('.txt')) {
+    if (path.endsWith('.pdf') || path.endsWith('.doc') || path.endsWith('.docx') || path.endsWith('.xls') || path.endsWith('.xlsx') || path.endsWith('.txt')) {
       return 'document';
     }
-    
+
     return 'unknown';
   }
 
@@ -2970,9 +3250,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               title: const Text('Video Player', style: TextStyle(color: Colors.white)),
             ),
             Flexible(
-              child: isUrl
-                  ? _VideoPlayerNetworkWidget(url: filePath)
-                  : _VideoPlayerFileWidget(filePath: filePath),
+              child: isUrl ? _VideoPlayerNetworkWidget(url: filePath) : _VideoPlayerFileWidget(filePath: filePath),
             ),
           ],
         ),
@@ -3001,9 +3279,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 ],
               ),
               const SizedBox(height: 20),
-              isUrl
-                  ? _AudioPlayerNetworkWidget(url: filePath)
-                  : _AudioPlayerFileWidget(filePath: filePath),
+              isUrl ? _AudioPlayerNetworkWidget(url: filePath) : _AudioPlayerFileWidget(filePath: filePath),
             ],
           ),
         ),

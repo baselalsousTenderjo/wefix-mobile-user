@@ -290,9 +290,15 @@ class AppProvider with ChangeNotifier {
   }
 
   TextEditingController desc = TextEditingController();
+  TextEditingController ticketDescription = TextEditingController();
 
   saveDesc(String? value) {
     desc.text = value != null ? value : '';
+    notifyListeners();
+  }
+
+  saveTicketDescription(String? value) {
+    ticketDescription.text = value != null ? value : '';
     notifyListeners();
   }
 

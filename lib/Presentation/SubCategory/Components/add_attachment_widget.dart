@@ -425,15 +425,45 @@ class _UploadOptionsScreenState extends State<UploadOptionsScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Container(
-              key: keyButton[3],
-              child: WidgetTextField(
-                AppText(context).describeyourproblem,
-                maxLines: 4,
-                controller: noteController,
-              ),
+            // Hide "describe your problem" field for company users (roleId: 18, 20, 26)
+            Builder(
+              builder: (context) {
+                final appProvider = Provider.of<AppProvider>(context, listen: false);
+                final roleId = appProvider.userModel?.customer.roleId;
+                int? roleIdInt;
+                
+                if (roleId != null) {
+                  if (roleId is int) {
+                    roleIdInt = roleId;
+                  } else if (roleId is String) {
+                    roleIdInt = int.tryParse(roleId);
+                  } else {
+                    roleIdInt = int.tryParse(roleId.toString());
+                  }
+                }
+                
+                // Company roles: 18 (Company Admin), 20 (Team Leader), 26 (Super User)
+                final isCompany = roleIdInt == 18 || roleIdInt == 20 || roleIdInt == 26;
+                
+                if (isCompany) {
+                  return const SizedBox.shrink();
+                }
+                
+                return Column(
+                  children: [
+                    Container(
+                      key: keyButton[3],
+                      child: WidgetTextField(
+                        AppText(context).describeyourproblem,
+                        maxLines: 4,
+                        controller: noteController,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: 20),
             uploadedFiles.isEmpty
                 ? const SizedBox()
                 : Text(AppText(context).attachments,

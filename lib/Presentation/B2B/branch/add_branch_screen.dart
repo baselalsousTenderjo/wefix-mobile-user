@@ -155,7 +155,7 @@ class _AddBranchScreenState extends State<AddBranchScreen> {
         // Add street name if available and valid
         if (isValidAddressPart(place.street)) {
           addressParts.add(place.street!.trim());
-        }
+    }
         
         // Add thoroughfare if different from street and valid
         if (isValidAddressPart(place.thoroughfare) && 

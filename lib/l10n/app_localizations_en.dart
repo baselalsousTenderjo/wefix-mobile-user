@@ -939,6 +939,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get description => 'Description';
 
   @override
+  String get problemDescription => 'Problem Description';
+
+  @override
   String get serviceDescription => 'Service Description';
 
   @override
