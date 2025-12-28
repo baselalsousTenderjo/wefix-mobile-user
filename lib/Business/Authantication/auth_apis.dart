@@ -189,7 +189,7 @@ class Authantication {
 
   // * MMS Login (Company Personnel)
   static MmsUserModel? mmsUserModel;
-  static Future<MmsUserModel?> mmsLogin({
+  static Future<Map<String, dynamic>> mmsLogin({
     required String email,
     required String password,
     required String deviceId,
@@ -211,16 +211,20 @@ class Authantication {
       if (response.statusCode == 200 && body['success'] == true) {
         mmsUserModel = MmsUserModel.fromJson(body);
         if (mmsUserModel != null) {
-          return mmsUserModel;
+          return {'success': true, 'data': mmsUserModel, 'message': null};
         } else {
-          return null;
+          return {'success': false, 'data': null, 'message': 'Failed to parse user data'};
         }
       } else {
-        return null;
+        // Extract error message from response
+        String errorMessage = body['message'] ?? 
+                              body['error'] ?? 
+                              'Invalid login credentials';
+        return {'success': false, 'data': null, 'message': errorMessage};
       }
     } catch (e) {
       log('mmsLogin() [ ERROR ] -> $e');
-      return null;
+      return {'success': false, 'data': null, 'message': 'Network error. Please try again.'};
     }
   }
 

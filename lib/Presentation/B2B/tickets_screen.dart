@@ -428,12 +428,15 @@ class _TicketCardState extends State<TicketCard> {
                 ],
               ),
               const SizedBox(height: 8),
+              // Display ticket title (location) if available, otherwise fallback to description
               Text(
-                languageProvider.lang == "ar"
-                    ? widget.ticket?.descriptionAr ??
-                        AppText(context).preventivemaintenancevisit
-                    : widget.ticket?.description ??
-                        AppText(context).preventivemaintenancevisit,
+                widget.ticket?.location?.isNotEmpty == true
+                    ? widget.ticket!.location!
+                    : (languageProvider.lang == "ar"
+                        ? widget.ticket?.descriptionAr ??
+                            AppText(context).preventivemaintenancevisit
+                        : widget.ticket?.description ??
+                            AppText(context).preventivemaintenancevisit),
                 style: TextStyle(
                     fontSize: AppSize(context).mediumText3,
                     fontWeight: FontWeight.bold),

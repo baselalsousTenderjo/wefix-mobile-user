@@ -18,6 +18,7 @@ import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/Helper/cache_helper.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/login_model.dart';
+import 'package:wefix/Data/model/mms_user_model.dart';
 import 'package:wefix/Data/model/user_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
@@ -615,13 +616,32 @@ class _LoginScreenState extends State<LoginScreen> {
       // Generate a simple device ID (you may want to use device_info_plus package)
       String deviceId = 'device-${DateTime.now().millisecondsSinceEpoch}';
 
-      final mmsUser = await Authantication.mmsLogin(
+      final loginResult = await Authantication.mmsLogin(
         email: email.text.trim(),
         password: password.text,
         deviceId: deviceId,
         fcmToken: fcmToken ?? 'device-token-placeholder',
       );
 
+      if (!loginResult['success']) {
+        setState(() {
+          loading = false;
+        });
+        if (mounted) {
+          final errorMessage = loginResult['message'] ?? 'Invalid login credentials';
+          showDialog(
+            context: context,
+            builder: (context) => WidgetDialog(
+              title: AppText(context, isFunction: true).warning,
+              desc: errorMessage,
+              isError: true,
+            ),
+          );
+        }
+        return;
+      }
+
+      final mmsUser = loginResult['data'] as MmsUserModel?;
       if (mmsUser != null && mmsUser.success && mmsUser.user != null) {
         // Convert MmsUserModel to UserModel format
         // Use userRoleId from MMS response (from COMPANY_ROLE lookup table)
