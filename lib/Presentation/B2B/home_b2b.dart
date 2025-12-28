@@ -616,28 +616,54 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
     return name[0].toUpperCase();
   }
 
+  // Helper function to convert numbers to Arabic numerals
+  String _convertToArabicNumerals(String text, String locale) {
+    if (locale != 'ar') return text;
+    
+    const Map<String, String> arabicNumerals = {
+      '0': '٠',
+      '1': '١',
+      '2': '٢',
+      '3': '٣',
+      '4': '٤',
+      '5': '٥',
+      '6': '٦',
+      '7': '٧',
+      '8': '٨',
+      '9': '٩',
+    };
+    
+    String result = text;
+    arabicNumerals.forEach((english, arabic) {
+      result = result.replaceAll(english, arabic);
+    });
+    return result;
+  }
+
   // Helper function to format time from "HH:mm:ss" to "HH:mm"
-  String _formatTime(String? time) {
+  String _formatTime(String? time, {String? locale}) {
     if (time == null || time.isEmpty) return '';
     // If time is in format "HH:mm:ss", remove seconds
     if (time.length >= 8 && time.contains(':')) {
       final parts = time.split(':');
       if (parts.length >= 2) {
-        return '${parts[0]}:${parts[1]}';
+        final formattedTime = '${parts[0]}:${parts[1]}';
+        return locale != null ? _convertToArabicNumerals(formattedTime, locale) : formattedTime;
       }
     }
-    return time;
+    return locale != null ? _convertToArabicNumerals(time, locale) : time;
   }
 
   // Helper function to format datetime range string (e.g., "12:08:00 - 14:08:00" -> "12:08 - 14:08")
-  String _formatDateTimeRange(String dateTimeRange) {
+  String _formatDateTimeRange(String dateTimeRange, {String? locale}) {
     if (dateTimeRange.contains(' - ')) {
       final parts = dateTimeRange.split(' - ');
       if (parts.length == 2) {
-        return '${_formatTime(parts[0].trim())} - ${_formatTime(parts[1].trim())}';
+        final formatted = '${_formatTime(parts[0].trim(), locale: locale)} - ${_formatTime(parts[1].trim(), locale: locale)}';
+        return formatted;
       }
     }
-    return dateTimeRange;
+    return locale != null ? _convertToArabicNumerals(dateTimeRange, locale) : dateTimeRange;
   }
 
   // Helper function to check if image URL is valid (primary check)
@@ -878,11 +904,12 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                       );
                                       
                                       String timeStr = '';
+                                      final isArabic = locale.languageCode == 'ar';
                                       if (widget.ticketModel?.tickets[ticketIndex].timeFrom != null || 
                                           widget.ticketModel?.tickets[ticketIndex].timeTo != null) {
-                                        timeStr = "${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeFrom ?? '')} - ${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeTo ?? '')}";
+                                        timeStr = "${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeFrom ?? '', locale: isArabic ? 'ar' : null)} - ${_formatTime(widget.ticketModel?.tickets[ticketIndex].timeTo ?? '', locale: isArabic ? 'ar' : null)}";
                                       } else if (widget.ticketModel?.tickets[ticketIndex].selectedDateTime != null) {
-                                        timeStr = _formatDateTimeRange(widget.ticketModel!.tickets[ticketIndex].selectedDateTime!);
+                                        timeStr = _formatDateTimeRange(widget.ticketModel!.tickets[ticketIndex].selectedDateTime!, locale: isArabic ? 'ar' : null);
                                       }
                                       
                                       if (timeStr.isNotEmpty) {
@@ -894,6 +921,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.grey,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -905,6 +933,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.grey,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -917,6 +946,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         );
