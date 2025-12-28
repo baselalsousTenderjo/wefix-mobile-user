@@ -128,6 +128,7 @@ class _B2BHomeState extends State<B2BHome> {
             cancelButton: null,
             isRated: null,
             type: ticket['ticketType']?['name'],
+            ticketCodeId: ticket['ticketCodeId']?.toString() ?? null,
             promoCode: null,
             requestedDate: ticketDate,
             selectedDate: ticketDate,
@@ -825,9 +826,11 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                         ),
                                       ),
                                 const SizedBox(height: 6),
-                                // Ticket ID below avatar
+                                // Ticket Code below avatar
                                 Text(
-                                  "#${widget.ticketModel?.tickets[ticketIndex].id}",
+                                  widget.ticketModel?.tickets[ticketIndex].ticketCodeId != null
+                                      ? widget.ticketModel!.tickets[ticketIndex].ticketCodeId!
+                                      : "#${widget.ticketModel?.tickets[ticketIndex].id}",
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
@@ -858,7 +861,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  // Date and Time inline
+                                  // Date and Time inline with more spacing
                                   Builder(
                                     builder: (context) {
                                       final locale = Localizations.localeOf(context);
@@ -875,13 +878,42 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                         timeStr = _formatDateTimeRange(widget.ticketModel!.tickets[ticketIndex].selectedDateTime!);
                                       }
                                       
-                                      return Text(
-                                        timeStr.isNotEmpty ? "$dateStr, $timeStr" : dateStr,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      );
+                                      if (timeStr.isNotEmpty) {
+                                        return Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                dateStr,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Flexible(
+                                              child: Text(
+                                                timeStr,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      } else {
+                                        return Text(
+                                          dateStr,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        );
+                                      }
                                     },
                                   ),
                                   if (widget.ticketModel?.tickets[ticketIndex].serviceprovide != null) ...[
@@ -901,7 +933,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                             ),
                             // Status badge on the right
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
                                         ? Colors.orange.withOpacity(.15)
@@ -910,7 +942,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                             : widget.ticketModel?.tickets[ticketIndex].status == "Completed"
                                                 ? Colors.green.withOpacity(.15)
                                                 : Colors.pink.withOpacity(.15),
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
                                     widget.ticketModel?.tickets[ticketIndex].statusAr ?? 
@@ -924,7 +956,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                                   ? Colors.green.shade700
                                                   : Colors.pink.shade700,
                                       fontWeight: FontWeight.w500,
-                                      fontSize: 12,
+                                      fontSize: 10,
                                     ),
                                   ),
                             ),
@@ -940,35 +972,38 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
           ),
         ),
         // Pagination dots indicator
-        Builder(
-          builder: (context) {
-            final totalPages = (widget.ticketModel?.tickets.length ?? 0) > 0 
-                ? ((widget.ticketModel!.tickets.length / 3).ceil()) 
-                : 0;
-            if (totalPages <= 1) return const SizedBox.shrink();
-            
-            return Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    totalPages,
-                    (index) => Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 24 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color: _currentPage == index
-                            ? AppColors(context).primaryColor
-                            : AppColors(context).primaryColor.withOpacity(0.3),
+        Transform.translate(
+          offset: const Offset(0, -12),
+          child: Builder(
+            builder: (context) {
+              final totalPages = (widget.ticketModel?.tickets.length ?? 0) > 0 
+                  ? ((widget.ticketModel!.tickets.length / 3).ceil()) 
+                  : 0;
+              if (totalPages <= 1) return const SizedBox.shrink();
+              
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      totalPages,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == index ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: _currentPage == index
+                              ? AppColors(context).primaryColor
+                              : AppColors(context).primaryColor.withOpacity(0.3),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
