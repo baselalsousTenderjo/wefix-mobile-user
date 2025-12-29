@@ -48,6 +48,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get userName => 'User Name';
 
   @override
+  String get signature => 'Signature';
+
+  @override
+  String get uploadImages => 'Upload Images';
+
+  @override
+  String get uploadFromGallery => 'Upload Images From Gallery';
+
+  @override
+  String get uploadFromCamera => 'Upload Images From Camera';
+
+  @override
   String get verifycodehasbeenresentcheckyourinbox => 'Verify code has been resent, check your inbox.';
 
   @override
@@ -451,4 +463,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nomaterialaddedyet => 'No material added yet!';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get enterYourName => 'Enter Your Name';
+
+  @override
+  String get selectType => 'Select Type';
+
+  @override
+  String get userDataNotFoundAccessDenied => 'User data not found. Access denied.';
+
+  @override
+  String get userRoleNotFoundAccessDenied => 'User role not found. Access denied.';
+
+  @override
+  String get invalidUserRoleAccessDenied => 'Invalid user role. Access denied.';
+
+  @override
+  String get invalidUserRoleIdAccessDenied => 'Invalid user role ID. Access denied.';
+
+  @override
+  String get accessDeniedTechniciansOnly => 'Access denied. This app is only available for Technicians.';
+
+  @override
+  String accessDeniedTechniciansOnlyWithRole(String roleName) {
+    return 'Access denied. This app is only available for Technicians. Your role: $roleName';
+  }
+
+  @override
+  String get userDataNotFoundPleaseLoginAgain => 'User data not found. Please login again.';
+
+  @override
+  String get systemErrorDuringAuthentication => 'System error during authentication. Please try again later.';
+
+  @override
+  String get systemErrorDuringAccessVerification => 'System error during access verification. Please try again later.';
+
+  @override
+  String get backendServerError => 'Backend server error. Please try again later.';
+
+  @override
+  String get networkErrorCheckConnection => 'Network error. Please check your connection and try again.';
+
+  @override
+  String get roleSuperUser => 'Super User';
+
+  @override
+  String get roleIndividual => 'Individual';
+
+  @override
+  String get roleTeamLeader => 'Team Leader';
+
+  @override
+  String get roleTechnician => 'Technician';
+
+  @override
+  String get roleSubTechnician => 'Sub Technician';
+
+  @override
+  String roleUnknown(int roleId) {
+    return 'Unknown Role ($roleId)';
+  }
 }

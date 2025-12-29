@@ -154,6 +154,40 @@
        "name":"الاسم",
        "enterYourName":"أدخل اسمك",
        "type":"النوع",
-       "selectType":"اختر النوع"
+       "selectType":"اختر النوع",
+       "b2bTeam":"فريق B2B",
+       "weFixTeam":"فريق WeFix",
+       "userDataNotFoundAccessDenied":"لم يتم العثور على بيانات المستخدم. تم رفض الوصول.",
+       "userRoleNotFoundAccessDenied":"لم يتم العثور على دور المستخدم. تم رفض الوصول.",
+       "invalidUserRoleAccessDenied":"دور المستخدم غير صالح. تم رفض الوصول.",
+       "invalidUserRoleIdAccessDenied":"معرف دور المستخدم غير صالح. تم رفض الوصول.",
+       "accessDeniedTechniciansOnly":"تم رفض الوصول. هذا التطبيق متاح فقط للفنيين.",
+       "accessDeniedTechniciansOnlyWithRole":"تم رفض الوصول. هذا التطبيق متاح فقط للفنيين. دورك: {roleName}",
+       "@accessDeniedTechniciansOnlyWithRole": {
+         "placeholders": {
+           "roleName": {
+             "type": "String"
+           }
+         }
+       },
+       "userDataNotFoundPleaseLoginAgain":"لم يتم العثور على بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.",
+       "systemErrorDuringAuthentication":"خطأ في النظام أثناء المصادقة. يرجى المحاولة مرة أخرى لاحقًا.",
+       "systemErrorDuringAccessVerification":"خطأ في النظام أثناء التحقق من الوصول. يرجى المحاولة مرة أخرى لاحقًا.",
+       "backendServerError":"خطأ في خادم الخلفية. يرجى المحاولة مرة أخرى لاحقًا.",
+       "networkErrorCheckConnection":"خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
+       "roleSuperUser":"مستخدم فائق",
+       "roleIndividual":"فردي",
+       "roleTeamLeader":"قائد الفريق",
+       "roleTechnician":"فني",
+       "roleSubTechnician":"فني مساعد",
+       "roleAdmin":"مدير",
+       "roleUnknown":"دور غير معروف ({roleId})",
+       "@roleUnknown": {
+         "placeholders": {
+           "roleId": {
+             "type": "int"
+           }
+         }
+       }
 
 }

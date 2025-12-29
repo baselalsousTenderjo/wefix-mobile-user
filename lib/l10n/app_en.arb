@@ -155,7 +155,40 @@
      "name":"Name",
       "enterYourName":"Enter Your Name",
       "type":"Type",
-      "selectType":"Select Type"
- 
+      "selectType":"Select Type",
+      "b2bTeam":"B2B Team",
+      "weFixTeam":"WeFix Team",
+      "userDataNotFoundAccessDenied":"User data not found. Access denied.",
+      "userRoleNotFoundAccessDenied":"User role not found. Access denied.",
+      "invalidUserRoleAccessDenied":"Invalid user role. Access denied.",
+      "invalidUserRoleIdAccessDenied":"Invalid user role ID. Access denied.",
+      "accessDeniedTechniciansOnly":"Access denied. This app is only available for Technicians.",
+      "accessDeniedTechniciansOnlyWithRole":"Access denied. This app is only available for Technicians. Your role: {roleName}",
+      "@accessDeniedTechniciansOnlyWithRole": {
+        "placeholders": {
+          "roleName": {
+            "type": "String"
+          }
+        }
+      },
+      "userDataNotFoundPleaseLoginAgain":"User data not found. Please login again.",
+      "systemErrorDuringAuthentication":"System error during authentication. Please try again later.",
+      "systemErrorDuringAccessVerification":"System error during access verification. Please try again later.",
+      "backendServerError":"Backend server error. Please try again later.",
+      "networkErrorCheckConnection":"Network error. Please check your connection and try again.",
+      "roleSuperUser":"Super User",
+      "roleIndividual":"Individual",
+      "roleTeamLeader":"Team Leader",
+      "roleTechnician":"Technician",
+      "roleSubTechnician":"Sub Technician",
+      "roleAdmin":"Admin",
+      "roleUnknown":"Unknown Role ({roleId})",
+      "@roleUnknown": {
+        "placeholders": {
+          "roleId": {
+            "type": "int"
+          }
+        }
+      }
 
 }

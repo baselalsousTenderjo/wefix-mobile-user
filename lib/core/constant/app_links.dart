@@ -5,6 +5,8 @@ class AppLinks {
 
   // ============================== Server URL ==============================
   static final String server = dotenv.env['SERVER']!;
+  // SERVER_TMMS for authentication endpoints
+  static final String serverTMMS = dotenv.env['SERVER_TMMS'] ?? dotenv.env['SERVER']!;
   static final String chatChannel = dotenv.env['CHAT_CHANNEL']!;
   // ============================== Language ==============================
   static final String language = dotenv.env['LANGUAGE']!;

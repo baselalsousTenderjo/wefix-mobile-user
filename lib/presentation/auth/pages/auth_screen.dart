@@ -11,6 +11,7 @@ import '../../../injection_container.dart';
 import '../controller/auth_provider.dart';
 import '../widgets/widget_profile_image.dart';
 import '../widgets/widget_toggle_auth.dart';
+import '../widgets/widget_team_selector.dart';
 import 'containers/auth_button.dart';
 import 'containers/container_form_login.dart';
 import 'containers/container_form_register.dart';
@@ -29,7 +30,22 @@ class AuthScreen extends StatelessWidget {
               title:
                   context.watch<AuthProvider>().isRegister == true
                       ? const SizedBox(width: 120, child: Image(image: AssetImage(Assets.imageLogin)))
-                      : Text(AppText(context).weFixIndividual, style: AppTextStyle.style14B),
+                      : Builder(
+                          builder: (context) {
+                            final selectedTeam = context.watch<AuthProvider>().selectedTeam;
+                            final teamLabel = selectedTeam == 'B2B Team'
+                                ? AppText(context).b2bTeam
+                                : AppText(context).weFixTeam;
+                            // Fallback to English if translation is empty
+                            final displayLabel = teamLabel.isEmpty
+                                ? (selectedTeam == 'B2B Team' ? 'B2B Team' : 'WeFix Team')
+                                : teamLabel;
+                            return Text(
+                              displayLabel,
+                              style: AppTextStyle.style14B,
+                            );
+                          },
+                        ),
               actions: const [LanguageButton()],
             ),
             body: SafeArea(
@@ -43,6 +59,11 @@ class AuthScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // Team selector - only show on login screen, not register
+                        if (context.watch<AuthProvider>().isRegister == false) ...[
+                          const WidgetTeamSelector(),
+                          20.gap,
+                        ],
                         context.watch<AuthProvider>().isRegister == true
                             ? const WidgetProfileImage()
                             : const Center(child: Image(image: AssetImage(Assets.imageLogin))),

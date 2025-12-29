@@ -35,6 +35,9 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   final AuthUsecase authUsecase;
 
   bool isRegister = false;
+  
+  // Team selection: B2B Team (default) or WeFix Team
+  String selectedTeam = 'B2B Team'; // Default to B2B Team
 
   // Auth  Variables
   final key = GlobalKey<FormState>();
@@ -202,16 +205,52 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (key.currentState!.validate()) {
       try {
         loginState.value = LoginState.loading;
-        final loginRequiest = await authUsecase.login(mobile: mobile.text);
+        
+        // Normalize phone number - the phone widget should already provide international format
+        String normalizedMobile = mobile.text.replaceAll(' ', '').replaceAll('-', '').trim();
+        
+        // Validate that it has country code
+        if (!normalizedMobile.startsWith('+')) {
+          loginState.value = LoginState.failure;
+          SmartDialog.show(
+            builder:
+                (context) => WidgetDilog(
+                  isError: true,
+                  title: AppText(context).warning,
+                  message: 'Please enter phone number with country code (e.g., +1234567890)',
+                  cancelText: AppText(context).back,
+                  onCancel: () => SmartDialog.dismiss(),
+                ),
+          );
+          return;
+        }
+        
+        final loginRequiest = await authUsecase.login(mobile: normalizedMobile, team: selectedTeam);
         loginRequiest.fold(
           (l) {
             loginState.value = LoginState.failure;
+            
+            // Provide more specific error messages
+            String errorMessage = l.message;
+            if (l.message.toLowerCase().contains('does not exist') || 
+                l.message.toLowerCase().contains('account does not exist')) {
+              errorMessage = 'Account does not exist with this phone number';
+            } else if (l.message.toLowerCase().contains('invalid format') || 
+                       l.message.toLowerCase().contains('phone number')) {
+              errorMessage = 'Invalid phone number format';
+            } else if (l.message.toLowerCase().contains('locked')) {
+              errorMessage = 'Account temporarily locked';
+            } else if (l.message.toLowerCase().contains('wait') || 
+                       l.message.toLowerCase().contains('rate')) {
+              errorMessage = 'Please wait before requesting a new OTP';
+            }
+            
             SmartDialog.show(
               builder:
                   (context) => WidgetDilog(
                     isError: true,
                     title: AppText(context).warning,
-                    message: l.message,
+                    message: errorMessage,
                     cancelText: AppText(context).back,
                     onCancel: () => SmartDialog.dismiss(),
                   ),
@@ -219,12 +258,38 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           },
           (r) {
             loginState.value = LoginState.success;
-            return GlobalContext.context.push('${RouterKey.login + RouterKey.otp}?mobile=${mobile.text}');
+            // Pass normalized mobile to OTP screen
+            String normalizedMobile = mobile.text.replaceAll(' ', '').replaceAll('-', '').trim();
+            
+            // Get OTP from response if available (for development/testing)
+            String? otpFromResponse;
+            final responseData = r.data;
+            if (responseData != null && responseData.containsKey('otp')) {
+              otpFromResponse = responseData['otp']?.toString();
+            }
+            
+            // Build URL with mobile and optional OTP
+            String otpUrl = '${RouterKey.login + RouterKey.otp}?mobile=${Uri.encodeComponent(normalizedMobile)}';
+            if (otpFromResponse != null) {
+              otpUrl += '&otp=${Uri.encodeComponent(otpFromResponse)}';
+            }
+            
+            return GlobalContext.context.push(otpUrl);
           },
         );
       } catch (e) {
         loginState.value = LoginState.failure;
         log('Server Error In Login Section : $e');
+        SmartDialog.show(
+          builder:
+              (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: 'Network or service error. Please try again',
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+        );
       }
     }
   }
@@ -370,6 +435,14 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  // Switch between team login screens
+  void switchTeam(String team) {
+    if (selectedTeam != team) {
+      selectedTeam = team;
+      notifyListeners();
+    }
+  }
+
   _clear() {
     name.clear();
     email.clear();
@@ -387,6 +460,26 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  // Helper method to get role name for display
+  String _getRoleName(BuildContext context, int roleId) {
+    switch (roleId) {
+      case 26:
+        return AppText(context).roleSuperUser;
+      case 23:
+        return AppText(context).roleIndividual;
+      case 20:
+        return AppText(context).roleTeamLeader;
+      case 21:
+        return AppText(context).roleTechnician;
+      case 22:
+        return AppText(context).roleSubTechnician;
+      case 18:
+        return AppText(context).roleAdmin;
+      default:
+        return AppText(context).roleUnknown(roleId);
+    }
+  }
+
   changeCV() {
     cv.clear();
     notifyListeners();
@@ -398,22 +491,165 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       try {
         sendOTPState.value = SendState.loading;
         String? fcmToken = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.fcmtoken);
-        final sendOtpResponse = await authUsecase.sendOtp(mobile: phone, otp: otp.text, fcm: fcmToken ?? '');
-        sendOtpResponse.fold(
-          (l) {
+        
+        // Normalize phone number - handle URL encoding and different formats
+        String normalizedPhone = phone.trim();
+        
+        // Decode URL encoding if present (%2B becomes +)
+        try {
+          normalizedPhone = Uri.decodeComponent(normalizedPhone);
+        } catch (e) {
+          // If decoding fails, use as-is
+        }
+        
+        // Handle case where + was converted to space in URL query parameters
+        if (normalizedPhone.startsWith(' ') && normalizedPhone.length > 1) {
+          normalizedPhone = '+${normalizedPhone.substring(1).trim()}';
+        }
+        
+        // Remove spaces and dashes (but keep +)
+        normalizedPhone = normalizedPhone.replaceAll(' ', '').replaceAll('-', '').trim();
+        
+        // Handle different phone number formats
+        // If it starts with 00, replace with +
+        if (normalizedPhone.startsWith('00')) {
+          normalizedPhone = '+${normalizedPhone.substring(2)}';
+        }
+        // If it doesn't start with + and has enough digits, it might be missing the +
+        else if (!normalizedPhone.startsWith('+')) {
+          // Check if it looks like a valid phone number (at least 10 digits)
+          if (normalizedPhone.length >= 10 && RegExp(r'^\d+$').hasMatch(normalizedPhone)) {
+            // This shouldn't happen if phone was properly validated, but handle it gracefully
+            // Don't add + automatically as we don't know the country code
             sendOTPState.value = SendState.failure;
             return SmartDialog.show(
               builder:
                   (context) => WidgetDilog(
                     isError: true,
                     title: AppText(context).warning,
-                    message: l.message,
+                    message: 'Please enter phone number with country code',
+                    cancelText: AppText(context).back,
+                    onCancel: () => SmartDialog.dismiss(),
+                  ),
+            );
+          } else {
+            sendOTPState.value = SendState.failure;
+            return SmartDialog.show(
+              builder:
+                  (context) => WidgetDilog(
+                    isError: true,
+                    title: AppText(context).warning,
+                    message: 'Invalid phone number format',
+                    cancelText: AppText(context).back,
+                    onCancel: () => SmartDialog.dismiss(),
+                  ),
+            );
+          }
+        }
+        
+        final sendOtpResponse = await authUsecase.sendOtp(mobile: normalizedPhone, otp: otp.text, fcm: fcmToken ?? '', team: selectedTeam);
+        sendOtpResponse.fold(
+          (l) {
+            sendOTPState.value = SendState.failure;
+            
+            // Provide more specific error messages based on error type
+            String errorMessage = l.message;
+            if (l.message.toLowerCase().contains('expired')) {
+              errorMessage = 'OTP has expired. Please request a new OTP';
+            } else if (l.message.toLowerCase().contains('locked') || 
+                       l.message.toLowerCase().contains('lockout')) {
+              errorMessage = 'Account temporarily locked. Please try again later';
+            } else if (l.message.toLowerCase().contains('attempt')) {
+              // Show remaining attempts warning
+              errorMessage = l.message; // Already contains attempt count
+            }
+            
+            return SmartDialog.show(
+              builder:
+                  (context) => WidgetDilog(
+                    isError: true,
+                    title: AppText(context).warning,
+                    message: errorMessage,
                     cancelText: AppText(context).back,
                     onCancel: () => SmartDialog.dismiss(),
                   ),
             );
           },
           (r) async {
+            // Validate user data exists
+            if (r.data?.user == null) {
+              sendOTPState.value = SendState.failure;
+              return SmartDialog.show(
+                builder:
+                    (context) => WidgetDilog(
+                      isError: true,
+                      title: AppText(context).warning,
+                      message: AppText(context).userDataNotFoundAccessDenied,
+                      cancelText: AppText(context).back,
+                      onCancel: () => SmartDialog.dismiss(),
+                    ),
+              );
+            }
+            
+            // Check user role before allowing login
+            // Only allow TECHNICIAN (21) and SUB TECHNICIAN (22)
+            final userRoleId = r.data?.user?.userRoleId;
+            
+            // Handle null role ID
+            if (userRoleId == null) {
+              sendOTPState.value = SendState.failure;
+              return SmartDialog.show(
+                builder:
+                    (context) => WidgetDilog(
+                      isError: true,
+                      title: AppText(context).warning,
+                      message: AppText(context).userRoleNotFoundAccessDenied,
+                      cancelText: AppText(context).back,
+                      onCancel: () => SmartDialog.dismiss(),
+                    ),
+              );
+            }
+            
+            // Validate role ID is a valid positive integer
+            if (userRoleId <= 0) {
+              sendOTPState.value = SendState.failure;
+              return SmartDialog.show(
+                builder:
+                    (context) => WidgetDilog(
+                      isError: true,
+                      title: AppText(context).warning,
+                      message: AppText(context).invalidUserRoleIdAccessDenied,
+                      cancelText: AppText(context).back,
+                      onCancel: () => SmartDialog.dismiss(),
+                    ),
+              );
+            }
+            
+            // Check if user has allowed role (21 = TECHNICIAN, 22 = SUB TECHNICIAN)
+            if (userRoleId != 21 && userRoleId != 22) {
+              sendOTPState.value = SendState.failure;
+              return SmartDialog.show(
+                builder:
+                    (context) {
+                      String roleName = _getRoleName(context, userRoleId);
+                      String message = AppText(context).accessDeniedTechniciansOnlyWithRole(roleName);
+                      // Fallback if translation is empty
+                      if (message.isEmpty) {
+                        message = 'Access denied. This app is only available for Technicians. Your role: $roleName';
+                      }
+                      log('Access denied for role: $userRoleId ($roleName)');
+                      return WidgetDilog(
+                        isError: true,
+                        title: AppText(context).warning,
+                        message: message,
+                        cancelText: AppText(context).back,
+                        onCancel: () => SmartDialog.dismiss(),
+                      );
+                    },
+              );
+            }
+            
+            // User has authorized role - proceed with login
             sl<Box>(instanceName: BoxKeys.appBox).put(BoxKeys.enableAuth, true);
             sl<Box>(instanceName: BoxKeys.appBox).put(BoxKeys.usertoken, r.data?.token);
             sl<Box<User>>().put(BoxKeys.userData, r.data!.user!);
@@ -424,6 +660,23 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       } catch (e) {
         sendOTPState.value = SendState.failure;
         log('Server Error In Send OTP Section : $e');
+        // Handle backend internal server errors (e.g., HTTP 500)
+        String errorMessage = AppText(GlobalContext.context).systemErrorDuringAuthentication;
+        if (e.toString().contains('500') || e.toString().toLowerCase().contains('internal server error')) {
+          errorMessage = AppText(GlobalContext.context).backendServerError;
+        } else if (e.toString().contains('network') || e.toString().contains('connection')) {
+          errorMessage = AppText(GlobalContext.context).networkErrorCheckConnection;
+        }
+        SmartDialog.show(
+          builder:
+              (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: errorMessage,
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+        );
       }
     }
   }
@@ -441,16 +694,44 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           );
         },
       );
-      final loginRequiest = await authUsecase.login(mobile: phone.replaceAll(' ', '+'));
+      
+      // Normalize phone number - remove spaces and dashes
+      String normalizedPhone = phone.replaceAll(' ', '').replaceAll('-', '').trim();
+      
+      // Validate that it has country code
+      if (!normalizedPhone.startsWith('+')) {
+        SmartDialog.dismiss();
+        return SmartDialog.show(
+          builder:
+              (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: 'Please enter phone number with country code',
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+        );
+      }
+      
+      final loginRequiest = await authUsecase.login(mobile: normalizedPhone);
       loginRequiest.fold(
         (l) {
           SmartDialog.dismiss();
+          
+          // Check if it's a rate limiting error
+          String errorMessage = l.message;
+          if (l.message.toLowerCase().contains('wait') || 
+              l.message.toLowerCase().contains('rate') ||
+              l.message.toLowerCase().contains('60 seconds')) {
+            errorMessage = 'Please wait 60 seconds before requesting a new OTP';
+          }
+          
           return SmartDialog.show(
             builder:
                 (context) => WidgetDilog(
                   isError: true,
                   title: AppText(context).warning,
-                  message: l.message,
+                  message: errorMessage,
                   cancelText: AppText(context).back,
                   onCancel: () => SmartDialog.dismiss(),
                 ),
@@ -471,7 +752,17 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       );
     } catch (e) {
       SmartDialog.dismiss();
-      log('Server Error In Resrnd OTP Section : $e');
+      log('Server Error In Resend OTP Section : $e');
+      SmartDialog.show(
+        builder:
+            (context) => WidgetDilog(
+              isError: true,
+              title: AppText(context).warning,
+              message: 'Network error. Please try again',
+              cancelText: AppText(context).back,
+              onCancel: () => SmartDialog.dismiss(),
+            ),
+      );
     }
   }
 

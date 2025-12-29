@@ -33,8 +33,34 @@ final goRouter = GoRouter(
         GoRoute(
           path: RouterKey.otp,
           pageBuilder: (context, state) {
-            final mobile = state.uri.queryParameters['mobile'];
-            return _fadeTransitionPage(VerifyScreen(mobile: mobile!), state);
+            String? mobile = state.uri.queryParameters['mobile'];
+            String? otp = state.uri.queryParameters['otp'];
+            
+            // Normalize phone number from URL
+            if (mobile != null) {
+              // Decode URL encoding (%2B becomes +, spaces might be from +)
+              mobile = Uri.decodeComponent(mobile);
+              
+              // Handle case where + was converted to space in URL
+              if (mobile.startsWith(' ') && mobile.length > 1) {
+                mobile = '+${mobile.substring(1).trim()}';
+              }
+              
+              // Ensure it has + prefix if it starts with 00
+              if (mobile.startsWith('00')) {
+                mobile = '+${mobile.substring(2)}';
+              }
+              
+              // Remove any remaining spaces
+              mobile = mobile.replaceAll(' ', '').trim();
+            }
+            
+            // Decode OTP if present
+            if (otp != null) {
+              otp = Uri.decodeComponent(otp);
+            }
+            
+            return _fadeTransitionPage(VerifyScreen(mobile: mobile ?? '', otp: otp), state);
           },
         ),
       ],

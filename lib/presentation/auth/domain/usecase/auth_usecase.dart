@@ -15,9 +15,9 @@ class AuthUsecase {
   final RegisterRepository registerRepository;
   AuthUsecase({required this.loginRepository, required this.registerRepository});
 
-  Future<Either<Failure, Result<Map>>> login({required String mobile}) async => await loginRepository.login(mobile);
-  Future<Either<Failure, Result<UserModel>>> sendOtp({required String mobile, required String otp, required String fcm}) async =>
-      await loginRepository.checkOTPCode(mobile, otp, fcm);
+  Future<Either<Failure, Result<Map>>> login({required String mobile, String? team}) async => await loginRepository.login(mobile, team: team);
+  Future<Either<Failure, Result<UserModel>>> sendOtp({required String mobile, required String otp, required String fcm, String? team}) async =>
+      await loginRepository.checkOTPCode(mobile, otp, fcm, team: team);
   Future<Either<Failure, Unit>> register(JobApplicationParams registerRequiestModel) async => await registerRepository.register(registerRequiestModel);
   Future<Either<Failure, Result<String>>> uploadFile(File voiceFile) async => await registerRepository.uploadFile(voiceFile);
   Future<Either<Failure, Result<ContactInfoModel>>> getContactInfo() async => await loginRepository.getContactInfo();

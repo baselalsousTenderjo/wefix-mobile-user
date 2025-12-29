@@ -13,7 +13,8 @@ import 'containers/container_form_verify.dart';
 
 class VerifyScreen extends StatelessWidget {
   final String mobile;
-  const VerifyScreen({super.key, required this.mobile});
+  final String? otp;
+  const VerifyScreen({super.key, required this.mobile, this.otp});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +54,7 @@ class VerifyScreen extends StatelessWidget {
                             5.gap,
                             Text(mobile.replaceAll(' ', '00'), style: AppTextStyle.style14B),
                             30.gap,
-                            ContainerFormVerify(mobile: mobile),
+                            ContainerFormVerify(mobile: mobile, otp: otp),
                           ],
                         ),
                       ),

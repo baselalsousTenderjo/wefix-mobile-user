@@ -248,40 +248,84 @@ User _$UserFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$User {
+// Core fields from backend user.model.ts
   @HiveField(0)
   @JsonKey(name: "id")
   int? get id => throw _privateConstructorUsedError;
+  @HiveField(1)
+  @JsonKey(name: "userNumber")
+  String? get userNumber => throw _privateConstructorUsedError;
   @HiveField(2)
-  @JsonKey(name: "name")
-  String? get name => throw _privateConstructorUsedError;
+  @JsonKey(name: "fullName")
+  String? get fullName => throw _privateConstructorUsedError;
   @HiveField(3)
-  @JsonKey(name: "mobile")
-  String? get mobile => throw _privateConstructorUsedError;
+  @JsonKey(name: "fullNameEnglish")
+  String? get fullNameEnglish => throw _privateConstructorUsedError;
   @HiveField(4)
   @JsonKey(name: "email")
   String? get email => throw _privateConstructorUsedError;
   @HiveField(5)
+  @JsonKey(name: "mobileNumber")
+  String? get mobileNumber => throw _privateConstructorUsedError;
+  @HiveField(6)
+  @JsonKey(name: "countryCode")
+  String? get countryCode => throw _privateConstructorUsedError;
+  @HiveField(7)
+  @JsonKey(name: "username")
+  String? get username => throw _privateConstructorUsedError;
+  @HiveField(8)
+  @JsonKey(name: "userRoleId")
+  int? get userRoleId => throw _privateConstructorUsedError;
+  @HiveField(9)
+  @JsonKey(name: "companyId")
+  int? get companyId => throw _privateConstructorUsedError;
+  @HiveField(10)
+  @JsonKey(name: "profileImage")
+  String? get profileImage => throw _privateConstructorUsedError;
+  @HiveField(11)
+  @JsonKey(name: "gender")
+  String? get gender => throw _privateConstructorUsedError;
+  @HiveField(12)
+  @JsonKey(name: "createdAt")
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  @HiveField(13)
+  @JsonKey(name: "updatedAt")
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
+  @HiveField(14)
+  @JsonKey(name: "isActive")
+  bool? get isActive =>
+      throw _privateConstructorUsedError; // Legacy fields (kept for backward compatibility)
+  @HiveField(15)
+  @JsonKey(name: "name")
+  String? get name =>
+      throw _privateConstructorUsedError; // Maps to fullName/fullNameEnglish
+  @HiveField(16)
+  @JsonKey(name: "mobile")
+  String? get mobile =>
+      throw _privateConstructorUsedError; // Maps to mobileNumber
+  @HiveField(17)
+  @JsonKey(name: "image")
+  String? get image =>
+      throw _privateConstructorUsedError; // Maps to profileImage
+  @HiveField(18)
   @JsonKey(name: "age")
   String? get age => throw _privateConstructorUsedError;
-  @HiveField(6)
+  @HiveField(19)
   @JsonKey(name: "profession")
   String? get profession => throw _privateConstructorUsedError;
-  @HiveField(7)
+  @HiveField(20)
   @JsonKey(name: "introduce")
   String? get introduce => throw _privateConstructorUsedError;
-  @HiveField(8)
+  @HiveField(21)
   @JsonKey(name: "address")
   String? get address => throw _privateConstructorUsedError;
-  @HiveField(9)
+  @HiveField(22)
   @JsonKey(name: "dateOfBirth")
   DateTime? get dateOfBirth => throw _privateConstructorUsedError;
-  @HiveField(10)
+  @HiveField(23)
   @JsonKey(name: "raring")
   String? get rating => throw _privateConstructorUsedError;
-  @HiveField(11)
-  @JsonKey(name: "image")
-  String? get image => throw _privateConstructorUsedError;
-  @HiveField(12)
+  @HiveField(24)
   @JsonKey(name: "createdDate")
   DateTime? get createdDate => throw _privateConstructorUsedError;
 
@@ -297,17 +341,30 @@ abstract class $UserCopyWith<$Res> {
   @useResult
   $Res call(
       {@HiveField(0) @JsonKey(name: "id") int? id,
-      @HiveField(2) @JsonKey(name: "name") String? name,
-      @HiveField(3) @JsonKey(name: "mobile") String? mobile,
+      @HiveField(1) @JsonKey(name: "userNumber") String? userNumber,
+      @HiveField(2) @JsonKey(name: "fullName") String? fullName,
+      @HiveField(3) @JsonKey(name: "fullNameEnglish") String? fullNameEnglish,
       @HiveField(4) @JsonKey(name: "email") String? email,
-      @HiveField(5) @JsonKey(name: "age") String? age,
-      @HiveField(6) @JsonKey(name: "profession") String? profession,
-      @HiveField(7) @JsonKey(name: "introduce") String? introduce,
-      @HiveField(8) @JsonKey(name: "address") String? address,
-      @HiveField(9) @JsonKey(name: "dateOfBirth") DateTime? dateOfBirth,
-      @HiveField(10) @JsonKey(name: "raring") String? rating,
-      @HiveField(11) @JsonKey(name: "image") String? image,
-      @HiveField(12) @JsonKey(name: "createdDate") DateTime? createdDate});
+      @HiveField(5) @JsonKey(name: "mobileNumber") String? mobileNumber,
+      @HiveField(6) @JsonKey(name: "countryCode") String? countryCode,
+      @HiveField(7) @JsonKey(name: "username") String? username,
+      @HiveField(8) @JsonKey(name: "userRoleId") int? userRoleId,
+      @HiveField(9) @JsonKey(name: "companyId") int? companyId,
+      @HiveField(10) @JsonKey(name: "profileImage") String? profileImage,
+      @HiveField(11) @JsonKey(name: "gender") String? gender,
+      @HiveField(12) @JsonKey(name: "createdAt") DateTime? createdAt,
+      @HiveField(13) @JsonKey(name: "updatedAt") DateTime? updatedAt,
+      @HiveField(14) @JsonKey(name: "isActive") bool? isActive,
+      @HiveField(15) @JsonKey(name: "name") String? name,
+      @HiveField(16) @JsonKey(name: "mobile") String? mobile,
+      @HiveField(17) @JsonKey(name: "image") String? image,
+      @HiveField(18) @JsonKey(name: "age") String? age,
+      @HiveField(19) @JsonKey(name: "profession") String? profession,
+      @HiveField(20) @JsonKey(name: "introduce") String? introduce,
+      @HiveField(21) @JsonKey(name: "address") String? address,
+      @HiveField(22) @JsonKey(name: "dateOfBirth") DateTime? dateOfBirth,
+      @HiveField(23) @JsonKey(name: "raring") String? rating,
+      @HiveField(24) @JsonKey(name: "createdDate") DateTime? createdDate});
 }
 
 /// @nodoc
@@ -324,16 +381,29 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
   @override
   $Res call({
     Object? id = freezed,
+    Object? userNumber = freezed,
+    Object? fullName = freezed,
+    Object? fullNameEnglish = freezed,
+    Object? email = freezed,
+    Object? mobileNumber = freezed,
+    Object? countryCode = freezed,
+    Object? username = freezed,
+    Object? userRoleId = freezed,
+    Object? companyId = freezed,
+    Object? profileImage = freezed,
+    Object? gender = freezed,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? isActive = freezed,
     Object? name = freezed,
     Object? mobile = freezed,
-    Object? email = freezed,
+    Object? image = freezed,
     Object? age = freezed,
     Object? profession = freezed,
     Object? introduce = freezed,
     Object? address = freezed,
     Object? dateOfBirth = freezed,
     Object? rating = freezed,
-    Object? image = freezed,
     Object? createdDate = freezed,
   }) {
     return _then(_value.copyWith(
@@ -341,6 +411,62 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
+      userNumber: freezed == userNumber
+          ? _value.userNumber
+          : userNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fullName: freezed == fullName
+          ? _value.fullName
+          : fullName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fullNameEnglish: freezed == fullNameEnglish
+          ? _value.fullNameEnglish
+          : fullNameEnglish // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mobileNumber: freezed == mobileNumber
+          ? _value.mobileNumber
+          : mobileNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      countryCode: freezed == countryCode
+          ? _value.countryCode
+          : countryCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userRoleId: freezed == userRoleId
+          ? _value.userRoleId
+          : userRoleId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gender: freezed == gender
+          ? _value.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      isActive: freezed == isActive
+          ? _value.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
+              as bool?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -349,9 +475,9 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.mobile
           : mobile // ignore: cast_nullable_to_non_nullable
               as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
               as String?,
       age: freezed == age
           ? _value.age
@@ -376,10 +502,6 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
       rating: freezed == rating
           ? _value.rating
           : rating // ignore: cast_nullable_to_non_nullable
-              as String?,
-      image: freezed == image
-          ? _value.image
-          : image // ignore: cast_nullable_to_non_nullable
               as String?,
       createdDate: freezed == createdDate
           ? _value.createdDate
@@ -398,17 +520,30 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
   @useResult
   $Res call(
       {@HiveField(0) @JsonKey(name: "id") int? id,
-      @HiveField(2) @JsonKey(name: "name") String? name,
-      @HiveField(3) @JsonKey(name: "mobile") String? mobile,
+      @HiveField(1) @JsonKey(name: "userNumber") String? userNumber,
+      @HiveField(2) @JsonKey(name: "fullName") String? fullName,
+      @HiveField(3) @JsonKey(name: "fullNameEnglish") String? fullNameEnglish,
       @HiveField(4) @JsonKey(name: "email") String? email,
-      @HiveField(5) @JsonKey(name: "age") String? age,
-      @HiveField(6) @JsonKey(name: "profession") String? profession,
-      @HiveField(7) @JsonKey(name: "introduce") String? introduce,
-      @HiveField(8) @JsonKey(name: "address") String? address,
-      @HiveField(9) @JsonKey(name: "dateOfBirth") DateTime? dateOfBirth,
-      @HiveField(10) @JsonKey(name: "raring") String? rating,
-      @HiveField(11) @JsonKey(name: "image") String? image,
-      @HiveField(12) @JsonKey(name: "createdDate") DateTime? createdDate});
+      @HiveField(5) @JsonKey(name: "mobileNumber") String? mobileNumber,
+      @HiveField(6) @JsonKey(name: "countryCode") String? countryCode,
+      @HiveField(7) @JsonKey(name: "username") String? username,
+      @HiveField(8) @JsonKey(name: "userRoleId") int? userRoleId,
+      @HiveField(9) @JsonKey(name: "companyId") int? companyId,
+      @HiveField(10) @JsonKey(name: "profileImage") String? profileImage,
+      @HiveField(11) @JsonKey(name: "gender") String? gender,
+      @HiveField(12) @JsonKey(name: "createdAt") DateTime? createdAt,
+      @HiveField(13) @JsonKey(name: "updatedAt") DateTime? updatedAt,
+      @HiveField(14) @JsonKey(name: "isActive") bool? isActive,
+      @HiveField(15) @JsonKey(name: "name") String? name,
+      @HiveField(16) @JsonKey(name: "mobile") String? mobile,
+      @HiveField(17) @JsonKey(name: "image") String? image,
+      @HiveField(18) @JsonKey(name: "age") String? age,
+      @HiveField(19) @JsonKey(name: "profession") String? profession,
+      @HiveField(20) @JsonKey(name: "introduce") String? introduce,
+      @HiveField(21) @JsonKey(name: "address") String? address,
+      @HiveField(22) @JsonKey(name: "dateOfBirth") DateTime? dateOfBirth,
+      @HiveField(23) @JsonKey(name: "raring") String? rating,
+      @HiveField(24) @JsonKey(name: "createdDate") DateTime? createdDate});
 }
 
 /// @nodoc
@@ -422,16 +557,29 @@ class __$$UserImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = freezed,
+    Object? userNumber = freezed,
+    Object? fullName = freezed,
+    Object? fullNameEnglish = freezed,
+    Object? email = freezed,
+    Object? mobileNumber = freezed,
+    Object? countryCode = freezed,
+    Object? username = freezed,
+    Object? userRoleId = freezed,
+    Object? companyId = freezed,
+    Object? profileImage = freezed,
+    Object? gender = freezed,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? isActive = freezed,
     Object? name = freezed,
     Object? mobile = freezed,
-    Object? email = freezed,
+    Object? image = freezed,
     Object? age = freezed,
     Object? profession = freezed,
     Object? introduce = freezed,
     Object? address = freezed,
     Object? dateOfBirth = freezed,
     Object? rating = freezed,
-    Object? image = freezed,
     Object? createdDate = freezed,
   }) {
     return _then(_$UserImpl(
@@ -439,6 +587,62 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
+      userNumber: freezed == userNumber
+          ? _value.userNumber
+          : userNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fullName: freezed == fullName
+          ? _value.fullName
+          : fullName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fullNameEnglish: freezed == fullNameEnglish
+          ? _value.fullNameEnglish
+          : fullNameEnglish // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mobileNumber: freezed == mobileNumber
+          ? _value.mobileNumber
+          : mobileNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      countryCode: freezed == countryCode
+          ? _value.countryCode
+          : countryCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userRoleId: freezed == userRoleId
+          ? _value.userRoleId
+          : userRoleId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      companyId: freezed == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      profileImage: freezed == profileImage
+          ? _value.profileImage
+          : profileImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gender: freezed == gender
+          ? _value.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      isActive: freezed == isActive
+          ? _value.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
+              as bool?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -447,9 +651,9 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.mobile
           : mobile // ignore: cast_nullable_to_non_nullable
               as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
               as String?,
       age: freezed == age
           ? _value.age
@@ -475,10 +679,6 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.rating
           : rating // ignore: cast_nullable_to_non_nullable
               as String?,
-      image: freezed == image
-          ? _value.image
-          : image // ignore: cast_nullable_to_non_nullable
-              as String?,
       createdDate: freezed == createdDate
           ? _value.createdDate
           : createdDate // ignore: cast_nullable_to_non_nullable
@@ -492,73 +692,143 @@ class __$$UserImplCopyWithImpl<$Res>
 class _$UserImpl implements _User {
   const _$UserImpl(
       {@HiveField(0) @JsonKey(name: "id") this.id,
-      @HiveField(2) @JsonKey(name: "name") this.name,
-      @HiveField(3) @JsonKey(name: "mobile") this.mobile,
+      @HiveField(1) @JsonKey(name: "userNumber") this.userNumber,
+      @HiveField(2) @JsonKey(name: "fullName") this.fullName,
+      @HiveField(3) @JsonKey(name: "fullNameEnglish") this.fullNameEnglish,
       @HiveField(4) @JsonKey(name: "email") this.email,
-      @HiveField(5) @JsonKey(name: "age") this.age,
-      @HiveField(6) @JsonKey(name: "profession") this.profession,
-      @HiveField(7) @JsonKey(name: "introduce") this.introduce,
-      @HiveField(8) @JsonKey(name: "address") this.address,
-      @HiveField(9) @JsonKey(name: "dateOfBirth") this.dateOfBirth,
-      @HiveField(10) @JsonKey(name: "raring") this.rating,
-      @HiveField(11) @JsonKey(name: "image") this.image,
-      @HiveField(12) @JsonKey(name: "createdDate") this.createdDate});
+      @HiveField(5) @JsonKey(name: "mobileNumber") this.mobileNumber,
+      @HiveField(6) @JsonKey(name: "countryCode") this.countryCode,
+      @HiveField(7) @JsonKey(name: "username") this.username,
+      @HiveField(8) @JsonKey(name: "userRoleId") this.userRoleId,
+      @HiveField(9) @JsonKey(name: "companyId") this.companyId,
+      @HiveField(10) @JsonKey(name: "profileImage") this.profileImage,
+      @HiveField(11) @JsonKey(name: "gender") this.gender,
+      @HiveField(12) @JsonKey(name: "createdAt") this.createdAt,
+      @HiveField(13) @JsonKey(name: "updatedAt") this.updatedAt,
+      @HiveField(14) @JsonKey(name: "isActive") this.isActive,
+      @HiveField(15) @JsonKey(name: "name") this.name,
+      @HiveField(16) @JsonKey(name: "mobile") this.mobile,
+      @HiveField(17) @JsonKey(name: "image") this.image,
+      @HiveField(18) @JsonKey(name: "age") this.age,
+      @HiveField(19) @JsonKey(name: "profession") this.profession,
+      @HiveField(20) @JsonKey(name: "introduce") this.introduce,
+      @HiveField(21) @JsonKey(name: "address") this.address,
+      @HiveField(22) @JsonKey(name: "dateOfBirth") this.dateOfBirth,
+      @HiveField(23) @JsonKey(name: "raring") this.rating,
+      @HiveField(24) @JsonKey(name: "createdDate") this.createdDate});
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserImplFromJson(json);
 
+// Core fields from backend user.model.ts
   @override
   @HiveField(0)
   @JsonKey(name: "id")
   final int? id;
   @override
+  @HiveField(1)
+  @JsonKey(name: "userNumber")
+  final String? userNumber;
+  @override
   @HiveField(2)
-  @JsonKey(name: "name")
-  final String? name;
+  @JsonKey(name: "fullName")
+  final String? fullName;
   @override
   @HiveField(3)
-  @JsonKey(name: "mobile")
-  final String? mobile;
+  @JsonKey(name: "fullNameEnglish")
+  final String? fullNameEnglish;
   @override
   @HiveField(4)
   @JsonKey(name: "email")
   final String? email;
   @override
   @HiveField(5)
+  @JsonKey(name: "mobileNumber")
+  final String? mobileNumber;
+  @override
+  @HiveField(6)
+  @JsonKey(name: "countryCode")
+  final String? countryCode;
+  @override
+  @HiveField(7)
+  @JsonKey(name: "username")
+  final String? username;
+  @override
+  @HiveField(8)
+  @JsonKey(name: "userRoleId")
+  final int? userRoleId;
+  @override
+  @HiveField(9)
+  @JsonKey(name: "companyId")
+  final int? companyId;
+  @override
+  @HiveField(10)
+  @JsonKey(name: "profileImage")
+  final String? profileImage;
+  @override
+  @HiveField(11)
+  @JsonKey(name: "gender")
+  final String? gender;
+  @override
+  @HiveField(12)
+  @JsonKey(name: "createdAt")
+  final DateTime? createdAt;
+  @override
+  @HiveField(13)
+  @JsonKey(name: "updatedAt")
+  final DateTime? updatedAt;
+  @override
+  @HiveField(14)
+  @JsonKey(name: "isActive")
+  final bool? isActive;
+// Legacy fields (kept for backward compatibility)
+  @override
+  @HiveField(15)
+  @JsonKey(name: "name")
+  final String? name;
+// Maps to fullName/fullNameEnglish
+  @override
+  @HiveField(16)
+  @JsonKey(name: "mobile")
+  final String? mobile;
+// Maps to mobileNumber
+  @override
+  @HiveField(17)
+  @JsonKey(name: "image")
+  final String? image;
+// Maps to profileImage
+  @override
+  @HiveField(18)
   @JsonKey(name: "age")
   final String? age;
   @override
-  @HiveField(6)
+  @HiveField(19)
   @JsonKey(name: "profession")
   final String? profession;
   @override
-  @HiveField(7)
+  @HiveField(20)
   @JsonKey(name: "introduce")
   final String? introduce;
   @override
-  @HiveField(8)
+  @HiveField(21)
   @JsonKey(name: "address")
   final String? address;
   @override
-  @HiveField(9)
+  @HiveField(22)
   @JsonKey(name: "dateOfBirth")
   final DateTime? dateOfBirth;
   @override
-  @HiveField(10)
+  @HiveField(23)
   @JsonKey(name: "raring")
   final String? rating;
   @override
-  @HiveField(11)
-  @JsonKey(name: "image")
-  final String? image;
-  @override
-  @HiveField(12)
+  @HiveField(24)
   @JsonKey(name: "createdDate")
   final DateTime? createdDate;
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, mobile: $mobile, email: $email, age: $age, profession: $profession, introduce: $introduce, address: $address, dateOfBirth: $dateOfBirth, rating: $rating, image: $image, createdDate: $createdDate)';
+    return 'User(id: $id, userNumber: $userNumber, fullName: $fullName, fullNameEnglish: $fullNameEnglish, email: $email, mobileNumber: $mobileNumber, countryCode: $countryCode, username: $username, userRoleId: $userRoleId, companyId: $companyId, profileImage: $profileImage, gender: $gender, createdAt: $createdAt, updatedAt: $updatedAt, isActive: $isActive, name: $name, mobile: $mobile, image: $image, age: $age, profession: $profession, introduce: $introduce, address: $address, dateOfBirth: $dateOfBirth, rating: $rating, createdDate: $createdDate)';
   }
 
   @override
@@ -567,9 +837,35 @@ class _$UserImpl implements _User {
         (other.runtimeType == runtimeType &&
             other is _$UserImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.userNumber, userNumber) ||
+                other.userNumber == userNumber) &&
+            (identical(other.fullName, fullName) ||
+                other.fullName == fullName) &&
+            (identical(other.fullNameEnglish, fullNameEnglish) ||
+                other.fullNameEnglish == fullNameEnglish) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.mobileNumber, mobileNumber) ||
+                other.mobileNumber == mobileNumber) &&
+            (identical(other.countryCode, countryCode) ||
+                other.countryCode == countryCode) &&
+            (identical(other.username, username) ||
+                other.username == username) &&
+            (identical(other.userRoleId, userRoleId) ||
+                other.userRoleId == userRoleId) &&
+            (identical(other.companyId, companyId) ||
+                other.companyId == companyId) &&
+            (identical(other.profileImage, profileImage) ||
+                other.profileImage == profileImage) &&
+            (identical(other.gender, gender) || other.gender == gender) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.mobile, mobile) || other.mobile == mobile) &&
-            (identical(other.email, email) || other.email == email) &&
+            (identical(other.image, image) || other.image == image) &&
             (identical(other.age, age) || other.age == age) &&
             (identical(other.profession, profession) ||
                 other.profession == profession) &&
@@ -579,15 +875,40 @@ class _$UserImpl implements _User {
             (identical(other.dateOfBirth, dateOfBirth) ||
                 other.dateOfBirth == dateOfBirth) &&
             (identical(other.rating, rating) || other.rating == rating) &&
-            (identical(other.image, image) || other.image == image) &&
             (identical(other.createdDate, createdDate) ||
                 other.createdDate == createdDate));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, mobile, email, age,
-      profession, introduce, address, dateOfBirth, rating, image, createdDate);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        userNumber,
+        fullName,
+        fullNameEnglish,
+        email,
+        mobileNumber,
+        countryCode,
+        username,
+        userRoleId,
+        companyId,
+        profileImage,
+        gender,
+        createdAt,
+        updatedAt,
+        isActive,
+        name,
+        mobile,
+        image,
+        age,
+        profession,
+        introduce,
+        address,
+        dateOfBirth,
+        rating,
+        createdDate
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -606,68 +927,135 @@ class _$UserImpl implements _User {
 abstract class _User implements User {
   const factory _User(
       {@HiveField(0) @JsonKey(name: "id") final int? id,
-      @HiveField(2) @JsonKey(name: "name") final String? name,
-      @HiveField(3) @JsonKey(name: "mobile") final String? mobile,
+      @HiveField(1) @JsonKey(name: "userNumber") final String? userNumber,
+      @HiveField(2) @JsonKey(name: "fullName") final String? fullName,
+      @HiveField(3)
+      @JsonKey(name: "fullNameEnglish")
+      final String? fullNameEnglish,
       @HiveField(4) @JsonKey(name: "email") final String? email,
-      @HiveField(5) @JsonKey(name: "age") final String? age,
-      @HiveField(6) @JsonKey(name: "profession") final String? profession,
-      @HiveField(7) @JsonKey(name: "introduce") final String? introduce,
-      @HiveField(8) @JsonKey(name: "address") final String? address,
-      @HiveField(9) @JsonKey(name: "dateOfBirth") final DateTime? dateOfBirth,
-      @HiveField(10) @JsonKey(name: "raring") final String? rating,
-      @HiveField(11) @JsonKey(name: "image") final String? image,
-      @HiveField(12)
+      @HiveField(5) @JsonKey(name: "mobileNumber") final String? mobileNumber,
+      @HiveField(6) @JsonKey(name: "countryCode") final String? countryCode,
+      @HiveField(7) @JsonKey(name: "username") final String? username,
+      @HiveField(8) @JsonKey(name: "userRoleId") final int? userRoleId,
+      @HiveField(9) @JsonKey(name: "companyId") final int? companyId,
+      @HiveField(10) @JsonKey(name: "profileImage") final String? profileImage,
+      @HiveField(11) @JsonKey(name: "gender") final String? gender,
+      @HiveField(12) @JsonKey(name: "createdAt") final DateTime? createdAt,
+      @HiveField(13) @JsonKey(name: "updatedAt") final DateTime? updatedAt,
+      @HiveField(14) @JsonKey(name: "isActive") final bool? isActive,
+      @HiveField(15) @JsonKey(name: "name") final String? name,
+      @HiveField(16) @JsonKey(name: "mobile") final String? mobile,
+      @HiveField(17) @JsonKey(name: "image") final String? image,
+      @HiveField(18) @JsonKey(name: "age") final String? age,
+      @HiveField(19) @JsonKey(name: "profession") final String? profession,
+      @HiveField(20) @JsonKey(name: "introduce") final String? introduce,
+      @HiveField(21) @JsonKey(name: "address") final String? address,
+      @HiveField(22) @JsonKey(name: "dateOfBirth") final DateTime? dateOfBirth,
+      @HiveField(23) @JsonKey(name: "raring") final String? rating,
+      @HiveField(24)
       @JsonKey(name: "createdDate")
       final DateTime? createdDate}) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
 
-  @override
+  @override // Core fields from backend user.model.ts
   @HiveField(0)
   @JsonKey(name: "id")
   int? get id;
   @override
+  @HiveField(1)
+  @JsonKey(name: "userNumber")
+  String? get userNumber;
+  @override
   @HiveField(2)
-  @JsonKey(name: "name")
-  String? get name;
+  @JsonKey(name: "fullName")
+  String? get fullName;
   @override
   @HiveField(3)
-  @JsonKey(name: "mobile")
-  String? get mobile;
+  @JsonKey(name: "fullNameEnglish")
+  String? get fullNameEnglish;
   @override
   @HiveField(4)
   @JsonKey(name: "email")
   String? get email;
   @override
   @HiveField(5)
+  @JsonKey(name: "mobileNumber")
+  String? get mobileNumber;
+  @override
+  @HiveField(6)
+  @JsonKey(name: "countryCode")
+  String? get countryCode;
+  @override
+  @HiveField(7)
+  @JsonKey(name: "username")
+  String? get username;
+  @override
+  @HiveField(8)
+  @JsonKey(name: "userRoleId")
+  int? get userRoleId;
+  @override
+  @HiveField(9)
+  @JsonKey(name: "companyId")
+  int? get companyId;
+  @override
+  @HiveField(10)
+  @JsonKey(name: "profileImage")
+  String? get profileImage;
+  @override
+  @HiveField(11)
+  @JsonKey(name: "gender")
+  String? get gender;
+  @override
+  @HiveField(12)
+  @JsonKey(name: "createdAt")
+  DateTime? get createdAt;
+  @override
+  @HiveField(13)
+  @JsonKey(name: "updatedAt")
+  DateTime? get updatedAt;
+  @override
+  @HiveField(14)
+  @JsonKey(name: "isActive")
+  bool? get isActive;
+  @override // Legacy fields (kept for backward compatibility)
+  @HiveField(15)
+  @JsonKey(name: "name")
+  String? get name;
+  @override // Maps to fullName/fullNameEnglish
+  @HiveField(16)
+  @JsonKey(name: "mobile")
+  String? get mobile;
+  @override // Maps to mobileNumber
+  @HiveField(17)
+  @JsonKey(name: "image")
+  String? get image;
+  @override // Maps to profileImage
+  @HiveField(18)
   @JsonKey(name: "age")
   String? get age;
   @override
-  @HiveField(6)
+  @HiveField(19)
   @JsonKey(name: "profession")
   String? get profession;
   @override
-  @HiveField(7)
+  @HiveField(20)
   @JsonKey(name: "introduce")
   String? get introduce;
   @override
-  @HiveField(8)
+  @HiveField(21)
   @JsonKey(name: "address")
   String? get address;
   @override
-  @HiveField(9)
+  @HiveField(22)
   @JsonKey(name: "dateOfBirth")
   DateTime? get dateOfBirth;
   @override
-  @HiveField(10)
+  @HiveField(23)
   @JsonKey(name: "raring")
   String? get rating;
   @override
-  @HiveField(11)
-  @JsonKey(name: "image")
-  String? get image;
-  @override
-  @HiveField(12)
+  @HiveField(24)
   @JsonKey(name: "createdDate")
   DateTime? get createdDate;
   @override

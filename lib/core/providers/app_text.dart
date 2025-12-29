@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'language_provider/l10n_provider.dart';
+import 'domain/model/language_model.dart';
 
 class AppText {
   BuildContext context;
@@ -13,14 +14,30 @@ class AppText {
   String get langCode => languageProvider.lang ?? 'en';
 
   String getTranslation(String key) {
-    return languageProvider.allLanguage
-            .where((element) => element.key == langCode)
-            .toList()
-            .first
-            .languages
-            ?.firstWhere((element) => element.wordKey == key)
-            .value ??
-        '';
+    try {
+      final languageList = languageProvider.allLanguage
+          .where((element) => element.key == langCode)
+          .toList();
+      
+      if (languageList.isEmpty) {
+        return '';
+      }
+      
+      final languages = languageList.first.languages;
+      if (languages == null || languages.isEmpty) {
+        return '';
+      }
+      
+      final translation = languages.firstWhere(
+        (element) => element.wordKey == key,
+        orElse: () => SubLanguage(wordKey: key, value: ''),
+      );
+      
+      return translation.value ?? '';
+    } catch (e) {
+      // Return empty string if translation not found
+      return '';
+    }
   }
 
   String get youMustBeSelectedImages => getTranslation('youMustBeSelectedImages');
@@ -191,4 +208,26 @@ class AppText {
   String get yes => getTranslation('yes');
   String get no => getTranslation('no');
   String get request => getTranslation('request');
+  String get b2bTeam => getTranslation('b2bTeam');
+  String get weFixTeam => getTranslation('weFixTeam');
+  
+  // Role-based access control translations
+  String get userDataNotFoundAccessDenied => getTranslation('userDataNotFoundAccessDenied');
+  String get userRoleNotFoundAccessDenied => getTranslation('userRoleNotFoundAccessDenied');
+  String get invalidUserRoleAccessDenied => getTranslation('invalidUserRoleAccessDenied');
+  String get invalidUserRoleIdAccessDenied => getTranslation('invalidUserRoleIdAccessDenied');
+  String get accessDeniedTechniciansOnly => getTranslation('accessDeniedTechniciansOnly');
+  String accessDeniedTechniciansOnlyWithRole(String roleName) => getTranslation('accessDeniedTechniciansOnlyWithRole').replaceAll('{roleName}', roleName);
+  String get userDataNotFoundPleaseLoginAgain => getTranslation('userDataNotFoundPleaseLoginAgain');
+  String get systemErrorDuringAuthentication => getTranslation('systemErrorDuringAuthentication');
+  String get systemErrorDuringAccessVerification => getTranslation('systemErrorDuringAccessVerification');
+  String get backendServerError => getTranslation('backendServerError');
+  String get networkErrorCheckConnection => getTranslation('networkErrorCheckConnection');
+  String get roleSuperUser => getTranslation('roleSuperUser');
+  String get roleIndividual => getTranslation('roleIndividual');
+  String get roleTeamLeader => getTranslation('roleTeamLeader');
+  String get roleTechnician => getTranslation('roleTechnician');
+  String get roleSubTechnician => getTranslation('roleSubTechnician');
+  String get roleAdmin => getTranslation('roleAdmin');
+  String roleUnknown(int roleId) => getTranslation('roleUnknown').replaceAll('{roleId}', roleId.toString());
 }

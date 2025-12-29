@@ -48,6 +48,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get userName => 'اسم المستخدم';
 
   @override
+  String get signature => 'توقيع';
+
+  @override
+  String get uploadImages => 'تحميل الصور';
+
+  @override
+  String get uploadFromGallery => 'تحميل الصور من المعرض';
+
+  @override
+  String get uploadFromCamera => 'تحميل الصور من الكاميرا';
+
+  @override
   String get verifycodehasbeenresentcheckyourinbox => 'تم إعادة إرسال رمز التحقق، تحقق من صندوق الوارد الخاص بك.';
 
   @override
@@ -451,4 +463,68 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nomaterialaddedyet => 'لم تتم إضافة أي مادة بعد!';
+
+  @override
+  String get name => 'الاسم';
+
+  @override
+  String get enterYourName => 'أدخل اسمك';
+
+  @override
+  String get selectType => 'اختر النوع';
+
+  @override
+  String get userDataNotFoundAccessDenied => 'لم يتم العثور على بيانات المستخدم. تم رفض الوصول.';
+
+  @override
+  String get userRoleNotFoundAccessDenied => 'لم يتم العثور على دور المستخدم. تم رفض الوصول.';
+
+  @override
+  String get invalidUserRoleAccessDenied => 'دور المستخدم غير صالح. تم رفض الوصول.';
+
+  @override
+  String get invalidUserRoleIdAccessDenied => 'معرف دور المستخدم غير صالح. تم رفض الوصول.';
+
+  @override
+  String get accessDeniedTechniciansOnly => 'تم رفض الوصول. هذا التطبيق متاح فقط للفنيين.';
+
+  @override
+  String accessDeniedTechniciansOnlyWithRole(String roleName) {
+    return 'تم رفض الوصول. هذا التطبيق متاح فقط للفنيين. دورك: $roleName';
+  }
+
+  @override
+  String get userDataNotFoundPleaseLoginAgain => 'لم يتم العثور على بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get systemErrorDuringAuthentication => 'خطأ في النظام أثناء المصادقة. يرجى المحاولة مرة أخرى لاحقًا.';
+
+  @override
+  String get systemErrorDuringAccessVerification => 'خطأ في النظام أثناء التحقق من الوصول. يرجى المحاولة مرة أخرى لاحقًا.';
+
+  @override
+  String get backendServerError => 'خطأ في خادم الخلفية. يرجى المحاولة مرة أخرى لاحقًا.';
+
+  @override
+  String get networkErrorCheckConnection => 'خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.';
+
+  @override
+  String get roleSuperUser => 'مستخدم فائق';
+
+  @override
+  String get roleIndividual => 'فردي';
+
+  @override
+  String get roleTeamLeader => 'قائد الفريق';
+
+  @override
+  String get roleTechnician => 'فني';
+
+  @override
+  String get roleSubTechnician => 'فني مساعد';
+
+  @override
+  String roleUnknown(int roleId) {
+    return 'دور غير معروف ($roleId)';
+  }
 }

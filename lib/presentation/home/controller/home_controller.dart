@@ -28,63 +28,93 @@ class HomeController extends ChangeNotifier with WidgetsBindingObserver {
 
   HomeController({required this.homeUsecase});
 
-  // Function to chech User
+  // Function to check User Role Access
+  // Only allows TECHNICIAN (21) and SUB TECHNICIAN (22) roles
   Future<void> checkAccess() async {
     try {
       homeStatue.value = HomeStatus.loading;
-      final result = await homeUsecase.checkUser();
-      result.fold(
-        (failure) {
-          homeStatue.value = HomeStatus.failuer;
-          SmartDialog.show(
-            builder:
-                (context) => WidgetDilog(
-                  isError: true,
-                  title: AppText(context).warning,
-                  message: failure.message,
-                  cancelText: AppText(context).back,
-                  onCancel: () => SmartDialog.dismiss(),
-                ),
-          );
-        },
-        (checkAccess) {
-          if (checkAccess.data == false) {
-            SmartDialog.show(
-              clickMaskDismiss: false,
-              backType: SmartBackType.block,
-              backDismiss: false,
-              builder:
-                  (context) => WidgetDilog(
-                    isError: true,
-                    title: AppText(context).warning,
-                    message: AppText(context).blockMessage,
-                    cancelText: AppText(context).login,
-                    onCancel: () {
-                      SmartDialog.dismiss();
-                      sl<Box>(instanceName: BoxKeys.appBox).clear();
-                      sl<Box<User>>().clear();
-                      GlobalContext.context.go(RouterKey.login);
-                    },
-                  ),
-            );
-          } else {
-            getHomeData();
-          }
-        },
-      );
+      
+      // Get user from local storage
+      final user = sl<Box<User>>().get(BoxKeys.userData);
+      
+      if (user == null) {
+        homeStatue.value = HomeStatus.failuer;
+        _denyAccessAndLogout(AppText(GlobalContext.context).userDataNotFoundPleaseLoginAgain);
+        return;
+      }
+      
+      // Get user role ID
+      final userRoleId = user.userRoleId;
+      
+      // Validate role ID
+      if (userRoleId == null) {
+        homeStatue.value = HomeStatus.failuer;
+        _denyAccessAndLogout(AppText(GlobalContext.context).userRoleNotFoundAccessDenied);
+        return;
+      }
+      
+      // Check if role ID is a valid positive number
+      if (userRoleId <= 0) {
+        homeStatue.value = HomeStatus.failuer;
+        _denyAccessAndLogout(AppText(GlobalContext.context).invalidUserRoleAccessDenied);
+        return;
+      }
+      
+      // Only allow TECHNICIAN (21) and SUB TECHNICIAN (22)
+      if (userRoleId != 21 && userRoleId != 22) {
+        homeStatue.value = HomeStatus.failuer;
+        String roleName = _getRoleName(GlobalContext.context, userRoleId);
+        _denyAccessAndLogout(AppText(GlobalContext.context).accessDeniedTechniciansOnlyWithRole(roleName));
+        return;
+      }
+      
+      // User has authorized role - proceed to get home data
+      homeStatue.value = HomeStatus.success;
+      getHomeData();
     } catch (e) {
       homeStatue.value = HomeStatus.failuer;
-      log('Server Error In Chack Access Section : $e');
-      SmartDialog.show(
-        builder:
-            (context) => WidgetDilog(
-              isError: true,
-              title: AppText(context).warning,
-              message: 'Server Error In  Chack Access Section : $e',
-              cancelText: AppText(context).back,
-              onCancel: () => SmartDialog.dismiss(),
-            ),
-      );
+      log('Server Error In Check Access Section : $e');
+      _denyAccessAndLogout(AppText(GlobalContext.context).systemErrorDuringAccessVerification);
+    }
+  }
+  
+  // Helper method to deny access and logout user
+  void _denyAccessAndLogout(String message) {
+    SmartDialog.show(
+      clickMaskDismiss: false,
+      backType: SmartBackType.block,
+      backDismiss: false,
+      builder:
+          (context) => WidgetDilog(
+            isError: true,
+            title: AppText(context).warning,
+            message: message,
+            cancelText: AppText(context).login,
+            onCancel: () {
+              SmartDialog.dismiss();
+              sl<Box>(instanceName: BoxKeys.appBox).clear();
+              sl<Box<User>>().clear();
+              GlobalContext.context.go(RouterKey.login);
+            },
+          ),
+    );
+  }
+  
+  // Helper method to get role name for display
+  String _getRoleName(BuildContext context, int roleId) {
+    switch (roleId) {
+      case 26:
+        return AppText(context).roleSuperUser;
+      case 23:
+        return AppText(context).roleIndividual;
+      case 20:
+        return AppText(context).roleTeamLeader;
+      case 21:
+        return AppText(context).roleTechnician;
+      case 22:
+        return AppText(context).roleSubTechnician;
+      default:
+        return AppText(context).roleUnknown(roleId);
     }
   }
 

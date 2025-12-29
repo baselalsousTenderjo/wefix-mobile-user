@@ -173,6 +173,30 @@ abstract class AppLocalizations {
   /// **'User Name'**
   String get userName;
 
+  /// No description provided for @signature.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature'**
+  String get signature;
+
+  /// No description provided for @uploadImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Images'**
+  String get uploadImages;
+
+  /// No description provided for @uploadFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Images From Gallery'**
+  String get uploadFromGallery;
+
+  /// No description provided for @uploadFromCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Images From Camera'**
+  String get uploadFromCamera;
+
   /// No description provided for @verifycodehasbeenresentcheckyourinbox.
   ///
   /// In en, this message translates to:
@@ -982,6 +1006,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No material added yet!'**
   String get nomaterialaddedyet;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @enterYourName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Your Name'**
+  String get enterYourName;
+
+  /// No description provided for @selectType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Type'**
+  String get selectType;
+
+  /// No description provided for @userDataNotFoundAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'User data not found. Access denied.'**
+  String get userDataNotFoundAccessDenied;
+
+  /// No description provided for @userRoleNotFoundAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'User role not found. Access denied.'**
+  String get userRoleNotFoundAccessDenied;
+
+  /// No description provided for @invalidUserRoleAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid user role. Access denied.'**
+  String get invalidUserRoleAccessDenied;
+
+  /// No description provided for @invalidUserRoleIdAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid user role ID. Access denied.'**
+  String get invalidUserRoleIdAccessDenied;
+
+  /// No description provided for @accessDeniedTechniciansOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Access denied. This app is only available for Technicians.'**
+  String get accessDeniedTechniciansOnly;
+
+  /// No description provided for @accessDeniedTechniciansOnlyWithRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Access denied. This app is only available for Technicians. Your role: {roleName}'**
+  String accessDeniedTechniciansOnlyWithRole(String roleName);
+
+  /// No description provided for @userDataNotFoundPleaseLoginAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'User data not found. Please login again.'**
+  String get userDataNotFoundPleaseLoginAgain;
+
+  /// No description provided for @systemErrorDuringAuthentication.
+  ///
+  /// In en, this message translates to:
+  /// **'System error during authentication. Please try again later.'**
+  String get systemErrorDuringAuthentication;
+
+  /// No description provided for @systemErrorDuringAccessVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'System error during access verification. Please try again later.'**
+  String get systemErrorDuringAccessVerification;
+
+  /// No description provided for @backendServerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Backend server error. Please try again later.'**
+  String get backendServerError;
+
+  /// No description provided for @networkErrorCheckConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Please check your connection and try again.'**
+  String get networkErrorCheckConnection;
+
+  /// No description provided for @roleSuperUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Super User'**
+  String get roleSuperUser;
+
+  /// No description provided for @roleIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual'**
+  String get roleIndividual;
+
+  /// No description provided for @roleTeamLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Team Leader'**
+  String get roleTeamLeader;
+
+  /// No description provided for @roleTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get roleTechnician;
+
+  /// No description provided for @roleSubTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub Technician'**
+  String get roleSubTechnician;
+
+  /// No description provided for @roleUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Role ({roleId})'**
+  String roleUnknown(int roleId);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
