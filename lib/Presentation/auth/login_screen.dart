@@ -20,6 +20,7 @@ import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/login_model.dart';
 import 'package:wefix/Data/model/mms_user_model.dart';
 import 'package:wefix/Data/model/user_model.dart';
+import 'package:wefix/Data/services/device_info_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/language_icon.dart';
@@ -613,8 +614,9 @@ class _LoginScreenState extends State<LoginScreen> {
         fcmToken = 'device-token-placeholder';
       }
 
-      // Generate a simple device ID (you may want to use device_info_plus package)
-      String deviceId = 'device-${DateTime.now().millisecondsSinceEpoch}';
+      // Get device ID with full metadata (model, brand, manufacturer, etc.)
+      final deviceMetadata = await DeviceInfoService.getDeviceMetadata();
+      final deviceId = jsonEncode(deviceMetadata); // Send as JSON string with all metadata
 
       final loginResult = await Authantication.mmsLogin(
         email: email.text.trim(),
