@@ -22,13 +22,21 @@ class WidgetRecordMaintenSection extends StatelessWidget {
         Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppTextStyle.style12B),
+              Flexible(child: Text(title, style: AppTextStyle.style12B)),
               5.gap,
               loading == true
                   ? const WidgetLoading(width: 60)
-                  : Expanded(child: Text(value, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: AppTextStyle.style12)),
+                  : Expanded(
+                      child: Text(
+                        value, 
+                        textAlign: TextAlign.end, 
+                        maxLines: null,
+                        softWrap: true,
+                        style: AppTextStyle.style12,
+                      ),
+                    ),
             ],
           ),
         ),
@@ -38,11 +46,21 @@ class WidgetRecordMaintenSection extends StatelessWidget {
         Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title2, style: AppTextStyle.style12B),
+              Flexible(child: Text(title2, style: AppTextStyle.style12B)),
               5.gap,
-              loading == true ? const WidgetLoading(width: 60) : Text(value2, style: AppTextStyle.style12),
+              loading == true 
+                  ? const WidgetLoading(width: 60) 
+                  : Expanded(
+                      child: Text(
+                        value2, 
+                        textAlign: TextAlign.end,
+                        maxLines: null,
+                        softWrap: true,
+                        style: AppTextStyle.style12,
+                      ),
+                    ),
             ],
           ),
         ),

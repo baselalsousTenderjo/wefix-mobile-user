@@ -23,6 +23,7 @@ class TicketUsecase {
   // * ============================== Ticket Details ==============================
   Future<Either<Failure, Result<TicketsDetails>>> ticketDetails(String ticketId) async => await ticketsDetailsReoistory.ticketDetails(ticketId);
   Future<Either<Failure, Result<Unit>>> startTickets(String ticketId) async => await ticketsDetailsReoistory.startTickets(ticketId);
+  Future<Either<Failure, Result<Unit>>> startTicketsWithAttachment(String ticketId, String attachmentUrl) async => await ticketsDetailsReoistory.startTicketsWithAttachment(ticketId, attachmentUrl);
   Future<Either<Failure, Result<Unit>>> completeTickets(String ticketId, String note, String signature, String link) async =>
       await ticketsDetailsReoistory.completeTicket(ticketId, note, signature, link);
   Future<Either<Failure, Result<Unit>>> createTicketImage(String ticketId, List<String> images) async =>

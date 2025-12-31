@@ -75,6 +75,7 @@
     "sendyourinquirytooursupportteamandwellassistyouassoonaspossible": "Send your inquiry to our support team, and we’ll assist you as soon as possible.",
     "send": "Send",
     "attachments": "Attachments",
+    "ticketAttachments": "Ticket Attachments",
     "close": "Close",
     "confirm": "Confirm",
     "issueDescription": "Issue Description",
@@ -200,6 +201,15 @@
       "fullNameEnglish":"Full Name (English)",
       "gender":"Gender",
       "male":"Male",
-      "selectGender":"Select Gender"
+      "selectGender":"Select Gender",
+      "ticketAlreadyCompleted":"Ticket is already completed.",
+      "fileNotFound":"File not found.",
+      "ticketMustBeStartedFirst":"Ticket must be started first before completion.",
+      "signatureRequired":"Signature is required to complete the ticket.",
+      "completedTicketInfo":"Completed Ticket Information",
+      "technicianAttachments":"Technician Attachments",
+      "completionNote":"Completion Note",
+      "recordVoice":"Record Voice",
+      "technicianAttachment":"Technician Attachment"
 
 }

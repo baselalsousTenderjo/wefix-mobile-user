@@ -17,6 +17,7 @@ import '../model/tickets_details_model.dart';
 abstract class TicketsDetailsReoistory {
   Future<Either<Failure, Result<TicketsDetails>>> ticketDetails(String ticketId);
   Future<Either<Failure, Result<Unit>>> startTickets(String ticketId);
+  Future<Either<Failure, Result<Unit>>> startTicketsWithAttachment(String ticketId, String attachmentUrl);
   Future<Either<Failure, Result<Unit>>> createTicketImage(String ticketId, List<String> images);
   Future<Either<Failure, Result<Unit>>> completeTicket(String ticketId, String note, String signature, String link);
 }
@@ -61,6 +62,32 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
   }
 
   @override
+  Future<Either<Failure, Result<Unit>>> startTicketsWithAttachment(String ticketId, String attachmentUrl) async {
+    try {
+      // Use SERVER_TMMS for start ticket endpoint (backend-tmms)
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
+      
+      // The attachment is already uploaded via authUsecase.uploadFile
+      // Pass the attachmentUrl directly to startTicket endpoint
+      // The startTicket endpoint will create a File record linking it to the ticket
+      await client.postRequest(
+        endpoint: 'tickets/start', 
+        body: {
+          'Id': ticketId,
+          'attachmentUrl': attachmentUrl, // Pass attachment URL to startTicket endpoint
+        }, 
+        authorization: 'Bearer $token'
+      );
+      return Right(Result.success(unit));
+    } on DioException catch (e) {
+      return Left(ServerFailure.fromDioError(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Result<Unit>>> completeTicket(String ticketId, String note, String signature, String link) async {
     try {
       // Use SERVER_TMMS for complete ticket endpoint (backend-tmms)
@@ -82,12 +109,13 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
       
       final completedStatusId = completedStatus['id'] as int;
       
-      // Update ticket with completed status and note
+      // Update ticket with completed status, note, and signature
       await client.putRequest(
         endpoint: 'tickets/$ticketId',
         body: {
           'ticketStatusId': completedStatusId,
           'serviceDescription': note, // Store note in serviceDescription
+          'signatureUrl': signature, // Pass signature URL to link it to ticket
         },
         authorization: 'Bearer $token',
       );

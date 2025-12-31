@@ -12,14 +12,13 @@ import '../controller/ticktes_details_controller.dart';
 import '../domain/ticket_enum.dart';
 import '../widgets/widget_button_ticket_details.dart';
 import 'containers/container_description_section.dart';
-import 'containers/container_attachments_section.dart';
 import 'containers/container_completion_checklist_section.dart';
 import 'containers/container_customer_section.dart';
 import 'containers/container_maintenance_section.dart';
 // import 'containers/container_material_section.dart'; // Hidden: Required material section
-import 'containers/container_provider_attachment.dart';
 import 'containers/container_service_provide_section.dart';
 import 'containers/container_tools_section.dart';
+import 'containers/container_completed_ticket_info.dart';
 import 'customer_services.dart';
 
 class TicktesDetailsScreen extends StatelessWidget {
@@ -76,12 +75,12 @@ class TicktesDetailsScreen extends StatelessWidget {
                     if (controller.ticketsDetails?.type != TicketDetailsType.preventive.name) const CustomerServices(),
                     const ContainnerDescriptionSection(),
                     const ContainerServiceProvideSection(),
-                    const ContainerAttachmentsSection(),
-                    if (controller.ticketsDetails?.type != TicketDetailsType.preventive.name) ContainerProviderAttachment(id: id),
                     ContainerToolsSection(id: id),
                     // Hidden: Required material section
                     // if (controller.ticketsDetails?.type != TicketDetailsType.preventive.name) ContainerMaterialSection(id: id),
                     if (controller.ticketsDetails?.type == TicketDetailsType.preventive.name) ContainerCompletionChecklist(id: id),
+                    // Attachment sections (shows both ticket and technician attachments for all tickets)
+                    const ContainerCompletedTicketInfo(),
                   ],
                 ),
               ),

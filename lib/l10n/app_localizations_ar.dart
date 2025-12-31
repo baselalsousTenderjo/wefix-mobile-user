@@ -237,6 +237,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attachments => 'مرفقات';
 
   @override
+  String get ticketAttachments => 'مرفقات التذكرة';
+
+  @override
   String get close => 'إغلاق';
 
   @override
@@ -569,4 +572,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get selectGender => 'اختر الجنس';
+
+  @override
+  String get ticketAlreadyCompleted => 'التذكرة مكتملة بالفعل.';
+
+  @override
+  String get fileNotFound => 'الملف غير موجود.';
+
+  @override
+  String get ticketMustBeStartedFirst => 'يجب بدء التذكرة أولاً قبل الإكمال.';
+
+  @override
+  String get signatureRequired => 'التوقيع مطلوب لإكمال التذكرة.';
+
+  @override
+  String get completedTicketInfo => 'معلومات التذكرة المكتملة';
+
+  @override
+  String get technicianAttachments => 'مرفقات الفني';
+
+  @override
+  String get completionNote => 'ملاحظة الإكمال';
+
+  @override
+  String get recordVoice => 'تسجيل صوت';
 }

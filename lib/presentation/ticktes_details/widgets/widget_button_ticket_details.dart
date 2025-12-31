@@ -18,12 +18,13 @@ class WidgetButtonTicketDetails extends StatelessWidget {
           (context, controller, child) => ValueListenableBuilder(
             valueListenable: controller.ticketStatue,
             builder: (context, value, child) {
-              final ticketStatus = controller.ticketsDetails?.status?.toLowerCase();
+              final rawStatus = controller.ticketsDetails?.status?.toLowerCase() ?? '';
+              final ticketStatus = rawStatus.replaceAll(' ', '');
               final isLoading = value == TicketStatus.loading;
               final isCanceled = ticketStatus == TicketDetailsStatus.canceled.name;
-              final isCompleted = ticketStatus == TicketDetailsStatus.completed.name;
+              final isCompleted = ticketStatus == TicketDetailsStatus.completed.name || ticketStatus == 'ended';
               final isSuccess = value == TicketStatus.success;
-              final isInProgress = ticketStatus == TicketDetailsStatus.inprogress.name;
+              final isInProgress = ticketStatus == TicketDetailsStatus.inprogress.name || ticketStatus == 'inprogress';
               final isPending = ticketStatus == TicketDetailsStatus.pending.name;
               final isRecording = controller.recording == true;
 
@@ -123,7 +124,7 @@ class WidgetButtonTicketDetails extends StatelessWidget {
                                                 child: AppButton.text(
                                                   text: AppText(context).start,
                                                   loading: status == StartTicketStatus.loading,
-                                                  onPressed: () => controller.startRecording(controller.ticketsDetails?.id.toString() ?? '0'),
+                                                  onPressed: () => controller.showStartTicketAttachmentScreen(context, controller.ticketsDetails?.id.toString() ?? '0'),
                                                 ),
                                               ),
                                         ),

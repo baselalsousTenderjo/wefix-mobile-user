@@ -16,9 +16,11 @@ import 'package:record/record.dart';
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:dio/dio.dart';
 
 import '../../../core/constant/app_image.dart';
 import '../../../core/constant/app_links.dart';
+import '../../../core/services/api_services/dio_helper.dart';
 import '../../../core/context/global.dart';
 import '../../../core/extension/gap.dart';
 import '../../../core/function/app_size.dart';
@@ -43,6 +45,7 @@ import '../domain/ticket_enum.dart';
 import '../domain/usecase/ticket_usecase.dart';
 import '../widgets/widget_attchmants.dart';
 import '../widgets/widget_completion_attchment.dart';
+import '../widgets/widget_start_ticket_attachment.dart';
 
 class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserver {
   final TicketUsecase ticketUsecase;
@@ -170,6 +173,31 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
           selectedIMAGE = List.from(ticketsDetails?.ticketImages ?? []);
           imagesAttachment.value = List.from(selectedIMAGE);
 
+          // Restore recording state if ticket is in progress
+          final rawStatus = ticketsDetails?.status?.toLowerCase() ?? '';
+          final status = rawStatus.replaceAll(' ', '');
+          if (status == TicketDetailsStatus.inprogress.name || status == 'inprogress') {
+            // If ticket is in progress and we're not already recording, start the timer
+            if (!recording) {
+              recording = true;
+              // Restore duration from storage if available
+              final savedDuration = sl<Box>(instanceName: BoxKeys.appBox).get('duration');
+              if (savedDuration != null && savedDuration is int && savedDuration > 0) {
+                duration.value = savedDuration;
+              }
+              // Only start timer if it's not already running
+              if (timer == null) {
+                _startTimer();
+              }
+            }
+          } else {
+            // If ticket is not in progress, stop recording
+            if (recording) {
+              recording = false;
+              _stopTimer();
+            }
+          }
+
           ticketStatue.value = TicketStatus.success;
           notifyListeners();
         },
@@ -252,9 +280,63 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
         final dir = await getApplicationDocumentsDirectory();
         final voiceFilePath = audioRecord['path'];
 
-        if (voiceFilePath != null) fileToUpload = File('${dir.path}/$voiceFilePath');
+        if (voiceFilePath != null && voiceFilePath.toString().isNotEmpty) {
+          final fullPath = '${dir.path}/$voiceFilePath';
+          fileToUpload = File(fullPath);
+          
+          // Validate that the file exists and is not a directory
+          if (!await fileToUpload.exists()) {
+            log('File does not exist: $fullPath');
+            SmartDialog.dismiss();
+            SmartDialog.show(
+              builder: (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: AppText(context).fileNotFound,
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+            );
+            return;
+          }
+          
+          // Check if it's actually a file, not a directory
+          final stat = await fileToUpload.stat();
+          if (stat.type == FileSystemEntityType.directory) {
+            log('Path is a directory, not a file: $fullPath');
+            SmartDialog.dismiss();
+            SmartDialog.show(
+              builder: (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: AppText(context).fileNotFound,
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+            );
+            return;
+          }
+        }
       }
-      final result = await authUsecase.uploadFile(image ?? fileToUpload!);
+      
+      // Ensure we have a valid file to upload
+      final file = image ?? fileToUpload;
+      if (file == null) {
+        log('No file to upload');
+        SmartDialog.dismiss();
+        SmartDialog.show(
+          builder: (context) => WidgetDilog(
+            isError: true,
+            title: AppText(context).warning,
+            message: AppText(context).fileNotFound,
+            cancelText: AppText(context).back,
+            onCancel: () => SmartDialog.dismiss(),
+          ),
+        );
+        return;
+      }
+      
+      final result = await authUsecase.uploadFile(file);
       result.fold(
         (failure) {
           completeTicketStatue.value = CompleteTicketStatus.failure;
@@ -326,6 +408,203 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
   }
 
   // ! Start Record
+  // Show attachment upload screen for starting ticket
+  Future<void> showStartTicketAttachmentScreen(BuildContext context, String id) async {
+    // Check if ticket is already ended
+    final ticketStatus = ticketsDetails?.status?.toLowerCase();
+    if (ticketStatus == TicketDetailsStatus.completed.name || ticketStatus == 'ended') {
+      SmartDialog.show(
+        builder: (context) => WidgetDilog(
+          isError: true,
+          title: AppText(context).warning,
+          message: AppText(context).ticketAlreadyCompleted,
+          cancelText: AppText(context).back,
+          onCancel: () => SmartDialog.dismiss(),
+        ),
+      );
+      return;
+    }
+
+    // Navigate to attachment upload screen
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WidgetStartTicketAttachment(
+          ticketId: id,
+          onAttachmentSelected: (filePath, fileType) async {
+            Navigator.pop(context);
+            await _handleStartTicketWithAttachment(id, filePath, fileType);
+          },
+        ),
+      ),
+    );
+  }
+
+  // Handle starting ticket with attachment
+  Future<void> _handleStartTicketWithAttachment(String id, String filePath, String fileType) async {
+    try {
+      SmartDialog.showLoading(msg: AppText(GlobalContext.context, isFunction: true).loading);
+      
+      // Upload attachment first
+      final file = File(filePath);
+      if (!await file.exists()) {
+        SmartDialog.dismiss();
+        SmartDialog.show(
+          builder: (context) => WidgetDilog(
+            isError: true,
+            title: AppText(context).warning,
+            message: AppText(context).fileNotFound,
+            cancelText: AppText(context).back,
+            onCancel: () => SmartDialog.dismiss(),
+          ),
+        );
+        return;
+      }
+      
+      // Check if it's actually a file, not a directory
+      final stat = await file.stat();
+      if (stat.type == FileSystemEntityType.directory) {
+        SmartDialog.dismiss();
+        SmartDialog.show(
+          builder: (context) => WidgetDilog(
+            isError: true,
+            title: AppText(context).warning,
+            message: AppText(context).fileNotFound,
+            cancelText: AppText(context).back,
+            onCancel: () => SmartDialog.dismiss(),
+          ),
+        );
+        return;
+      }
+
+      // Upload file with referenceId (ticketId) using Dio directly
+      try {
+        final dio = DioProvider().dio;
+        final token = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken) as String?;
+        
+        if (token == null || token.isEmpty) {
+          SmartDialog.dismiss();
+          SmartDialog.show(
+            builder: (context) => WidgetDilog(
+              isError: true,
+              title: AppText(context).warning,
+              message: 'Authentication token not found',
+              cancelText: AppText(context).back,
+              onCancel: () => SmartDialog.dismiss(),
+            ),
+          );
+          return;
+        }
+        
+        // Create FormData with file and referenceId
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
+          'referenceId': id,
+          'referenceType': 'TICKET_ATTACHMENT',
+          'entityType': 'ticket',
+        });
+        
+        // Upload file to backend-tmms
+        final baseUrl = AppLinks.serverTMMS;
+        final uploadUrl = baseUrl.endsWith('/') 
+            ? '${baseUrl}files/upload'
+            : '$baseUrl/files/upload';
+        
+        log('Uploading file to: $uploadUrl with referenceId: $id');
+        final response = await dio.post(
+          uploadUrl,
+          data: formData,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+            },
+          ),
+        );
+        
+        log('File upload response: ${response.data}');
+        final attachmentUrl = response.data['data']?['link'] ?? response.data['data']?['filePath'] ?? response.data['link'] ?? response.data['filePath'];
+        
+        if (attachmentUrl == null || attachmentUrl.toString().isEmpty) {
+          SmartDialog.dismiss();
+          SmartDialog.show(
+            builder: (context) => WidgetDilog(
+              isError: true,
+              title: AppText(context).warning,
+              message: 'Failed to get file URL from upload response',
+              cancelText: AppText(context).back,
+              onCancel: () => SmartDialog.dismiss(),
+            ),
+          );
+          return;
+        }
+        
+        // Start ticket with attachment URL
+        await startTicketWithAttachment(id, attachmentUrl.toString());
+      } catch (e, stackTrace) {
+        SmartDialog.dismiss();
+        log('Error uploading file: $e\n$stackTrace');
+        SmartDialog.show(
+          builder: (context) => WidgetDilog(
+            isError: true,
+            title: AppText(context).warning,
+            message: 'Error uploading file: $e',
+            cancelText: AppText(context).back,
+            onCancel: () => SmartDialog.dismiss(),
+          ),
+        );
+      }
+    } catch (e) {
+      SmartDialog.dismiss();
+      log('Error starting ticket with attachment: $e');
+      SmartDialog.show(
+        builder: (context) => WidgetDilog(
+          isError: true,
+          title: AppText(context).warning,
+          message: e.toString(),
+          cancelText: AppText(context).back,
+          onCancel: () => SmartDialog.dismiss(),
+        ),
+      );
+    }
+  }
+
+  // Start ticket with attachment
+  Future<void> startTicketWithAttachment(String id, String attachmentUrl) async {
+    try {
+      final result = await ticketUsecase.startTicketsWithAttachment(id, attachmentUrl);
+      result.fold(
+        (l) {
+          startTicketStatue.value = StartTicketStatus.failure;
+          SmartDialog.dismiss();
+          SmartDialog.show(
+            builder: (context) => WidgetDilog(
+              isError: true,
+              title: AppText(context).warning,
+              message: l.message,
+              cancelText: AppText(context).back,
+              onCancel: () => SmartDialog.dismiss(),
+            ),
+          );
+        },
+        (r) {
+          startTicketStatue.value = StartTicketStatus.success;
+          SmartDialog.dismiss();
+          _startTimer();
+          recording = true;
+          notifyListeners();
+          ticketDetails(id);
+        },
+      );
+    } catch (e) {
+      startTicketStatue.value = StartTicketStatus.failure;
+      SmartDialog.dismiss();
+      log('Server Error in start ticket with attachment: $e');
+    }
+  }
+
   Future<void> startRecording(String id) async {
     final micStatus = await Permission.microphone.request();
 
@@ -366,19 +645,64 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
       SmartDialog.dismiss();
       log("Error stopping recording: $e");
     } finally {
-      if (recording) {
-        await convertImageToTempFile();
-        await uploadFile(id: id);
+      // Ensure signature is captured and uploaded before completing
+      if (signatureImage == null || signatureImage!.isEmpty) {
+        await convertImageToTempFile(ticketId: id);
+        // Wait a bit for signature upload to complete
+        await Future.delayed(const Duration(milliseconds: 500));
       }
+      
+      // Only upload audio file if recording was active and we have a valid file path
+      if (recording) {
+        final voiceFilePath = audioRecord['path'];
+        // Check if we have a valid audio file path before trying to upload
+        if (voiceFilePath != null && voiceFilePath.toString().isNotEmpty && voiceFilePath.toString().trim().isNotEmpty) {
+          try {
+            final dir = await getApplicationDocumentsDirectory();
+            final fullPath = '${dir.path}/$voiceFilePath';
+            final audioFile = File(fullPath);
+            
+            // Only upload if the file actually exists
+            if (await audioFile.exists()) {
+              await uploadFile(id: id);
+            } else {
+              log('Audio file does not exist, skipping upload: $fullPath');
+            }
+          } catch (e) {
+            log('Error checking audio file: $e');
+            // Don't fail the completion if audio file is missing
+          }
+        } else {
+          log('No valid audio file path, skipping upload');
+        }
+      }
+      
       recording = false;
       _stopTimer();
       audioRecord['duration'] = duration;
       audioRecord['stop'] = true;
+      
+      // Complete the ticket with signature and note
+      if (signatureImage != null && signatureImage!.isNotEmpty) {
+        await completeTicket(id, '');
+      } else {
+        SmartDialog.dismiss();
+        SmartDialog.show(
+          builder: (context) => WidgetDilog(
+            isError: true,
+            title: AppText(context).warning,
+            message: AppText(context).signatureRequired,
+            cancelText: AppText(context).back,
+            onCancel: () => SmartDialog.dismiss(),
+          ),
+        );
+      }
+      
       notifyListeners();
     }
   }
 
-  Future<File?> convertImageToTempFile() async {
+  Future<File?> convertImageToTempFile({String? ticketId}) async {
     try {
       final data = await signatureGlobalKey.currentState!.toImage(pixelRatio: 3.0);
       final bytes = await data.toByteData(format: ui.ImageByteFormat.png);
@@ -387,7 +711,7 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
         Directory tempDir = await getTemporaryDirectory();
         File tempFile = File('${tempDir.path}/temp_image.png');
         await tempFile.writeAsBytes(bytes.buffer.asUint8List());
-        await uploadSignature(tempFile);
+        await uploadSignature(tempFile, ticketId: ticketId);
       }
     } catch (e) {
       log('Error converting image to file: $e');
@@ -396,33 +720,120 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
     return null;
   }
 
-  Future<void> uploadSignature(File signature) async {
+  Future<void> uploadSignature(File signature, {String? ticketId}) async {
     try {
-      final result = await authUsecase.uploadFile(signature);
-      result.fold(
-        (failure) {
-          SmartDialog.show(
-            builder:
-                (context) => WidgetDilog(
-                  isError: true,
-                  title: AppText(context).warning,
-                  message: failure.message,
-                  cancelText: AppText(context).back,
-                  onCancel: () => SmartDialog.dismiss(),
-                ),
-          );
-        },
-        (success) async {
-          signatureImage = success.data!;
-          notifyListeners();
-        },
-      );
+      // Validate that the file exists and is not a directory
+      if (!await signature.exists()) {
+        log('Signature file does not exist: ${signature.path}');
+        throw Exception('Signature file does not exist: ${signature.path}');
+      }
+      
+      // Check if it's actually a file, not a directory
+      final stat = await signature.stat();
+      if (stat.type == FileSystemEntityType.directory) {
+        log('Signature path is a directory, not a file: ${signature.path}');
+        throw Exception('Signature path is a directory, not a file: ${signature.path}');
+      }
+      
+      log('Uploading signature file: ${signature.path}, size: ${stat.size} bytes');
+      
+      // If ticketId is provided, use Dio to upload with referenceId
+      if (ticketId != null && ticketId.isNotEmpty) {
+        final dio = DioProvider().dio;
+        final token = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken) as String?;
+        
+        if (token == null || token.isEmpty) {
+          throw Exception('Authentication token not found');
+        }
+        
+        // Create FormData with file and referenceId
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(
+            signature.path,
+            filename: signature.path.split('/').last,
+          ),
+          'referenceId': ticketId,
+          'referenceType': 'TICKET_ATTACHMENT',
+          'entityType': 'ticket',
+        });
+        
+        // Upload file to backend-tmms
+        final baseUrl = AppLinks.serverTMMS;
+        final uploadUrl = baseUrl.endsWith('/') 
+            ? '${baseUrl}files/upload'
+            : '$baseUrl/files/upload';
+        
+        log('Uploading signature to: $uploadUrl with referenceId: $ticketId');
+        final response = await dio.post(
+          uploadUrl,
+          data: formData,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+            },
+          ),
+        );
+        
+        log('Signature upload response: ${response.data}');
+        final attachmentUrl = response.data['data']?['link'] ?? response.data['data']?['filePath'] ?? response.data['link'] ?? response.data['filePath'];
+        
+        if (attachmentUrl == null || attachmentUrl.toString().isEmpty) {
+          throw Exception('Failed to get file URL from upload response');
+        }
+        
+        signatureImage = attachmentUrl.toString();
+        notifyListeners();
+      } else {
+        // Fallback to old method if no ticketId
+        final result = await authUsecase.uploadFile(signature);
+        result.fold(
+          (failure) {
+            log('Signature upload failed: ${failure.message}');
+            throw Exception('Signature upload failed: ${failure.message}');
+          },
+          (success) async {
+            log('Signature uploaded successfully: ${success.data}');
+            signatureImage = success.data!;
+            notifyListeners();
+          },
+        );
+      }
     } catch (e, stack) {
-      log('Upload error: $e\n$stack');
+      log('Upload signature error: $e\n$stack');
+      rethrow; // Re-throw to let caller handle the error
     }
   }
 
   void bottomSheetCompleteDetails() {
+    // Validate ticket status - cannot complete pending tickets
+    final ticketStatus = ticketsDetails?.status?.toLowerCase();
+    if (ticketStatus == TicketDetailsStatus.pending.name) {
+      SmartDialog.show(
+        builder: (context) => WidgetDilog(
+          isError: true,
+          title: AppText(context).warning,
+          message: AppText(context).ticketMustBeStartedFirst,
+          cancelText: AppText(context).back,
+          onCancel: () => SmartDialog.dismiss(),
+        ),
+      );
+      return;
+    }
+
+    // Check if ticket is already completed
+    if (ticketStatus == TicketDetailsStatus.completed.name || ticketStatus == 'ended') {
+      SmartDialog.show(
+        builder: (context) => WidgetDilog(
+          isError: true,
+          title: AppText(context).warning,
+          message: AppText(context).ticketAlreadyCompleted,
+          cancelText: AppText(context).back,
+          onCancel: () => SmartDialog.dismiss(),
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: GlobalContext.context,
       isScrollControlled: true,
@@ -446,7 +857,12 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
                 5.gap,
                 WidgetTextField(AppText(context, isFunction: true).enterYourNotes, maxLines: 3, controller: noteCompleted),
                 10.gap,
-                Text(AppText(context, isFunction: true).signature, style: AppTextStyle.style14B),
+                Row(
+                  children: [
+                    Text(AppText(context, isFunction: true).signature, style: AppTextStyle.style14B),
+                    Text(' ${AppText(context).required}', style: AppTextStyle.style12.copyWith(color: AppColor.red)),
+                  ],
+                ),
                 5.gap,
                 Container(
                   height: AppSize(context).height * 0.2,
@@ -470,7 +886,7 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
                               text: AppText(context, isFunction: true).complete,
                               loading: status == CompleteTicketStatus.loading,
                               onPressed: () async {
-                                await stopScreenRecord(ticketsDetails?.id.toString() ?? '1');
+                                await _handleCompleteTicket(ticketsDetails?.id.toString() ?? '1');
                               },
                             ),
                           ),
@@ -483,23 +899,166 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
     );
   }
 
+  // Handle complete ticket with validation
+  Future<void> _handleCompleteTicket(String id) async {
+    SmartDialog.showLoading(msg: AppText(GlobalContext.context, isFunction: true).loading);
+    
+    try {
+      // Validate signature is required
+      if (signatureImage == null || signatureImage!.isEmpty) {
+        // Try to get signature from pad
+        try {
+          final data = await signatureGlobalKey.currentState!.toImage(pixelRatio: 3.0);
+          final bytes = await data.toByteData(format: ui.ImageByteFormat.png);
+          
+          if (bytes == null || bytes.buffer.asUint8List().isEmpty) {
+            SmartDialog.dismiss();
+            SmartDialog.show(
+              builder: (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: AppText(context).signatureRequired,
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+            );
+            return;
+          }
+          
+          // Convert signature to file and upload
+          Directory tempDir = await getTemporaryDirectory();
+          File tempFile = File('${tempDir.path}/temp_signature_${DateTime.now().millisecondsSinceEpoch}.png');
+          await tempFile.writeAsBytes(bytes.buffer.asUint8List());
+          await uploadSignature(tempFile, ticketId: id);
+          
+          // Wait a bit for upload to complete
+          await Future.delayed(const Duration(milliseconds: 500));
+          
+          // Check again if signature was uploaded
+          if (signatureImage == null || signatureImage!.isEmpty) {
+            SmartDialog.dismiss();
+            SmartDialog.show(
+              builder: (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: AppText(context).signatureRequired,
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+            );
+            return;
+          }
+        } catch (e) {
+          SmartDialog.dismiss();
+          SmartDialog.show(
+            builder: (context) => WidgetDilog(
+              isError: true,
+              title: AppText(context).warning,
+              message: '${AppText(context).signatureRequired}\nError: $e',
+              cancelText: AppText(context).back,
+              onCancel: () => SmartDialog.dismiss(),
+            ),
+          );
+          return;
+        }
+      }
+
+      // Stop recording if active (but don't auto-complete)
+      if (recording) {
+        try {
+          await record.stop();
+        } catch (e) {
+          log("Error stopping recording: $e");
+        }
+        
+        // Only upload audio file if recording was active and we have a valid file path
+        final voiceFilePath = audioRecord['path'];
+        if (voiceFilePath != null && voiceFilePath.toString().isNotEmpty && voiceFilePath.toString().trim().isNotEmpty) {
+          try {
+            final dir = await getApplicationDocumentsDirectory();
+            final fullPath = '${dir.path}/$voiceFilePath';
+            final audioFile = File(fullPath);
+            
+            // Only upload if the file actually exists
+            if (await audioFile.exists()) {
+              await uploadFile(id: id);
+            } else {
+              log('Audio file does not exist, skipping upload: $fullPath');
+            }
+          } catch (e) {
+            log('Error checking/uploading audio file: $e');
+            // Show error but continue with completion
+            SmartDialog.dismiss();
+            SmartDialog.show(
+              builder: (context) => WidgetDilog(
+                isError: true,
+                title: AppText(context).warning,
+                message: 'Error uploading audio file: $e',
+                cancelText: AppText(context).back,
+                onCancel: () => SmartDialog.dismiss(),
+              ),
+            );
+            return;
+          }
+        }
+        
+        recording = false;
+        _stopTimer();
+        audioRecord['duration'] = duration;
+        audioRecord['stop'] = true;
+      }
+
+      // Now complete the ticket with signature and note
+      await completeTicket(id, '');
+    } catch (e, stackTrace) {
+      SmartDialog.dismiss();
+      log('Error in _handleCompleteTicket: $e\n$stackTrace');
+      SmartDialog.show(
+        builder: (context) => WidgetDilog(
+          isError: true,
+          title: AppText(context).warning,
+          message: 'Error: $e',
+          cancelText: AppText(context).back,
+          onCancel: () => SmartDialog.dismiss(),
+        ),
+      );
+    }
+  }
+
   // * ============================== Attachmants ==============================
 
   void showAttachmant(BuildContext context) {
+    // Combine ticketAttatchments and ticketImages
+    final allAttachments = <String>[];
+    
+    // Add ticket images
+    if (ticketsDetails?.ticketImages != null) {
+      allAttachments.addAll(ticketsDetails!.ticketImages!);
+    }
+    
+    // Add regular attachments
+    if (ticketsDetails?.ticketAttatchments != null) {
+      for (var attachment in ticketsDetails!.ticketAttatchments!) {
+        if (attachment.filePath != null && attachment.filePath!.isNotEmpty) {
+          allAttachments.add(attachment.filePath!);
+        }
+      }
+    }
+    
     SmartDialog.show(
       builder:
           (context) => WidgetDilog(
             title: AppText(context).attachments,
             message: '',
             contents: [
-              ticketsDetails?.ticketAttatchments?.isEmpty ?? true
+              allAttachments.isEmpty
                   ? Text(AppText(context, isFunction: true).emptyAttachments, style: AppTextStyle.style14B.copyWith(color: AppColor.red))
                   : ListView.separated(
-                    itemCount: ticketsDetails!.ticketAttatchments!.length,
+                    itemCount: allAttachments.length,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) => WidgetAttachmants(url: ticketsDetails!.ticketAttatchments![index].filePath ?? ''),
+                    itemBuilder: (context, index) => WidgetAttachmants(url: allAttachments[index]),
                   ),
             ],
             cancelText: AppText(context, isFunction: true).close,

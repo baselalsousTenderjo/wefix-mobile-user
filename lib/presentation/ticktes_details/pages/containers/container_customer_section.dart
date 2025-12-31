@@ -23,6 +23,11 @@ class ContainerCustomerSection extends StatelessWidget {
             builder: (context, value, child) {
               final creator = controller.ticketsDetails?.creator;
               
+              // Hide section if no creator and not loading
+              if (value != TicketStatus.loading && creator == null) {
+                return const SizedBox.shrink();
+              }
+              
               return Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,11 +86,8 @@ class ContainerCustomerSection extends StatelessWidget {
                       ],
                     ),
                   ] else ...[
-                    // No creator information available
-                    Text(
-                      AppText(context).loading,
-                      style: AppTextStyle.style12.copyWith(color: Colors.grey.shade600),
-                    ),
+                    // No creator information available - hide section if no creator
+                    const SizedBox.shrink(),
                   ],
                   20.gap,
                 ],

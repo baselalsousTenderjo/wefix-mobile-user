@@ -551,6 +551,12 @@ abstract class AppLocalizations {
   /// **'Attachments'**
   String get attachments;
 
+  /// No description provided for @ticketAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Attachments'**
+  String get ticketAttachments;
+
   /// No description provided for @close.
   ///
   /// In en, this message translates to:
@@ -1210,6 +1216,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Gender'**
   String get selectGender;
+
+  /// No description provided for @ticketAlreadyCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket is already completed.'**
+  String get ticketAlreadyCompleted;
+
+  /// No description provided for @fileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'File not found.'**
+  String get fileNotFound;
+
+  /// No description provided for @ticketMustBeStartedFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket must be started first before completion.'**
+  String get ticketMustBeStartedFirst;
+
+  /// No description provided for @signatureRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature is required to complete the ticket.'**
+  String get signatureRequired;
+
+  /// No description provided for @completedTicketInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed Ticket Information'**
+  String get completedTicketInfo;
+
+  /// No description provided for @technicianAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician Attachments'**
+  String get technicianAttachments;
+
+  /// No description provided for @completionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion Note'**
+  String get completionNote;
+
+  /// No description provided for @recordVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Voice'**
+  String get recordVoice;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

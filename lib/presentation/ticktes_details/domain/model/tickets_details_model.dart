@@ -28,6 +28,7 @@ class TicketsDetails with _$TicketsDetails {
     @JsonKey(name: "customerImage") String? customerImage,
     @JsonKey(name: "customerAddress") String? customerAddress,
     @JsonKey(name: "description") String? description,
+    @JsonKey(name: "serviceDescription") String? serviceDescription,
     @JsonKey(name: "isWithMaterial") bool? isWithMaterial,
     @JsonKey(name: "isWithFemale") bool? isWithFemale,
     @JsonKey(name: "latitudel") String? latitudel,

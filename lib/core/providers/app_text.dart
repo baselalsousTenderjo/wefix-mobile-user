@@ -15,17 +15,22 @@ class AppText {
 
   String getTranslation(String key) {
     try {
+      // Check if languages are loaded
+      if (languageProvider.allLanguage.isEmpty) {
+        return '';
+      }
+      
       final languageList = languageProvider.allLanguage
           .where((element) => element.key == langCode)
           .toList();
       
       if (languageList.isEmpty) {
-        return _getFallbackTranslation(key);
+        return '';
       }
       
       final languages = languageList.first.languages;
       if (languages == null || languages.isEmpty) {
-        return _getFallbackTranslation(key);
+        return '';
       }
       
       final translation = languages.firstWhere(
@@ -33,52 +38,10 @@ class AppText {
         orElse: () => SubLanguage(wordKey: key, value: ''),
       );
       
-      // If translation is empty, use fallback
-      if (translation.value == null || translation.value!.isEmpty) {
-        return _getFallbackTranslation(key);
-      }
-      
       return translation.value ?? '';
     } catch (e) {
-      // Return fallback translation if error occurs
-      return _getFallbackTranslation(key);
+      return '';
     }
-  }
-
-  // Fallback translations for keys that might not be in the API yet
-  String _getFallbackTranslation(String key) {
-    final fallbackTranslations = {
-      'en': {
-        'fullNameArabic': 'Full Name (Arabic)',
-        'fullNameEnglish': 'Full Name (English)',
-        'gender': 'Gender',
-        'male': 'Male',
-        'female': 'Female',
-        'selectGender': 'Select Gender',
-        'accountDoesNotExist': 'Account does not exist with this phone number',
-        'invalidPhoneNumberFormat': 'Invalid phone number format',
-        'accountTemporarilyLocked': 'Account temporarily locked',
-        'pleaseWaitBeforeRequestingOTP': 'Please wait before requesting a new OTP',
-        'pleaseEnterPhoneWithCountryCode': 'Please enter phone number with country code (e.g., +1234567890)',
-        'createdBy': 'Created By',
-      },
-      'ar': {
-        'fullNameArabic': 'الاسم الكامل (عربي)',
-        'fullNameEnglish': 'الاسم الكامل (إنجليزي)',
-        'gender': 'الجنس',
-        'male': 'ذكر',
-        'female': 'أنثى',
-        'selectGender': 'اختر الجنس',
-        'accountDoesNotExist': 'لا يوجد حساب بهذا الرقم',
-        'invalidPhoneNumberFormat': 'تنسيق رقم الهاتف غير صحيح',
-        'accountTemporarilyLocked': 'الحساب مؤقتاً مغلق',
-        'pleaseWaitBeforeRequestingOTP': 'يرجى الانتظار قبل طلب رمز التحقق الجديد',
-        'pleaseEnterPhoneWithCountryCode': 'يرجى إدخال رقم الهاتف مع رمز الدولة (مثل: +962791234567)',
-        'createdBy': 'تم الإنشاء بواسطة',
-      },
-    };
-    
-    return fallbackTranslations[langCode]?[key] ?? '';
   }
 
   String get youMustBeSelectedImages => getTranslation('youMustBeSelectedImages');
@@ -98,6 +61,7 @@ class AppText {
   String get uploadFromGallery => getTranslation('uploadFromGallery');
   String get signature => getTranslation('signature');
   String get uploadFromCamera => getTranslation('uploadFromCamera');
+  String get recordVoice => getTranslation('recordVoice');
   String get uploadMaintenance => getTranslation('uploadMaintenance');
   String get blockMessage => getTranslation('blockMessage');
   String get image => getTranslation('image');
@@ -193,6 +157,7 @@ class AppText {
       getTranslation('sendyourinquirytooursupportteamandwellassistyouassoonaspossible');
   String get send => getTranslation('send');
   String get attachments => getTranslation('attachments');
+  String get ticketAttachments => getTranslation('ticketAttachments');
   String get close => getTranslation('close');
   String get confirm => getTranslation('confirm');
   String get issueDescription => getTranslation('issueDescription');
@@ -287,4 +252,11 @@ class AppText {
   String get accountTemporarilyLocked => getTranslation('accountTemporarilyLocked');
   String get pleaseWaitBeforeRequestingOTP => getTranslation('pleaseWaitBeforeRequestingOTP');
   String get pleaseEnterPhoneWithCountryCode => getTranslation('pleaseEnterPhoneWithCountryCode');
+  String get ticketAlreadyCompleted => getTranslation('ticketAlreadyCompleted');
+  String get fileNotFound => getTranslation('fileNotFound');
+  String get ticketMustBeStartedFirst => getTranslation('ticketMustBeStartedFirst');
+  String get signatureRequired => getTranslation('signatureRequired');
+  String get completedTicketInfo => getTranslation('completedTicketInfo');
+  String get technicianAttachments => getTranslation('technicianAttachments');
+  String get completionNote => getTranslation('completionNote');
 }

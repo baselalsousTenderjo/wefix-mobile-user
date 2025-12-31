@@ -211,6 +211,8 @@ mixin _$TicketsDetails {
   String? get customerAddress => throw _privateConstructorUsedError;
   @JsonKey(name: "description")
   String? get description => throw _privateConstructorUsedError;
+  @JsonKey(name: "serviceDescription")
+  String? get serviceDescription => throw _privateConstructorUsedError;
   @JsonKey(name: "isWithMaterial")
   bool? get isWithMaterial => throw _privateConstructorUsedError;
   @JsonKey(name: "isWithFemale")
@@ -277,6 +279,7 @@ abstract class $TicketsDetailsCopyWith<$Res> {
       @JsonKey(name: "customerImage") String? customerImage,
       @JsonKey(name: "customerAddress") String? customerAddress,
       @JsonKey(name: "description") String? description,
+      @JsonKey(name: "serviceDescription") String? serviceDescription,
       @JsonKey(name: "isWithMaterial") bool? isWithMaterial,
       @JsonKey(name: "isWithFemale") bool? isWithFemale,
       @JsonKey(name: "latitudel") String? latitudel,
@@ -329,6 +332,7 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
     Object? customerImage = freezed,
     Object? customerAddress = freezed,
     Object? description = freezed,
+    Object? serviceDescription = freezed,
     Object? isWithMaterial = freezed,
     Object? isWithFemale = freezed,
     Object? latitudel = freezed,
@@ -406,6 +410,10 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      serviceDescription: freezed == serviceDescription
+          ? _value.serviceDescription
+          : serviceDescription // ignore: cast_nullable_to_non_nullable
               as String?,
       isWithMaterial: freezed == isWithMaterial
           ? _value.isWithMaterial
@@ -511,6 +519,7 @@ abstract class _$$TicketsDetailsImplCopyWith<$Res>
       @JsonKey(name: "customerImage") String? customerImage,
       @JsonKey(name: "customerAddress") String? customerAddress,
       @JsonKey(name: "description") String? description,
+      @JsonKey(name: "serviceDescription") String? serviceDescription,
       @JsonKey(name: "isWithMaterial") bool? isWithMaterial,
       @JsonKey(name: "isWithFemale") bool? isWithFemale,
       @JsonKey(name: "latitudel") String? latitudel,
@@ -562,6 +571,7 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
     Object? customerImage = freezed,
     Object? customerAddress = freezed,
     Object? description = freezed,
+    Object? serviceDescription = freezed,
     Object? isWithMaterial = freezed,
     Object? isWithFemale = freezed,
     Object? latitudel = freezed,
@@ -639,6 +649,10 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      serviceDescription: freezed == serviceDescription
+          ? _value.serviceDescription
+          : serviceDescription // ignore: cast_nullable_to_non_nullable
               as String?,
       isWithMaterial: freezed == isWithMaterial
           ? _value.isWithMaterial
@@ -727,6 +741,7 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
       @JsonKey(name: "customerImage") this.customerImage,
       @JsonKey(name: "customerAddress") this.customerAddress,
       @JsonKey(name: "description") this.description,
+      @JsonKey(name: "serviceDescription") this.serviceDescription,
       @JsonKey(name: "isWithMaterial") this.isWithMaterial,
       @JsonKey(name: "isWithFemale") this.isWithFemale,
       @JsonKey(name: "latitudel") this.latitudel,
@@ -806,6 +821,9 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
   @override
   @JsonKey(name: "description")
   final String? description;
+  @override
+  @JsonKey(name: "serviceDescription")
+  final String? serviceDescription;
   @override
   @JsonKey(name: "isWithMaterial")
   final bool? isWithMaterial;
@@ -925,7 +943,7 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
 
   @override
   String toString() {
-    return 'TicketsDetails(id: $id, ticketCodeId: $ticketCodeId, title: $title, time: $time, titleAr: $titleAr, type: $type, typeAr: $typeAr, userId: $userId, date: $date, reportLink: $reportLink, status: $status, customerName: $customerName, customerImage: $customerImage, customerAddress: $customerAddress, description: $description, isWithMaterial: $isWithMaterial, isWithFemale: $isWithFemale, latitudel: $latitudel, longitude: $longitude, mobile: $mobile, esitmatedTime: $esitmatedTime, ticketAttatchments: $ticketAttatchments, technicianAttachments: $technicianAttachments, ticketTools: $ticketTools, ticketImages: $ticketImages, ticketMaterials: $ticketMaterials, maintenanceTickets: $maintenanceTickets, serviceTickets: $serviceTickets, advantageTickets: $advantageTickets, createdBy: $createdBy, creator: $creator)';
+    return 'TicketsDetails(id: $id, ticketCodeId: $ticketCodeId, title: $title, time: $time, titleAr: $titleAr, type: $type, typeAr: $typeAr, userId: $userId, date: $date, reportLink: $reportLink, status: $status, customerName: $customerName, customerImage: $customerImage, customerAddress: $customerAddress, description: $description, serviceDescription: $serviceDescription, isWithMaterial: $isWithMaterial, isWithFemale: $isWithFemale, latitudel: $latitudel, longitude: $longitude, mobile: $mobile, esitmatedTime: $esitmatedTime, ticketAttatchments: $ticketAttatchments, technicianAttachments: $technicianAttachments, ticketTools: $ticketTools, ticketImages: $ticketImages, ticketMaterials: $ticketMaterials, maintenanceTickets: $maintenanceTickets, serviceTickets: $serviceTickets, advantageTickets: $advantageTickets, createdBy: $createdBy, creator: $creator)';
   }
 
   @override
@@ -954,6 +972,8 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
                 other.customerAddress == customerAddress) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.serviceDescription, serviceDescription) ||
+                other.serviceDescription == serviceDescription) &&
             (identical(other.isWithMaterial, isWithMaterial) ||
                 other.isWithMaterial == isWithMaterial) &&
             (identical(other.isWithFemale, isWithFemale) ||
@@ -1005,6 +1025,7 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
         customerImage,
         customerAddress,
         description,
+        serviceDescription,
         isWithMaterial,
         isWithFemale,
         latitudel,
@@ -1055,6 +1076,7 @@ abstract class _TicketsDetails implements TicketsDetails {
           @JsonKey(name: "customerImage") final String? customerImage,
           @JsonKey(name: "customerAddress") final String? customerAddress,
           @JsonKey(name: "description") final String? description,
+          @JsonKey(name: "serviceDescription") final String? serviceDescription,
           @JsonKey(name: "isWithMaterial") final bool? isWithMaterial,
           @JsonKey(name: "isWithFemale") final bool? isWithFemale,
           @JsonKey(name: "latitudel") final String? latitudel,
@@ -1127,6 +1149,9 @@ abstract class _TicketsDetails implements TicketsDetails {
   @override
   @JsonKey(name: "description")
   String? get description;
+  @override
+  @JsonKey(name: "serviceDescription")
+  String? get serviceDescription;
   @override
   @JsonKey(name: "isWithMaterial")
   bool? get isWithMaterial;

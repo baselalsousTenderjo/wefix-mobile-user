@@ -73,6 +73,7 @@
     "sendyourinquirytooursupportteamandwellassistyouassoonaspossible": "أرسل استفسارك إلى فريق الدعم، وسنساعدك في أسرع وقت ممكن.",
     "send": "إرسال",
     "attachments": "مرفقات",
+    "ticketAttachments": "مرفقات التذكرة",
     "close": "إغلاق",
     "confirm": "تأكيد",
     "issueDescription": "وصف المشكلة",
@@ -199,6 +200,15 @@
       "fullNameEnglish":"الاسم الكامل (إنجليزي)",
       "gender":"الجنس",
       "male":"ذكر",
-      "selectGender":"اختر الجنس"
+      "selectGender":"اختر الجنس",
+      "ticketAlreadyCompleted":"التذكرة مكتملة بالفعل.",
+      "fileNotFound":"الملف غير موجود.",
+      "ticketMustBeStartedFirst":"يجب بدء التذكرة أولاً قبل الإكمال.",
+      "signatureRequired":"التوقيع مطلوب لإكمال التذكرة.",
+      "completedTicketInfo":"معلومات التذكرة المكتملة",
+      "technicianAttachments":"مرفقات الفني",
+      "completionNote":"ملاحظة الإكمال",
+      "recordVoice":"تسجيل صوت",
+      "technicianAttachment":"مرفقات الفني"
 
 }

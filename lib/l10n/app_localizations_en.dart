@@ -237,6 +237,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attachments => 'Attachments';
 
   @override
+  String get ticketAttachments => 'Ticket Attachments';
+
+  @override
   String get close => 'Close';
 
   @override
@@ -569,4 +572,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectGender => 'Select Gender';
+
+  @override
+  String get ticketAlreadyCompleted => 'Ticket is already completed.';
+
+  @override
+  String get fileNotFound => 'File not found.';
+
+  @override
+  String get ticketMustBeStartedFirst => 'Ticket must be started first before completion.';
+
+  @override
+  String get signatureRequired => 'Signature is required to complete the ticket.';
+
+  @override
+  String get completedTicketInfo => 'Completed Ticket Information';
+
+  @override
+  String get technicianAttachments => 'Technician Attachments';
+
+  @override
+  String get completionNote => 'Completion Note';
+
+  @override
+  String get recordVoice => 'Record Voice';
 }
