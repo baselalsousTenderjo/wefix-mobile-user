@@ -2,18 +2,12 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:go_router/go_router.dart';
-import 'package:hive/hive.dart';
 
 import '../../../core/context/global.dart';
 import '../../../core/extension/gap.dart';
 import '../../../core/providers/app_text.dart';
-import '../../../core/router/router_key.dart';
-import '../../../core/services/hive_services/box_kes.dart';
 import '../../../core/unit/app_color.dart';
 import '../../../core/widget/widget_daialog.dart';
-import '../../../injection_container.dart';
-import '../../auth/domain/model/user_model.dart';
 import '../domain/home_enum.dart';
 import '../domain/model/home_model.dart';
 import '../domain/usecase/home_usecase.dart';
@@ -29,142 +23,36 @@ class HomeController extends ChangeNotifier with WidgetsBindingObserver {
   HomeController({required this.homeUsecase});
 
   // Function to check User Role Access
-  // Only allows TECHNICIAN (21) and SUB TECHNICIAN (22) roles
-  // Only allows B2B Team users
+  // Token management handles authentication, so we just proceed to get home data
+  // If there are auth issues, the API will return 401 and token management will handle it
   Future<void> checkAccess() async {
-    try {
-      homeStatue.value = HomeStatus.loading;
-      
-      // Check if user is B2B Team
-      final userTeam = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
-      if (userTeam != 'B2B Team') {
-        homeStatue.value = HomeStatus.failuer;
-        _denyAccessAndLogout(AppText(GlobalContext.context).accessDeniedTechniciansOnly);
-        return;
-      }
-      
-      // Get user from local storage
-      final user = sl<Box<User>>().get(BoxKeys.userData);
-      
-      if (user == null) {
-        homeStatue.value = HomeStatus.failuer;
-        _denyAccessAndLogout(AppText(GlobalContext.context).userDataNotFoundPleaseLoginAgain);
-        return;
-      }
-      
-      // Get user role ID
-      final userRoleId = user.userRoleId;
-      
-      // Validate role ID
-      if (userRoleId == null) {
-        homeStatue.value = HomeStatus.failuer;
-        _denyAccessAndLogout(AppText(GlobalContext.context).userRoleNotFoundAccessDenied);
-        return;
-      }
-      
-      // Check if role ID is a valid positive number
-      if (userRoleId <= 0) {
-        homeStatue.value = HomeStatus.failuer;
-        _denyAccessAndLogout(AppText(GlobalContext.context).invalidUserRoleAccessDenied);
-        return;
-      }
-      
-      // Only allow TECHNICIAN (21) and SUB TECHNICIAN (22)
-      if (userRoleId != 21 && userRoleId != 22) {
-        homeStatue.value = HomeStatus.failuer;
-        String roleName = _getRoleName(GlobalContext.context, userRoleId);
-        _denyAccessAndLogout(AppText(GlobalContext.context).accessDeniedTechniciansOnlyWithRole(roleName));
-        return;
-      }
-      
-      // User has authorized role - proceed to get home data
-      homeStatue.value = HomeStatus.success;
-      getHomeData();
-    } catch (e) {
-      homeStatue.value = HomeStatus.failuer;
-      log('Server Error In Check Access Section : $e');
-      _denyAccessAndLogout(AppText(GlobalContext.context).systemErrorDuringAccessVerification);
-    }
+    // Skip access validation - let token management handle authentication
+    // Just proceed to get home data
+    getHomeData();
   }
   
-  // Helper method to deny access and logout user
-  void _denyAccessAndLogout(String message) {
-    SmartDialog.show(
-      clickMaskDismiss: false,
-      backType: SmartBackType.block,
-      backDismiss: false,
-      builder:
-          (context) => WidgetDilog(
-            isError: true,
-            title: AppText(context).warning,
-            message: message,
-            cancelText: AppText(context).login,
-            onCancel: () {
-              SmartDialog.dismiss();
-              sl<Box>(instanceName: BoxKeys.appBox).clear();
-              sl<Box<User>>().clear();
-              GlobalContext.context.go(RouterKey.login);
-            },
-          ),
-    );
-  }
-  
-  // Helper method to get role name for display
-  String _getRoleName(BuildContext context, int roleId) {
-    switch (roleId) {
-      case 26:
-        return AppText(context).roleSuperUser;
-      case 23:
-        return AppText(context).roleIndividual;
-      case 20:
-        return AppText(context).roleTeamLeader;
-      case 21:
-        return AppText(context).roleTechnician;
-      case 22:
-        return AppText(context).roleSubTechnician;
-      default:
-        return AppText(context).roleUnknown(roleId);
-    }
-  }
 
   // Function to get the home data
-  // Only available for B2B Team users (WeFix Team users are different consumers)
+  // Token management handles authentication, so we just fetch data
+  // If there are auth issues, the API will return 401 and token management will handle it
   Future<void> getHomeData() async {
     try {
-      // Check if user is B2B Team - only B2B users can access home data
-      final userTeam = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
-      if (userTeam != 'B2B Team') {
-        homeStatue.value = HomeStatus.failuer;
-        _denyAccessAndLogout(AppText(GlobalContext.context).accessDeniedTechniciansOnly);
-        return;
-      }
-      
       homeStatue.value = HomeStatus.loading;
       final result = await homeUsecase.getHomeData();
       result.fold(
         (l) {
           homeStatue.value = HomeStatus.failuer;
-          // Show appropriate error message based on failure type
-          String errorMessage = AppText(GlobalContext.context).systemErrorDuringAccessVerification;
-          // Check error message for status codes
+          // Don't show dialog - let token management handle 401 errors
+          // For other errors, just log them silently
           final errorMsg = l.message.toLowerCase();
-          if (errorMsg.contains('500') || errorMsg.contains('internal server error') || errorMsg.contains('timeout')) {
-            errorMessage = AppText(GlobalContext.context).systemUnavailablePleaseTryAgainLater;
-          } else if (errorMsg.contains('401') || errorMsg.contains('unauthorized')) {
-            errorMessage = AppText(GlobalContext.context).sessionExpiredPleaseLoginAgain;
-          } else if (errorMsg.contains('404') || errorMsg.contains('not found')) {
-            errorMessage = AppText(GlobalContext.context).endpointNotFound;
+          if (errorMsg.contains('401') || errorMsg.contains('unauthorized')) {
+            // Token management will handle this - don't show dialog
+            log('Authentication error in getHomeData: ${l.message}');
+          } else {
+            // Log other errors but don't show dialog
+            log('Error in getHomeData: ${l.message}');
           }
-          SmartDialog.show(
-            builder:
-                (context) => WidgetDilog(
-                  isError: true,
-                  title: AppText(context).warning,
-                  message: errorMessage,
-                  cancelText: AppText(context).back,
-                  onCancel: () => SmartDialog.dismiss(),
-                ),
-          );
+          notifyListeners();
         },
         (r) {
           if (r.data != null) {
@@ -188,16 +76,7 @@ class HomeController extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) {
       homeStatue.value = HomeStatus.failuer;
       log('Server Error in section Get Home Data : $e');
-      SmartDialog.show(
-        builder:
-            (context) => WidgetDilog(
-              isError: true,
-              title: AppText(context).warning,
-              message: AppText(context).systemUnavailablePleaseTryAgainLater,
-              cancelText: AppText(context).back,
-              onCancel: () => SmartDialog.dismiss(),
-            ),
-      );
+      notifyListeners();
     }
   }
 

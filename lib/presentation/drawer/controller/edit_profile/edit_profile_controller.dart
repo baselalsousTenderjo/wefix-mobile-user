@@ -105,7 +105,23 @@ class EditProfileController extends ChangeNotifier with WidgetsBindingObserver {
       emailController.text = currentProfile?.email ?? '';
       firstnameController.text = currentProfile?.fullName ?? '';
       lastnameController.text = currentProfile?.fullNameEnglish ?? '';
-      selectedGender = currentProfile?.gender;
+      
+      // Normalize gender value when loading from profile
+      final genderValue = currentProfile?.gender;
+      if (genderValue != null && genderValue.isNotEmpty) {
+        final lowerGender = genderValue.toLowerCase().trim();
+        if (lowerGender == 'male' || lowerGender == 'm' || lowerGender == 'ذكر') {
+          selectedGender = 'Male';
+        } else if (lowerGender == 'female' || lowerGender == 'f' || lowerGender == 'أنثى') {
+          selectedGender = 'Female';
+        } else if (genderValue == 'Male' || genderValue == 'Female') {
+          selectedGender = genderValue;
+        } else {
+          selectedGender = null; // Set to null if doesn't match expected values
+        }
+      } else {
+        selectedGender = null;
+      }
       
       // Set phone number - combine country code and mobile number if available
       if (currentProfile?.mobileNumber != null && currentProfile?.countryCode != null) {

@@ -35,7 +35,7 @@ class DioProvider {
 
     // Add auth interceptor first (before logger) to handle token refresh
     _dio.interceptors.add(AuthInterceptor());
-    
+
     _dio.interceptors.add(
       PrettyDioLogger(
         requestHeader: true,

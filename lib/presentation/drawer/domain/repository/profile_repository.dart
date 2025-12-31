@@ -48,12 +48,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
       final profileData = responseData['profile'] ?? responseData['data'] ?? responseData;
       
       // Map backend-tmms profile format to User model
-      // Backend returns: { email, fullNameArabic, fullNameEnglish, profileImage }
+      // Backend returns: { email, firstname, lastname, profileImage } or { email, fullName, fullNameEnglish, profileImage }
       // User model expects: { email, fullName, fullNameEnglish, profileImage, mobileNumber, countryCode }
       final user = User(
         email: profileData['email'],
-        fullName: profileData['fullNameArabic'],
-        fullNameEnglish: profileData['fullNameEnglish'],
+        fullName: profileData['firstname'] ?? profileData['fullNameArabic'] ?? profileData['fullName'],
+        fullNameEnglish: profileData['lastname'] ?? profileData['fullNameEnglish'],
         profileImage: profileData['profileImage'],
         // Get additional fields from stored user data if available
         mobileNumber: profileData['mobileNumber'],
@@ -90,9 +90,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       final formData = FormData();
       
       // Add text fields
+      // Backend expects 'firstname' and 'lastname', not 'fullNameArabic' and 'fullNameEnglish'
       if (email != null) formData.fields.add(MapEntry('email', email));
-      if (fullNameArabic != null) formData.fields.add(MapEntry('fullNameArabic', fullNameArabic));
-      if (fullNameEnglish != null) formData.fields.add(MapEntry('fullNameEnglish', fullNameEnglish));
+      if (fullNameArabic != null) formData.fields.add(MapEntry('firstname', fullNameArabic));
+      if (fullNameEnglish != null) formData.fields.add(MapEntry('lastname', fullNameEnglish));
       if (mobileNumber != null) formData.fields.add(MapEntry('mobileNumber', mobileNumber));
       if (countryCode != null) formData.fields.add(MapEntry('countryCode', countryCode));
       if (gender != null) formData.fields.add(MapEntry('gender', gender));
@@ -130,10 +131,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
       final profileData = responseData['profile'] ?? responseData['data'] ?? responseData;
       
       // Map backend-tmms profile format to User model
+      // Backend returns 'firstname' and 'lastname', map them to fullName and fullNameEnglish
       final user = User(
         email: profileData['email'],
-        fullName: profileData['fullNameArabic'],
-        fullNameEnglish: profileData['fullNameEnglish'],
+        fullName: profileData['firstname'] ?? profileData['fullNameArabic'],
+        fullNameEnglish: profileData['lastname'] ?? profileData['fullNameEnglish'],
         profileImage: profileData['profileImage'],
         mobileNumber: profileData['mobileNumber'],
         countryCode: profileData['countryCode'],

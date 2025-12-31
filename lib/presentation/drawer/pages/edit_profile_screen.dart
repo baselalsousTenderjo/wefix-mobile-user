@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +6,7 @@ import '../../../core/constant/app_links.dart';
 import '../../../core/extension/gap.dart';
 import '../../../core/mixin/validation_mixin.dart';
 import '../../../core/providers/app_text.dart';
+import '../../../core/providers/language_provider/l10n_provider.dart';
 import '../../../core/services/hive_services/box_kes.dart';
 import '../../../core/unit/app_color.dart';
 import '../../../core/unit/app_text_style.dart';
@@ -15,7 +15,6 @@ import '../../../core/widget/language_button.dart';
 import '../../../core/widget/widget_phone_field.dart';
 import '../../../core/widget/widget_cache_network_image.dart';
 import '../../../core/widget/widget_text_field.dart';
-import '../../../core/widget/widget_dropdown.dart';
 import '../../../injection_container.dart';
 import '../../auth/domain/model/user_model.dart';
 import '../controller/edit_profile/edit_profile_controller.dart';
@@ -144,31 +143,29 @@ class EditProfileScreen extends StatelessWidget with FormValidationMixin {
                                     child: WidhetEditImageProfile(imageUrl: user.image ?? ''),
                                   ),
                                 10.gap,
-                                // User name
-                                if (isB2B) ...[
-                                  if ((user.fullName ?? '').isNotEmpty || (user.fullNameEnglish ?? '').isNotEmpty)
-                                    Text(
-                                      '${user.fullName ?? ''} ${user.fullNameEnglish ?? ''}'.trim(),
+                                // User name - show based on selected language
+                                Builder(
+                                  builder: (context) {
+                                    final lang = context.read<LanguageProvider>().lang ?? 'en';
+                                    String displayName;
+                                    
+                                    if (lang == 'ar') {
+                                      // For Arabic: show Arabic name only
+                                      displayName = user?.fullName ?? user?.name ?? 'User';
+                                    } else {
+                                      // For English: show English name only
+                                      displayName = user?.fullNameEnglish ?? user?.name ?? 'User';
+                                    }
+                                    
+                                    return Text(
+                                      displayName,
                                       style: AppTextStyle.style14B.copyWith(color: AppColor.primaryColor),
                                       textAlign: TextAlign.center,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                    )
-                                  else
-                                    Text(
-                                      user.name ?? 'User',
-                                      style: AppTextStyle.style14B.copyWith(color: AppColor.primaryColor),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                ] else ...[
-                                  Text(
-                                    user.fullName ?? user.name ?? 'User',
-                                    style: AppTextStyle.style14B.copyWith(color: AppColor.primaryColor),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ),
@@ -269,130 +266,47 @@ class EditProfileScreen extends StatelessWidget with FormValidationMixin {
                         style: AppTextStyle.style12B.copyWith(color: AppColor.primaryColor),
                       ),
                       5.gap,
-                      // Full Name (Arabic) - editable for B2B
+                      // Full Name (Arabic) - read-only
                       Text(AppText(context).fullNameArabic, style: AppTextStyle.style14B),
                       5.gap,
                       WidgetTextField(
                         AppText(context).enterYourName,
-                        controller: isB2B
-                            ? controller.firstnameController
-                            : TextEditingController(text: user.fullName ?? user.name ?? ''),
-                        readOnly: !isB2B,
-                        validator: (p0) => validateNull(context, p0),
+                        controller: TextEditingController(text: user.fullName ?? user.name ?? ''),
+                        readOnly: true,
                       ),
-                      // Full Name (English) - editable for B2B
+                      // Full Name (English) - read-only
                       if (isB2B) ...[
                         5.gap,
                         Text(AppText(context).fullNameEnglish, style: AppTextStyle.style14B),
                         5.gap,
                         WidgetTextField(
                           'Enter full name in English',
-                          controller: controller.lastnameController,
-                          readOnly: false,
-                          validator: (p0) => validateNull(context, p0),
+                          controller: TextEditingController(text: user.fullNameEnglish ?? ''),
+                          readOnly: true,
                         ),
                       ],
                       5.gap,
-                      // Email (editable for B2B)
+                      // Email - read-only
                       Text(AppText(context).email, style: AppTextStyle.style14B),
                       5.gap,
                       WidgetTextField(
                         'example@example.com',
-                        controller: isB2B
-                            ? controller.emailController
-                            : TextEditingController(text: user.email),
-                        readOnly: !isB2B,
+                        controller: TextEditingController(text: user.email ?? ''),
+                        readOnly: true,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (p0) => validateEmail(context, p0),
                       ),
                       5.gap,
-                      // Mobile (editable for B2B)
+                      // Mobile - read-only
                       Text(AppText(context).mobile, style: AppTextStyle.style14B),
                       5.gap,
-                      if (isB2B)
-                        WidgetPhoneField(
-                          phoneController: controller.phoneController,
-                          onCountryChanged: (phoneNumber) => controller.onPhoneNumberChanged(phoneNumber),
-                          code: _getCountryCodeFromUser(user),
-                        )
-                      else
-                        WidgetPhoneField(
-                          phoneController: TextEditingController(
-                            text: user.mobile?.replaceAll('+962', '') ?? '',
-                          ),
+                      WidgetPhoneField(
+                        phoneController: TextEditingController(
+                          text: _getMobileNumber(user),
                         ),
-                      5.gap,
-                      // Gender (editable for B2B)
-                      Text(AppText(context).gender, style: AppTextStyle.style14B),
-                      5.gap,
-                      if (isB2B)
-                        Builder(
-                          builder: (context) {
-                            final appText = AppText(context);
-                            // Normalize gender value to match dropdown items ('Male' or 'Female')
-                            String? normalizedGender;
-                            final currentGender = controller.selectedGender;
-                            if (currentGender != null && currentGender.isNotEmpty) {
-                              // Normalize to match the dropdown items
-                              final lowerGender = currentGender.toLowerCase();
-                              if (lowerGender == 'male' || lowerGender == 'm') {
-                                normalizedGender = 'Male';
-                              } else if (lowerGender == 'female' || lowerGender == 'f') {
-                                normalizedGender = 'Female';
-                              } else {
-                                normalizedGender = currentGender; // Keep original if doesn't match
-                              }
-                            }
-                            
-                            return WidgetDropDown<String>(
-                              items: const ['Male', 'Female'],
-                              value: normalizedGender,
-                              hintText: appText.selectGender,
-                              itemLabel: (value) {
-                                if (value == 'Male') return appText.male;
-                                if (value == 'Female') return appText.female;
-                                return value;
-                              },
-                              onChanged: (value) {
-                                controller.onGenderChanged(value);
-                              },
-                            );
-                          },
-                        )
-                      else
-                        // Show gender as read-only for WeFix Team users
-                        WidgetTextField(
-                          controller.currentProfile?.gender ?? user.gender ?? '',
-                          readOnly: true,
-                        ),
-                      // Save button for B2B users
-                      if (isB2B) ...[
-                        30.gap,
-                        ValueListenableBuilder<ProfileStatus>(
-                          valueListenable: controller.profileStatus,
-                          builder: (context, status, child) {
-                            return AppButton.text(
-                              text: AppText(context).continues,
-                              loading: status == ProfileStatus.loading,
-                              onPressed: () async {
-                                final success = await controller.updateProfile();
-                                if (success) {
-                                  SmartDialog.showToast(
-                                    'Profile updated successfully',
-                                    alignment: Alignment.center,
-                                  );
-                                } else {
-                                  SmartDialog.showToast(
-                                    'Failed to update profile',
-                                    alignment: Alignment.center,
-                                  );
-                                }
-                              },
-                            );
-                          },
-                        ),
-                        20.gap,
-                      ],
+                        code: _getCountryCodeFromUser(user),
+                      ),
+                      // Gender field is hidden
+                      // All fields are read-only, so no save button
                     ],
                   ),
                 ),
@@ -415,10 +329,48 @@ class EditProfileScreen extends StatelessWidget with FormValidationMixin {
     return '$baseUrl$imagePath';
   }
   
+  /// Extract mobile number without country code
+  String _getMobileNumber(User? user) {
+    if (user == null) return '';
+    
+    // Prefer mobileNumber if available (already without country code)
+    if (user.mobileNumber != null && user.mobileNumber!.isNotEmpty) {
+      return user.mobileNumber!;
+    }
+    
+    // Fallback to mobile field and extract number
+    if (user.mobile != null && user.mobile!.isNotEmpty) {
+      String mobile = user.mobile!;
+      
+      // Remove country code if present
+      if (user.countryCode != null && user.countryCode!.isNotEmpty) {
+        String countryCode = user.countryCode!.startsWith('+') 
+            ? user.countryCode! 
+            : '+${user.countryCode}';
+        if (mobile.startsWith(countryCode)) {
+          mobile = mobile.substring(countryCode.length).trim();
+        }
+      }
+      
+      // Also try to remove common country codes
+      final commonCodes = ['+962', '+971', '+966', '+974', '+965', '+968', '+961', '+963', '+20', '+212', '+213', '+216', '+218', '+249', '+967'];
+      for (final code in commonCodes) {
+        if (mobile.startsWith(code)) {
+          mobile = mobile.substring(code.length).trim();
+          break;
+        }
+      }
+      
+      return mobile;
+    }
+    
+    return '';
+  }
+  
+  /// Get country code ISO (e.g., "JO" for "+962")
   String? _getCountryCodeFromUser(User? user) {
     if (user?.countryCode != null) {
       // Map country dial codes to ISO codes
-      // This covers the most common countries in the region and worldwide
       final countryCodeMap = {
         '+962': 'JO', // Jordan
         '+971': 'AE', // UAE
