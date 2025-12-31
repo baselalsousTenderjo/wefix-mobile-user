@@ -5,6 +5,7 @@ import 'package:dio/io.dart'; // Required for DefaultHttpClientAdapter
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../../constant/app_links.dart';
+import '../token_management/auth_interceptor.dart';
 
 class DioProvider {
   static final DioProvider _instance = DioProvider._internal();
@@ -32,6 +33,9 @@ class DioProvider {
       return client;
     };
 
+    // Add auth interceptor first (before logger) to handle token refresh
+    _dio.interceptors.add(AuthInterceptor());
+    
     _dio.interceptors.add(
       PrettyDioLogger(
         requestHeader: true,

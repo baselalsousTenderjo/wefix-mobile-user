@@ -16,6 +16,7 @@ import 'package:record/record.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../../../core/constant/app_links.dart';
 import '../../../core/context/global.dart';
 import '../../../core/extension/gap.dart';
 import '../../../core/providers/app_text.dart';
@@ -650,10 +651,24 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
             }
             
             // User has authorized role - proceed with login
-            sl<Box>(instanceName: BoxKeys.appBox).put(BoxKeys.enableAuth, true);
-            sl<Box>(instanceName: BoxKeys.appBox).put(BoxKeys.usertoken, r.data?.token);
-            sl<Box>(instanceName: BoxKeys.appBox).put(BoxKeys.userTeam, selectedTeam); // Store team selection
-            sl<Box<User>>().put(BoxKeys.userData, r.data!.user!);
+            final box = sl<Box>(instanceName: BoxKeys.appBox);
+            final userBox = sl<Box<User>>();
+            
+            box.put(BoxKeys.enableAuth, true);
+            box.put(BoxKeys.usertoken, r.data?.token);
+            box.put(BoxKeys.userTeam, selectedTeam); // Store team selection
+            
+            // Token expiration and refresh token are now saved in the repository
+            // If not saved there (e.g., for WeFix Team), set a default expiration
+            final expiresAt = box.get('${BoxKeys.usertoken}_expiresAt');
+            if (expiresAt == null) {
+              // Use default expiration from environment variables
+              final expiresInSeconds = AppLinks.tokenDefaultExpirationHours * 60 * 60;
+              final tokenExpiresAt = DateTime.now().add(Duration(seconds: expiresInSeconds));
+              box.put('${BoxKeys.usertoken}_expiresAt', tokenExpiresAt.toIso8601String());
+            }
+            
+            userBox.put(BoxKeys.userData, r.data!.user!);
             sendOTPState.value = SendState.success;
             return GlobalContext.context.push(RouterKey.layout);
           },

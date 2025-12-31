@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constant/app_links.dart';
@@ -10,6 +11,7 @@ import '../../../../core/providers/language_provider/l10n_provider.dart';
 import '../../../../core/services/api_services/api_client.dart';
 import '../../../../core/services/api_services/dio_helper.dart';
 import '../../../../core/services/api_services/result_model.dart';
+import '../../../../core/services/hive_services/box_kes.dart';
 import '../model/contact_info_model.dart';
 import '../model/user_model.dart';
 
@@ -143,10 +145,21 @@ class LoginRepositoryImpl implements LoginRepository {
             final userData = responseData['user'];
             final tokenData = responseData['token'];
             
+            // Extract token information (can be object or string)
+            String? accessToken;
+            Map<String, dynamic>? tokenInfo;
+            
+            if (tokenData is Map) {
+              accessToken = tokenData['accessToken']?.toString() ?? tokenData['token']?.toString();
+              tokenInfo = Map<String, dynamic>.from(tokenData);
+            } else if (tokenData is String) {
+              accessToken = tokenData;
+            }
+            
             // Map the response to UserModel structure - matching backend user.model.ts
             final userModelData = {
               'status': true,
-              'token': tokenData?['accessToken'] ?? tokenData?['token'],
+              'token': accessToken,
               'message': responseData['message'] ?? 'Authentication successful',
               'user': userData != null ? {
                 // Core backend fields
@@ -170,6 +183,31 @@ class LoginRepositoryImpl implements LoginRepository {
             };
             
             UserModel userModel = UserModel.fromJson(userModelData);
+            
+            // Store token info separately in Hive for token management
+            // This is done here because we have access to the raw response
+            if (tokenInfo != null && team == 'B2B Team') {
+              try {
+                final box = await Hive.openBox(BoxKeys.appBox);
+                final refreshToken = tokenInfo['refreshToken'];
+                final expiresIn = tokenInfo['expiresIn'];
+                
+                if (refreshToken != null) {
+                  await box.put('${BoxKeys.usertoken}_refresh', refreshToken);
+                }
+                
+                if (expiresIn != null) {
+                  final expiresInSeconds = expiresIn is int 
+                      ? expiresIn 
+                      : int.tryParse(expiresIn.toString()) ?? AppLinks.tokenFallbackExpirationSeconds;
+                  final tokenExpiresAt = DateTime.now().add(Duration(seconds: expiresInSeconds));
+                  await box.put('${BoxKeys.usertoken}_expiresAt', tokenExpiresAt.toIso8601String());
+                }
+              } catch (e) {
+                // Silent fail - token info saving is optional
+              }
+            }
+            
             return Right(Result.success(userModel));
           } else {
             // WeFix Team response format (use existing format)

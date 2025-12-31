@@ -50,4 +50,11 @@ class AppLinks {
 
   static final String chatSendMessage = dotenv.env['CHAT_SEND_MESSAGE']!;
   static final String chatGetMessages = dotenv.env['CHAT_GET_MESSAGES']!;
+  
+  // ============================== Token Management ==============================
+  static final int tokenMinSessionLengthMinutes = int.parse(dotenv.env['TOKEN_MIN_SESSION_LENGTH_MINUTES'] ?? '30');
+  static final int tokenValidityBufferSeconds = int.parse(dotenv.env['TOKEN_VALIDITY_BUFFER_SECONDS'] ?? '60');
+  static final int tokenDefaultExpirationHours = int.parse(dotenv.env['TOKEN_DEFAULT_EXPIRATION_HOURS'] ?? '24');
+  static final int tokenFallbackExpirationSeconds = int.parse(dotenv.env['TOKEN_FALLBACK_EXPIRATION_SECONDS'] ?? '3600');
+  static final String tokenRefreshEndpoint = dotenv.env['TOKEN_REFRESH_ENDPOINT'] ?? 'user/refresh-token';
 }

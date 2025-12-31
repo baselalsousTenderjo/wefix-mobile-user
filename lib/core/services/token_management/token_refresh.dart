@@ -10,7 +10,6 @@ import '../../services/api_services/dio_helper.dart';
 import '../../services/hive_services/box_kes.dart';
 import '../../router/router_key.dart';
 import '../../../injection_container.dart';
-import '../../../presentation/auth/domain/model/user_model.dart';
 import 'token_utils.dart';
 
 /// Refresh promise to prevent multiple simultaneous refresh calls
@@ -28,7 +27,6 @@ Future<bool> refreshAccessToken() async {
     try {
       final box = sl<Box>(instanceName: BoxKeys.appBox);
       final refreshToken = box.get('${BoxKeys.usertoken}_refresh');
-      final currentToken = box.get(BoxKeys.usertoken);
 
       if (refreshToken == null || refreshToken.toString().isEmpty) {
         log('No refresh token available');
@@ -38,7 +36,7 @@ Future<bool> refreshAccessToken() async {
       // Call refresh token API (backend-tmms)
       final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
       final response = await client.postRequest(
-        endpoint: 'user/refresh-token',
+        endpoint: AppLinks.tokenRefreshEndpoint,
         body: {'refreshToken': refreshToken},
       );
 
@@ -56,11 +54,13 @@ Future<bool> refreshAccessToken() async {
           }
 
           // Calculate and save expiration time
-          if (expiresIn != null) {
-            final expiresInSeconds = expiresIn is int ? expiresIn : int.tryParse(expiresIn.toString()) ?? 3600;
-            final tokenExpiresAt = DateTime.now().add(Duration(seconds: expiresInSeconds));
-            await box.put('${BoxKeys.usertoken}_expiresAt', tokenExpiresAt.toIso8601String());
-          }
+                if (expiresIn != null) {
+                  final expiresInSeconds = expiresIn is int 
+                      ? expiresIn 
+                      : int.tryParse(expiresIn.toString()) ?? AppLinks.tokenFallbackExpirationSeconds;
+                  final tokenExpiresAt = DateTime.now().add(Duration(seconds: expiresInSeconds));
+                  await box.put('${BoxKeys.usertoken}_expiresAt', tokenExpiresAt.toIso8601String());
+                }
 
           log('Token refreshed successfully');
           return true;
@@ -197,7 +197,7 @@ Future<void> _forceLogout() async {
 
         // Navigate to login screen
         final context = GlobalContext.context;
-        if (context != null) {
+        if (context.mounted) {
           context.go(RouterKey.login);
         }
       } catch (e) {
