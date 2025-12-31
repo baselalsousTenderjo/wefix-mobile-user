@@ -45,7 +45,7 @@ class ContainnerDescriptionSection extends StatelessWidget {
                               children: [
                                 Text('📝 ${AppText(context).issueDescription}', style: AppTextStyle.style14B),
                                 Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
-                                Text(controller.ticketsDetails?.description ?? '', style: AppTextStyle.style12.copyWith(height: 1.3, color: AppColor.grey)),
+                                Text(controller.ticketsDetails?.description ?? '', style: AppTextStyle.style14.copyWith(height: 1.5, color: AppColor.black)),
                               ],
                             ),
               ),

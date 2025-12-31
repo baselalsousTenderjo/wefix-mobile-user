@@ -81,11 +81,7 @@ class HomeController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void setFilter(HomeModel home) {
-    filterTypes = [
-      {'title': AppText(GlobalContext.context, isFunction: true).today, 'isSelected': true, 'count': '', 'data': []},
-      {'title': AppText(GlobalContext.context, isFunction: true).tomorrow, 'isSelected': false, 'count': '', 'data': []},
-      {'title': '${AppText(GlobalContext.context, isFunction: true).emergency} 🚨', 'isSelected': false, 'count': '', 'data': []},
-    ];
+    _updateFilterTitles();
     filterTypes[0]['data'] = home.tickets ?? [];
     filterTypes[0]['count'] = (home.tickets?.length ?? 0).toString();
     filterTypes[1]['data'] = home.ticketsTomorrow ?? [];
@@ -95,6 +91,28 @@ class HomeController extends ChangeNotifier with WidgetsBindingObserver {
     totalTickets =
         '${(home.tickets?.where((value) => value.status?.toLowerCase() == 'pending').toList().length ?? 0) + (home.ticketsTomorrow?.where((value) => value.status?.toLowerCase() == 'pending').toList().length ?? 0) + (home.emergency?.where((value) => value.status?.toLowerCase() == 'pending').toList().length ?? 0)}';
     // Rating/reviews removed - no longer needed
+    notifyListeners();
+  }
+
+  void _updateFilterTitles() {
+    final context = GlobalContext.context;
+    
+    final appText = AppText(context, isFunction: true);
+    // Preserve selection state
+    final wasTodaySelected = filterTypes.isNotEmpty && filterTypes[0]['isSelected'] == true;
+    final wasTomorrowSelected = filterTypes.length > 1 && filterTypes[1]['isSelected'] == true;
+    final wasEmergencySelected = filterTypes.length > 2 && filterTypes[2]['isSelected'] == true;
+    
+    filterTypes = [
+      {'title': appText.today, 'isSelected': wasTodaySelected || filterTypes.isEmpty, 'count': filterTypes.isNotEmpty ? filterTypes[0]['count'] : '', 'data': filterTypes.isNotEmpty ? filterTypes[0]['data'] : []},
+      {'title': appText.tomorrow, 'isSelected': wasTomorrowSelected, 'count': filterTypes.length > 1 ? filterTypes[1]['count'] : '', 'data': filterTypes.length > 1 ? filterTypes[1]['data'] : []},
+      {'title': '${appText.emergency} 🚨', 'isSelected': wasEmergencySelected, 'count': filterTypes.length > 2 ? filterTypes[2]['count'] : '', 'data': filterTypes.length > 2 ? filterTypes[2]['data'] : []},
+    ];
+  }
+
+  // Method to update filter titles when language changes
+  void updateFilterTitlesForLanguageChange() {
+    _updateFilterTitles();
     notifyListeners();
   }
 

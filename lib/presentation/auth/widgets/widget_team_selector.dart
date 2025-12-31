@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/app_text.dart';
+import '../../../core/providers/language_provider/l10n_provider.dart';
 import '../../../core/unit/app_color.dart';
 import '../../../core/unit/app_text_style.dart';
 import '../controller/auth_provider.dart';
@@ -11,15 +12,17 @@ class WidgetTeamSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        // Get translations with fallback
-        final b2bLabel = AppText(context).b2bTeam.isEmpty 
-            ? 'B2B Team' 
-            : AppText(context).b2bTeam;
-        final weFixLabel = AppText(context).weFixTeam.isEmpty 
-            ? 'WeFix Team' 
-            : AppText(context).weFixTeam;
+    return Consumer<LanguageProvider>(
+      builder: (context, languageProvider, child) {
+        return Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            // Get translations with fallback
+            final b2bLabel = AppText(context).b2bTeam.isEmpty 
+                ? 'B2B Team' 
+                : AppText(context).b2bTeam;
+            final weFixLabel = AppText(context).weFixTeam.isEmpty 
+                ? 'WeFix Team' 
+                : AppText(context).weFixTeam;
         
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -50,6 +53,8 @@ class WidgetTeamSelector extends StatelessWidget {
               ),
             ],
           ),
+        );
+          },
         );
       },
     );

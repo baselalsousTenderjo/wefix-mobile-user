@@ -218,7 +218,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
                 (context) => WidgetDilog(
                   isError: true,
                   title: AppText(context).warning,
-                  message: 'Please enter phone number with country code (e.g., +1234567890)',
+                  message: AppText(context).pleaseEnterPhoneWithCountryCode,
                   cancelText: AppText(context).back,
                   onCancel: () => SmartDialog.dismiss(),
                 ),
@@ -231,30 +231,32 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           (l) {
             loginState.value = LoginState.failure;
             
-            // Provide more specific error messages
-            String errorMessage = l.message;
-            if (l.message.toLowerCase().contains('does not exist') || 
-                l.message.toLowerCase().contains('account does not exist')) {
-              errorMessage = 'Account does not exist with this phone number';
-            } else if (l.message.toLowerCase().contains('invalid format') || 
-                       l.message.toLowerCase().contains('phone number')) {
-              errorMessage = 'Invalid phone number format';
-            } else if (l.message.toLowerCase().contains('locked')) {
-              errorMessage = 'Account temporarily locked';
-            } else if (l.message.toLowerCase().contains('wait') || 
-                       l.message.toLowerCase().contains('rate')) {
-              errorMessage = 'Please wait before requesting a new OTP';
-            }
-            
             SmartDialog.show(
               builder:
-                  (context) => WidgetDilog(
-                    isError: true,
-                    title: AppText(context).warning,
-                    message: errorMessage,
-                    cancelText: AppText(context).back,
-                    onCancel: () => SmartDialog.dismiss(),
-                  ),
+                  (context) {
+                    // Provide more specific error messages using localized strings
+                    String errorMessage = l.message;
+                    if (l.message.toLowerCase().contains('does not exist') || 
+                        l.message.toLowerCase().contains('account does not exist')) {
+                      errorMessage = AppText(context).accountDoesNotExist;
+                    } else if (l.message.toLowerCase().contains('invalid format') || 
+                               l.message.toLowerCase().contains('phone number')) {
+                      errorMessage = AppText(context).invalidPhoneNumberFormat;
+                    } else if (l.message.toLowerCase().contains('locked')) {
+                      errorMessage = AppText(context).accountTemporarilyLocked;
+                    } else if (l.message.toLowerCase().contains('wait') || 
+                               l.message.toLowerCase().contains('rate')) {
+                      errorMessage = AppText(context).pleaseWaitBeforeRequestingOTP;
+                    }
+                    
+                    return WidgetDilog(
+                      isError: true,
+                      title: AppText(context).warning,
+                      message: errorMessage,
+                      cancelText: AppText(context).back,
+                      onCancel: () => SmartDialog.dismiss(),
+                    );
+                  },
             );
           },
           (r) {

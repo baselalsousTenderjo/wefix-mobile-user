@@ -56,14 +56,10 @@ class AuthScreen extends StatelessWidget {
                   SingleChildScrollView(
                     padding: const EdgeInsets.all(10),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Team selector - only show on login screen, not register
-                        if (context.watch<AuthProvider>().isRegister == false) ...[
-                          const WidgetTeamSelector(),
-                          20.gap,
-                        ],
+                        10.gap,
                         context.watch<AuthProvider>().isRegister == true
                             ? const WidgetProfileImage()
                             : const Center(child: Image(image: AssetImage(Assets.imageLogin))),
@@ -74,7 +70,12 @@ class AuthScreen extends StatelessWidget {
                               : AppText(context).welcomebackSignintocontinue,
                           style: AppTextStyle.style14,
                         ),
-                        20.gap,
+                        110.gap,
+                        // Team selector - only show on login screen, not register
+                        if (context.watch<AuthProvider>().isRegister == false) ...[
+                          const WidgetTeamSelector(),
+                          20.gap,
+                        ],
                         context.watch<AuthProvider>().isRegister == false ? const ContainerFormLogin() : ContainerFormRegister(),
                         context.watch<AuthProvider>().isRegister == false ? 30.gap : const SizedBox.shrink(),
                         context.watch<AuthProvider>().isRegister == false ? const AuthButton() : const SizedBox.shrink(),
@@ -93,21 +94,6 @@ class AuthScreen extends StatelessWidget {
                             ),
                           ),
                           20.gap,
-                          if (context.watch<AuthProvider>().isRegister == false)
-                            InkWell(
-                              onTap: () => context.read<AuthProvider>().toggleAuth(),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColor.primaryColor)),
-                                width: MediaQuery.of(context).size.width * 0.7,
-                                child: Text(
-                                  AppText(context).signUptobeJoinUs,
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyle.style14B.copyWith(color: AppColor.primaryColor),
-                                ),
-                              ),
-                            ),
                         ],
                       ],
                     ),

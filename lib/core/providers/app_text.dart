@@ -55,6 +55,12 @@ class AppText {
         'male': 'Male',
         'female': 'Female',
         'selectGender': 'Select Gender',
+        'accountDoesNotExist': 'Account does not exist with this phone number',
+        'invalidPhoneNumberFormat': 'Invalid phone number format',
+        'accountTemporarilyLocked': 'Account temporarily locked',
+        'pleaseWaitBeforeRequestingOTP': 'Please wait before requesting a new OTP',
+        'pleaseEnterPhoneWithCountryCode': 'Please enter phone number with country code (e.g., +1234567890)',
+        'createdBy': 'Created By',
       },
       'ar': {
         'fullNameArabic': 'الاسم الكامل (عربي)',
@@ -63,6 +69,12 @@ class AppText {
         'male': 'ذكر',
         'female': 'أنثى',
         'selectGender': 'اختر الجنس',
+        'accountDoesNotExist': 'لا يوجد حساب بهذا الرقم',
+        'invalidPhoneNumberFormat': 'تنسيق رقم الهاتف غير صحيح',
+        'accountTemporarilyLocked': 'الحساب مؤقتاً مغلق',
+        'pleaseWaitBeforeRequestingOTP': 'يرجى الانتظار قبل طلب رمز التحقق الجديد',
+        'pleaseEnterPhoneWithCountryCode': 'يرجى إدخال رقم الهاتف مع رمز الدولة (مثل: +962791234567)',
+        'createdBy': 'تم الإنشاء بواسطة',
       },
     };
     
@@ -270,4 +282,9 @@ class AppText {
   String get gender => getTranslation('gender');
   String get male => getTranslation('male');
   String get selectGender => getTranslation('selectGender');
+  String get accountDoesNotExist => getTranslation('accountDoesNotExist');
+  String get invalidPhoneNumberFormat => getTranslation('invalidPhoneNumberFormat');
+  String get accountTemporarilyLocked => getTranslation('accountTemporarilyLocked');
+  String get pleaseWaitBeforeRequestingOTP => getTranslation('pleaseWaitBeforeRequestingOTP');
+  String get pleaseEnterPhoneWithCountryCode => getTranslation('pleaseEnterPhoneWithCountryCode');
 }
