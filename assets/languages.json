@@ -4043,6 +4043,90 @@
           "wordKey": "completedTicketInfo",
           "value": "معلومات التذكرة المكتملة",
           "lang": "ar"
+        },
+        {
+          "id": 2376,
+          "wordKey": "accountDoesNotExist",
+          "value": "الحساب غير موجود بهذا الرقم",
+          "lang": "ar"
+        },
+        {
+          "id": 2377,
+          "wordKey": "invalidPhoneNumberFormat",
+          "value": "تنسيق رقم الهاتف غير صحيح",
+          "lang": "ar"
+        },
+        {
+          "id": 2378,
+          "wordKey": "accountTemporarilyLocked",
+          "value": "الحساب مؤقتاً مقفل",
+          "lang": "ar"
+        },
+        {
+          "id": 2379,
+          "wordKey": "pleaseWaitBeforeRequestingOTP",
+          "value": "يرجى الانتظار قبل طلب رمز جديد",
+          "lang": "ar"
+        },
+        {
+          "id": 2380,
+          "wordKey": "internalServerError",
+          "value": "حدث خطأ في الخادم. يرجى المحاولة مرة أخرى",
+          "lang": "ar"
+        },
+        {
+          "id": 2381,
+          "wordKey": "anErrorOccurred",
+          "value": "حدث خطأ. يرجى المحاولة مرة أخرى",
+          "lang": "ar"
+        },
+        {
+          "id": 2382,
+          "wordKey": "badRequest",
+          "value": "طلب غير صحيح",
+          "lang": "ar"
+        },
+        {
+          "id": 2383,
+          "wordKey": "unauthorized",
+          "value": "غير مصرح",
+          "lang": "ar"
+        },
+        {
+          "id": 2384,
+          "wordKey": "forbidden",
+          "value": "ممنوع",
+          "lang": "ar"
+        },
+        {
+          "id": 2385,
+          "wordKey": "notFound",
+          "value": "غير موجود",
+          "lang": "ar"
+        },
+        {
+          "id": 2386,
+          "wordKey": "connectionError",
+          "value": "خطأ في الاتصال",
+          "lang": "ar"
+        },
+        {
+          "id": 2387,
+          "wordKey": "connectionTimeout",
+          "value": "انتهت مهلة الاتصال",
+          "lang": "ar"
+        },
+        {
+          "id": 2388,
+          "wordKey": "unknownError",
+          "value": "خطأ غير معروف",
+          "lang": "ar"
+        },
+        {
+          "id": 2389,
+          "wordKey": "failedToSendOTP",
+          "value": "فشل في إرسال رمز التحقق",
+          "lang": "ar"
         }
       ],
       "key": "ar"
@@ -8144,6 +8228,90 @@
           "wordKey": "completedTicketInfo",
           "value": "Completed Ticket Information",
           "lang": "en"
+        },
+        {
+          "id": 2376,
+          "wordKey": "accountDoesNotExist",
+          "value": "Account does not exist with this phone number",
+          "lang": "en"
+        },
+        {
+          "id": 2377,
+          "wordKey": "invalidPhoneNumberFormat",
+          "value": "Invalid phone number format",
+          "lang": "en"
+        },
+        {
+          "id": 2378,
+          "wordKey": "accountTemporarilyLocked",
+          "value": "Account temporarily locked",
+          "lang": "en"
+        },
+        {
+          "id": 2379,
+          "wordKey": "pleaseWaitBeforeRequestingOTP",
+          "value": "Please wait before requesting a new code",
+          "lang": "en"
+        },
+        {
+          "id": 2380,
+          "wordKey": "internalServerError",
+          "value": "Internal server error. Please try again",
+          "lang": "en"
+        },
+        {
+          "id": 2381,
+          "wordKey": "anErrorOccurred",
+          "value": "An error occurred. Please try again",
+          "lang": "en"
+        },
+        {
+          "id": 2382,
+          "wordKey": "badRequest",
+          "value": "Bad request",
+          "lang": "en"
+        },
+        {
+          "id": 2383,
+          "wordKey": "unauthorized",
+          "value": "Unauthorized",
+          "lang": "en"
+        },
+        {
+          "id": 2384,
+          "wordKey": "forbidden",
+          "value": "Forbidden",
+          "lang": "en"
+        },
+        {
+          "id": 2385,
+          "wordKey": "notFound",
+          "value": "Not found",
+          "lang": "en"
+        },
+        {
+          "id": 2386,
+          "wordKey": "connectionError",
+          "value": "Connection error",
+          "lang": "en"
+        },
+        {
+          "id": 2387,
+          "wordKey": "connectionTimeout",
+          "value": "Connection timeout",
+          "lang": "en"
+        },
+        {
+          "id": 2388,
+          "wordKey": "unknownError",
+          "value": "Unknown error",
+          "lang": "en"
+        },
+        {
+          "id": 2389,
+          "wordKey": "failedToSendOTP",
+          "value": "Failed to send OTP",
+          "lang": "en"
         }
       ],
       "key": "en"
@@ -8198,6 +8366,30 @@
           "id": 2375,
           "wordKey": "completedTicketInfo",
           "value": "Completed Ticket Information",
+          "lang": "en"
+        },
+        {
+          "id": 2376,
+          "wordKey": "accountDoesNotExist",
+          "value": "Account does not exist with this phone number",
+          "lang": "en"
+        },
+        {
+          "id": 2377,
+          "wordKey": "invalidPhoneNumberFormat",
+          "value": "Invalid phone number format",
+          "lang": "en"
+        },
+        {
+          "id": 2378,
+          "wordKey": "accountTemporarilyLocked",
+          "value": "Account temporarily locked",
+          "lang": "en"
+        },
+        {
+          "id": 2379,
+          "wordKey": "pleaseWaitBeforeRequestingOTP",
+          "value": "Please wait before requesting a new code",
           "lang": "en"
         }
       ]

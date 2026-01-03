@@ -235,18 +235,61 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
               builder:
                   (context) {
                     // Provide more specific error messages using localized strings
-                    String errorMessage = l.message;
-                    if (l.message.toLowerCase().contains('does not exist') || 
-                        l.message.toLowerCase().contains('account does not exist')) {
-                      errorMessage = AppText(context).accountDoesNotExist;
-                    } else if (l.message.toLowerCase().contains('invalid format') || 
-                               l.message.toLowerCase().contains('phone number')) {
-                      errorMessage = AppText(context).invalidPhoneNumberFormat;
-                    } else if (l.message.toLowerCase().contains('locked')) {
-                      errorMessage = AppText(context).accountTemporarilyLocked;
-                    } else if (l.message.toLowerCase().contains('wait') || 
-                               l.message.toLowerCase().contains('rate')) {
-                      errorMessage = AppText(context).pleaseWaitBeforeRequestingOTP;
+                    String errorMessage = l.message.isNotEmpty ? l.message : AppText(context).anErrorOccurred;
+                    
+                    // Try to get localized versions if the message matches known patterns
+                    if (errorMessage.toLowerCase().contains('does not exist') || 
+                        errorMessage.toLowerCase().contains('account does not exist')) {
+                      final localized = AppText(context).accountDoesNotExist;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('invalid format') || 
+                               errorMessage.toLowerCase().contains('phone number')) {
+                      final localized = AppText(context).invalidPhoneNumberFormat;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('locked')) {
+                      final localized = AppText(context).accountTemporarilyLocked;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('wait') || 
+                               errorMessage.toLowerCase().contains('rate')) {
+                      final localized = AppText(context).pleaseWaitBeforeRequestingOTP;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('internal server error') ||
+                               errorMessage.toLowerCase().contains('500')) {
+                      final localized = AppText(context).internalServerError;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('bad request') ||
+                               errorMessage.toLowerCase().contains('400')) {
+                      final localized = AppText(context).badRequest;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('unauthorized') ||
+                               errorMessage.toLowerCase().contains('401')) {
+                      final localized = AppText(context).unauthorized;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('forbidden') ||
+                               errorMessage.toLowerCase().contains('403')) {
+                      final localized = AppText(context).forbidden;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('not found') ||
+                               errorMessage.toLowerCase().contains('404')) {
+                      final localized = AppText(context).notFound;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('connection error')) {
+                      final localized = AppText(context).connectionError;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('connection timeout')) {
+                      final localized = AppText(context).connectionTimeout;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('unknown error')) {
+                      final localized = AppText(context).unknownError;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    } else if (errorMessage.toLowerCase().contains('failed to send')) {
+                      final localized = AppText(context).failedToSendOTP;
+                      errorMessage = localized.isNotEmpty ? localized : errorMessage;
+                    }
+                    
+                    // Ensure message is never empty - use localized fallback
+                    if (errorMessage.isEmpty) {
+                      errorMessage = AppText(context).anErrorOccurred;
                     }
                     
                     return WidgetDilog(

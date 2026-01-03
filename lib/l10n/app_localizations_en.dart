@@ -596,4 +596,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recordVoice => 'Record Voice';
+
+  @override
+  String get accountDoesNotExist => 'Account does not exist with this phone number';
+
+  @override
+  String get invalidPhoneNumberFormat => 'Invalid phone number format';
+
+  @override
+  String get accountTemporarilyLocked => 'Account temporarily locked';
+
+  @override
+  String get pleaseWaitBeforeRequestingOTP => 'Please wait before requesting a new code';
 }

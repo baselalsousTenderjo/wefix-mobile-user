@@ -210,6 +210,10 @@
       "technicianAttachments":"Technician Attachments",
       "completionNote":"Completion Note",
       "recordVoice":"Record Voice",
-      "technicianAttachment":"Technician Attachment"
+      "technicianAttachment":"Technician Attachment",
+      "accountDoesNotExist":"Account does not exist with this phone number",
+      "invalidPhoneNumberFormat":"Invalid phone number format",
+      "accountTemporarilyLocked":"Account temporarily locked",
+      "pleaseWaitBeforeRequestingOTP":"Please wait before requesting a new code"
 
 }

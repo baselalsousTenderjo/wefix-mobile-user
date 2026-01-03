@@ -66,21 +66,25 @@ class LoginRepositoryImpl implements LoginRepository {
         }
       } else {
         // Handle different error status codes
-        String errorMessage = loginResponse.response.data['message'] ?? 'Failed to send OTP';
+        // Always try to extract message from response first
+        String errorMessage = loginResponse.response.data['message']?.toString() ?? 
+                             (lang == 'ar' ? loginResponse.response.data['messageAr']?.toString() : null) ??
+                             'Failed to send OTP';
         
-        // Map status codes to user-friendly messages
-        if (loginResponse.response.statusCode == 404) {
-          errorMessage = lang == 'ar' ? 'الحساب غير موجود' : 'Account does not exist';
-        } else if (loginResponse.response.statusCode == 403) {
-          // 403 Forbidden - Role not allowed
-          errorMessage = loginResponse.response.data['message'] ?? 
-                        (lang == 'ar' ? 'تم رفض الوصول. هذا التطبيق متاح فقط للفنيين' : 'Access denied. This app is only available for Technicians');
-        } else if (loginResponse.response.statusCode == 423) {
-          errorMessage = lang == 'ar' ? 'الحساب مؤقتاً مقفل' : 'Account temporarily locked';
-        } else if (loginResponse.response.statusCode == 429) {
-          errorMessage = lang == 'ar' ? 'يرجى الانتظار قبل طلب رمز جديد' : 'Please wait before requesting a new code';
-        } else if (loginResponse.response.statusCode == 400) {
-          errorMessage = loginResponse.response.data['message'] ?? (lang == 'ar' ? 'رقم الهاتف غير صحيح' : 'Invalid phone number format');
+        // Only use default messages if no message was found in response
+        if (errorMessage == 'Failed to send OTP') {
+          if (loginResponse.response.statusCode == 404) {
+            errorMessage = lang == 'ar' ? 'الحساب غير موجود' : 'Account does not exist';
+          } else if (loginResponse.response.statusCode == 403) {
+            // 403 Forbidden - Role not allowed
+            errorMessage = lang == 'ar' ? 'تم رفض الوصول. هذا التطبيق متاح فقط للفنيين' : 'Access denied. This app is only available for Technicians';
+          } else if (loginResponse.response.statusCode == 423) {
+            errorMessage = lang == 'ar' ? 'الحساب مؤقتاً مقفل' : 'Account temporarily locked';
+          } else if (loginResponse.response.statusCode == 429) {
+            errorMessage = lang == 'ar' ? 'يرجى الانتظار قبل طلب رمز جديد' : 'Please wait before requesting a new code';
+          } else if (loginResponse.response.statusCode == 400) {
+            errorMessage = lang == 'ar' ? 'رقم الهاتف غير صحيح' : 'Invalid phone number format';
+          }
         }
         
         return Left(ServerFailure(message: errorMessage));

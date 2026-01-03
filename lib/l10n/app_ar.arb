@@ -209,6 +209,10 @@
       "technicianAttachments":"مرفقات الفني",
       "completionNote":"ملاحظة الإكمال",
       "recordVoice":"تسجيل صوت",
-      "technicianAttachment":"مرفقات الفني"
+      "technicianAttachment":"مرفقات الفني",
+      "accountDoesNotExist":"الحساب غير موجود بهذا الرقم",
+      "invalidPhoneNumberFormat":"تنسيق رقم الهاتف غير صحيح",
+      "accountTemporarilyLocked":"الحساب مؤقتاً مقفل",
+      "pleaseWaitBeforeRequestingOTP":"يرجى الانتظار قبل طلب رمز جديد"
 
 }

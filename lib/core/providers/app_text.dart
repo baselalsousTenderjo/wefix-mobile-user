@@ -252,6 +252,16 @@ class AppText {
   String get accountTemporarilyLocked => getTranslation('accountTemporarilyLocked');
   String get pleaseWaitBeforeRequestingOTP => getTranslation('pleaseWaitBeforeRequestingOTP');
   String get pleaseEnterPhoneWithCountryCode => getTranslation('pleaseEnterPhoneWithCountryCode');
+  String get internalServerError => getTranslation('internalServerError');
+  String get anErrorOccurred => getTranslation('anErrorOccurred');
+  String get badRequest => getTranslation('badRequest');
+  String get unauthorized => getTranslation('unauthorized');
+  String get forbidden => getTranslation('forbidden');
+  String get notFound => getTranslation('notFound');
+  String get connectionError => getTranslation('connectionError');
+  String get connectionTimeout => getTranslation('connectionTimeout');
+  String get unknownError => getTranslation('unknownError');
+  String get failedToSendOTP => getTranslation('failedToSendOTP');
   String get ticketAlreadyCompleted => getTranslation('ticketAlreadyCompleted');
   String get fileNotFound => getTranslation('fileNotFound');
   String get ticketMustBeStartedFirst => getTranslation('ticketMustBeStartedFirst');

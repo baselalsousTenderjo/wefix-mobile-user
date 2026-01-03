@@ -18,12 +18,24 @@ class ServerFailure extends Failure {
         return ServerFailure(message: 'Receive Timeout');
 
       case DioExceptionType.badResponse:
+        // Extract message from response data
+        String? errorMessage;
+        final responseData = dioException.response?.data;
+        if (responseData is Map) {
+          errorMessage = responseData['message']?.toString();
+          // Also check for other common error message fields
+          if ((errorMessage == null || errorMessage.isEmpty) && responseData.containsKey('error')) {
+            errorMessage = responseData['error']?.toString();
+          }
+          if ((errorMessage == null || errorMessage.isEmpty) && responseData.containsKey('msg')) {
+            errorMessage = responseData['msg']?.toString();
+          }
+        } else if (responseData != null) {
+          errorMessage = responseData.toString();
+        }
         return ServerFailure.fromResponse(
           dioException.response?.statusCode,
-          message:
-              dioException.response?.data.toString().contains('message') ?? true
-                  ? dioException.response?.data['message']
-                  : dioException.response?.data.toString(),
+          message: errorMessage,
         );
 
       case DioExceptionType.sendTimeout:

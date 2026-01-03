@@ -1264,6 +1264,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Record Voice'**
   String get recordVoice;
+
+  /// No description provided for @accountDoesNotExist.
+  ///
+  /// In en, this message translates to:
+  /// **'Account does not exist with this phone number'**
+  String get accountDoesNotExist;
+
+  /// No description provided for @invalidPhoneNumberFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number format'**
+  String get invalidPhoneNumberFormat;
+
+  /// No description provided for @accountTemporarilyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Account temporarily locked'**
+  String get accountTemporarilyLocked;
+
+  /// No description provided for @pleaseWaitBeforeRequestingOTP.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait before requesting a new code'**
+  String get pleaseWaitBeforeRequestingOTP;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

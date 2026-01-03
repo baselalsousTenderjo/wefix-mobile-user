@@ -596,4 +596,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recordVoice => 'تسجيل صوت';
+
+  @override
+  String get accountDoesNotExist => 'الحساب غير موجود بهذا الرقم';
+
+  @override
+  String get invalidPhoneNumberFormat => 'تنسيق رقم الهاتف غير صحيح';
+
+  @override
+  String get accountTemporarilyLocked => 'الحساب مؤقتاً مقفل';
+
+  @override
+  String get pleaseWaitBeforeRequestingOTP => 'يرجى الانتظار قبل طلب رمز جديد';
 }
