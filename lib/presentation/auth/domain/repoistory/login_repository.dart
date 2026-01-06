@@ -28,8 +28,9 @@ class LoginRepositoryImpl implements LoginRepository {
   Future<Either<Failure, Result<Map>>> login(String mobile, {String? team}) async {
     try {
       String lang = GlobalContext.context.read<LanguageProvider>().lang ?? 'en';
-      // Use SERVER_TMMS for B2B Team, SERVER for WeFix Team
-      final String baseUrl = (team == 'B2B Team') ? AppLinks.serverTMMS : AppLinks.server;
+      // Use getServerForTeamParam() to get correct server based on team parameter
+      // Uses AppLinks.serverTMMS for B2B Team, AppLinks.server for WeFix Team
+      final String baseUrl = AppLinks.getServerForTeamParam(team);
       final ApiClient client = ApiClient(DioProvider().dio, baseUrl: baseUrl);
       
       // Normalize phone number - remove spaces and ensure proper format
@@ -47,9 +48,9 @@ class LoginRepositoryImpl implements LoginRepository {
       }
       
       // Request OTP - use different endpoints based on team
-      // B2B Team uses: user/request-otp (TMMS endpoint)
+      // B2B Team uses: B2B_REQUEST_OTP from .env (TMMS endpoint)
       // WeFix Team uses: SEND_OTP from .env (WeFix endpoint)
-      final String endpoint = (team == 'B2B Team') ? 'user/request-otp' : AppLinks.sendOTP;
+      final String endpoint = (team == 'B2B Team') ? AppLinks.b2bRequestOTP : AppLinks.login;
       final loginResponse = await client.postRequest(
         endpoint: endpoint,
         body: {"mobile": normalizedMobile},
@@ -111,8 +112,9 @@ class LoginRepositoryImpl implements LoginRepository {
   Future<Either<Failure, Result<UserModel>>> checkOTPCode(String mobile, String code, String fcm, {String? team}) async {
     try {
       String lang = GlobalContext.context.read<LanguageProvider>().lang ?? 'en';
-      // Use SERVER_TMMS for B2B Team, SERVER for WeFix Team
-      final String baseUrl = (team == 'B2B Team') ? AppLinks.serverTMMS : AppLinks.server;
+      // Use getServerForTeamParam() to get correct server based on team parameter
+      // Uses AppLinks.serverTMMS for B2B Team, AppLinks.server for WeFix Team
+      final String baseUrl = AppLinks.getServerForTeamParam(team);
       final ApiClient client = ApiClient(DioProvider().dio, baseUrl: baseUrl);
       
       // Normalize phone number - remove spaces and ensure proper format
@@ -129,22 +131,33 @@ class LoginRepositoryImpl implements LoginRepository {
       }
       
       // Verify OTP - use different endpoints based on team
-      // B2B Team uses: user/verify-otp (TMMS endpoint)
-      // WeFix Team uses: LOGIN from .env (WeFix endpoint)
-      final String endpoint = (team == 'B2B Team') ? 'user/verify-otp' : AppLinks.login;
+      // B2B Team uses: B2B_VERIFY_OTP from .env (TMMS endpoint)
+      // WeFix Team uses: VERIFY_OTP from .env (backend-tjms endpoint for technicians)
+      final String endpoint = (team == 'B2B Team') ? AppLinks.b2bVerifyOTP : AppLinks.sendOTP;
       
-      // Get device ID with metadata
-      final deviceMetadata = await DeviceInfoService.getDeviceMetadata();
-      final deviceId = jsonEncode(deviceMetadata); // Send as JSON string with all metadata
-      
-      final sendOtpResponse = await client.postRequest(
-        endpoint: endpoint,
-        body: {
+      // Prepare request body based on team
+      Map<String, dynamic> requestBody;
+      if (team == 'B2B Team') {
+        // B2B Team (backend-tmms) expects: mobile, otp, fcmToken, deviceId
+        final deviceMetadata = await DeviceInfoService.getDeviceMetadata();
+        final deviceId = jsonEncode(deviceMetadata);
+        requestBody = {
           "mobile": normalizedMobile,
           "otp": code,
           "fcmToken": fcm,
-          "deviceId": deviceId, // Send device ID with metadata (model, brand, etc.)
-        },
+          "deviceId": deviceId,
+        };
+      } else {
+        // WeFix Team (backend-tjms) expects: Mobile, Otp (capitalized, OTP as int)
+        requestBody = {
+          "Mobile": normalizedMobile,
+          "Otp": int.tryParse(code) ?? 0, // backend-tjms expects OTP as integer
+        };
+      }
+      
+      final sendOtpResponse = await client.postRequest(
+        endpoint: endpoint,
+        body: requestBody,
       );
       
       if (sendOtpResponse.response.statusCode == 200) {
@@ -222,9 +235,39 @@ class LoginRepositoryImpl implements LoginRepository {
             
             return Right(Result.success(userModel));
           } else {
-            // WeFix Team response format (use existing format)
-            UserModel userModel = UserModel.fromJson(responseData);
-          return Right(Result.success(userModel));
+            // WeFix Team (backend-tjms) response format
+            // Response: { status: true, token: string, message: string, User: {...} }
+            final token = responseData['token']?.toString();
+            final userData = responseData['User'] ?? responseData['user'];
+            
+            // Map backend-tjms response to UserModel format
+            final userModelData = {
+              'status': responseData['status'] ?? true,
+              'token': token,
+              'message': responseData['message'] ?? 'Authentication successful',
+              'user': userData != null ? {
+                'id': userData['id'],
+                'name': userData['Name'] ?? userData['name'],
+                'email': userData['Email'] ?? userData['email'],
+                'mobile': userData['Mobile'] ?? userData['mobile'],
+                'image': userData['Image'] ?? userData['image'],
+                'rating': userData['rating'] ?? 0.0,
+                'address': userData['Address'] ?? userData['address'],
+                'profession': userData['Profession'] ?? userData['profession'],
+                'age': userData['Age'] ?? userData['age'],
+                'introduce': userData['Introduce'] ?? userData['introduce'],
+                'dateOfBirth': userData['DateOfBirth'] ?? userData['dateOfBirth'],
+                'createdDate': userData['CreatedDate'] ?? userData['createdDate'],
+                // Map to standard fields
+                'fullName': userData['Name'] ?? userData['name'],
+                'fullNameEnglish': userData['Name'] ?? userData['name'],
+                'mobileNumber': userData['Mobile'] ?? userData['mobile'],
+                'profileImage': userData['Image'] ?? userData['image'],
+              } : null,
+            };
+            
+            UserModel userModel = UserModel.fromJson(userModelData);
+            return Right(Result.success(userModel));
           }
         } else {
           String errorMessage = sendOtpResponse.response.data['message'] ?? 

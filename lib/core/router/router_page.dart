@@ -35,6 +35,7 @@ final goRouter = GoRouter(
           pageBuilder: (context, state) {
             String? mobile = state.uri.queryParameters['mobile'];
             String? otp = state.uri.queryParameters['otp'];
+            String? team = state.uri.queryParameters['team'];
             
             // Normalize phone number from URL
             if (mobile != null) {
@@ -60,7 +61,12 @@ final goRouter = GoRouter(
               otp = Uri.decodeComponent(otp);
             }
             
-            return _fadeTransitionPage(VerifyScreen(mobile: mobile ?? '', otp: otp), state);
+            // Decode team if present
+            if (team != null) {
+              team = Uri.decodeComponent(team);
+            }
+            
+            return _fadeTransitionPage(VerifyScreen(mobile: mobile ?? '', otp: otp, team: team), state);
           },
         ),
       ],

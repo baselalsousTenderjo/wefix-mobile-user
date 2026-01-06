@@ -21,11 +21,21 @@ abstract class MaintenancesRepoistory {
 }
 
 class MaintenancesRepoistoryImpl implements MaintenancesRepoistory {
+  // Helper method to check if user is B2B Team
+  Future<bool> _isB2BTeam() async {
+    try {
+      final userTeam = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+      return userTeam == 'B2B Team';
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   Future<Either<Failure, Result<List<MaintenancesList>>>> getMaintenancesList(String ticketId) async {
     try {
-      // Use SERVER_TMMS for maintenances list endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       final ticketMaintenancesResponse = await client.getRequest(endpoint: AppLinks.ticketsMaintenances + ticketId, authorization: 'Bearer $token');
       MaintenancesListModel ticketMaintenances = MaintenancesListModel.fromJson(ticketMaintenancesResponse.response.data);
@@ -40,8 +50,8 @@ class MaintenancesRepoistoryImpl implements MaintenancesRepoistory {
   @override
   Future<Either<Failure, Result<Unit>>> updateMaintenancesList(MaintenancParams params) async {
     try {
-      // Use SERVER_TMMS for update maintenances endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       final ticketAddMaintenanceslResponse = await client.postRequest(
         endpoint: AppLinks.ticketsCreateMaintenances,
@@ -64,8 +74,8 @@ class MaintenancesRepoistoryImpl implements MaintenancesRepoistory {
   @override
   Future<Either<Failure, Result<Unit>>> unSelectMaintenancesList(int id, int ticketId) async {
     try {
-      // Use SERVER_TMMS for unselect maintenances endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       final ticketAddMaintenanceslResponse = await client.postRequest(
         endpoint: AppLinks.unSelectMaintenances,
@@ -88,15 +98,31 @@ class MaintenancesRepoistoryImpl implements MaintenancesRepoistory {
   @override
   Future<Either<Failure, Result<List<dynamic>>>> getType() async {
     try {
-      // Use SERVER_TMMS for type endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
-      // Backend-tmms route: GET /api/v1/company-data/ticket-types
-      final result = await client.getRequest(endpoint: 'company-data/ticket-types', authorization: 'Bearer $token');
+      final bool isB2B = await _isB2BTeam();
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final String endpoint = isB2B ? AppLinks.b2bTicketTypes : AppLinks.type;
+      final result = await client.getRequest(endpoint: endpoint, authorization: 'Bearer $token');
       if (result.response.statusCode == 200) {
-        // Backend-tmms returns: { success: true, data: [...] }
-        final types = result.response.data['data'] ?? result.response.data;
-        return Right(Result.success(types));
+        final responseData = result.response.data;
+        dynamic typesData;
+        
+        if (isB2B) {
+          // B2B (backend-tmms) returns: { success: true, data: [...] } or directly [...]
+          typesData = responseData['data'] ?? responseData;
+        } else {
+          // B2C (backend-tjms) returns: { type: [...] }
+          typesData = responseData['type'] ?? responseData;
+        }
+        
+        // Ensure typesData is a List
+        if (typesData is! List) {
+          return Left(ServerFailure(message: 'Invalid response format: expected List but got ${typesData.runtimeType}'));
+        }
+        
+        return Right(Result.success(typesData));
       } else {
         return Left(ServerFailure.fromResponse(result.response.statusCode, message: result.response.data['message']));
       }

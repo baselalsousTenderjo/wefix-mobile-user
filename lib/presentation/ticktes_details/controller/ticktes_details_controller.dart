@@ -48,6 +48,15 @@ import '../widgets/widget_completion_attchment.dart';
 import '../widgets/widget_start_ticket_attachment.dart';
 
 class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserver {
+  // Helper method to check if user is B2B Team
+  Future<bool> _isB2BTeam() async {
+    try {
+      final userTeam = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+      return userTeam == 'B2B Team';
+    } catch (e) {
+      return false;
+    }
+  }
   final TicketUsecase ticketUsecase;
   final AuthUsecase authUsecase;
 
@@ -119,25 +128,6 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
   // ! Function get ticket details
   Future<void> ticketDetails(String id) async {
     try {
-      // Check if user is B2B Team - only B2B users can access ticket details
-      final userTeam = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
-      if (userTeam != 'B2B Team') {
-        ticketStatue.value = TicketStatus.failure;
-        SmartDialog.show(
-          builder: (context) => WidgetDilog(
-            isError: true,
-            title: AppText(context).warning,
-            message: AppText(context).accessDeniedTechniciansOnly,
-            cancelText: AppText(context).back,
-            onCancel: () {
-              SmartDialog.dismiss();
-              GlobalContext.context.pop();
-            },
-          ),
-        );
-        return;
-      }
-      
       ticketStatue.value = TicketStatus.loading;
       final result = await ticketUsecase.ticketDetails(id);
       result.fold(
@@ -507,11 +497,12 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
           'entityType': 'ticket',
         });
         
-        // Upload file to backend-tmms
-        final baseUrl = AppLinks.serverTMMS;
+        // Upload file using team-based server
+        final baseUrl = AppLinks.getServerForTeam();
+        final String uploadEndpoint = (await _isB2BTeam()) ? AppLinks.b2bFilesUpload : AppLinks.uploadFile;
         final uploadUrl = baseUrl.endsWith('/') 
-            ? '${baseUrl}files/upload'
-            : '$baseUrl/files/upload';
+            ? '$baseUrl$uploadEndpoint'
+            : '$baseUrl/$uploadEndpoint';
         
         log('Uploading file to: $uploadUrl with referenceId: $id');
         final response = await dio.post(
@@ -757,11 +748,12 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
           'entityType': 'ticket',
         });
         
-        // Upload file to backend-tmms
-        final baseUrl = AppLinks.serverTMMS;
+        // Upload file using team-based server
+        final baseUrl = AppLinks.getServerForTeam();
+        final String uploadEndpoint = (await _isB2BTeam()) ? AppLinks.b2bFilesUpload : AppLinks.uploadFile;
         final uploadUrl = baseUrl.endsWith('/') 
-            ? '${baseUrl}files/upload'
-            : '$baseUrl/files/upload';
+            ? '$baseUrl$uploadEndpoint'
+            : '$baseUrl/$uploadEndpoint';
         
         log('Uploading signature to: $uploadUrl with referenceId: $ticketId');
         final response = await dio.post(
@@ -1069,11 +1061,11 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
 
   void launchAttachmants(String url) async {
     try {
-      // If URL is relative (starts with /), construct full URL using backend-tmms base URL
+      // If URL is relative (starts with /), construct full URL using team-based server
       String fullUrl = url;
       if (url.startsWith('/')) {
-        // Get base URL from SERVER_TMMS (remove /api/v1 if present)
-        String baseUrl = AppLinks.serverTMMS;
+        // Get base URL using team-based server (remove /api/v1 if present)
+        String baseUrl = AppLinks.getServerForTeam();
         if (baseUrl.contains('/api/v1')) {
           baseUrl = baseUrl.replaceAll('/api/v1', '');
         }
@@ -1082,7 +1074,7 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
         fullUrl = '$baseUrl$url';
       } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
         // If it's not a full URL and doesn't start with /, try to construct it
-        String baseUrl = AppLinks.serverTMMS;
+        String baseUrl = AppLinks.getServerForTeam();
         if (baseUrl.contains('/api/v1')) {
           baseUrl = baseUrl.replaceAll('/api/v1', '');
         }

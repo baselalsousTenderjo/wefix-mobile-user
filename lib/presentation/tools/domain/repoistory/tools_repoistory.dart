@@ -22,8 +22,8 @@ class ToolsRepoistoryImpl implements ToolsRepoistory {
   @override
   Future<Either<Failure, Result<List<TicketTool>>>> getDriverTools() async {
     try {
-      // Use SERVER_TMMS for tools endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use B2C server for driver tools (not team-dependent)
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForCommon());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       final toolsResponse = await client.getRequest(endpoint: AppLinks.tools, authorization: 'Bearer $token');
       TicketToolsModel tools = TicketToolsModel.fromJson(toolsResponse.response.data);
@@ -38,8 +38,8 @@ class ToolsRepoistoryImpl implements ToolsRepoistory {
   @override
   Future<Either<Failure, Unit>> deleteDriverTools(int id) async {
     try {
-      // Use SERVER_TMMS for delete tool endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use B2C server for driver tools (not team-dependent)
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForCommon());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       await client.postRequest(endpoint: AppLinks.deleteTool, authorization: 'Bearer $token', body: {'Id': id});
       return const Right(unit);

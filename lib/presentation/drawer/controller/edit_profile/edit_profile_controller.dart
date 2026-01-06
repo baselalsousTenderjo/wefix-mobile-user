@@ -48,29 +48,23 @@ class EditProfileController extends ChangeNotifier with WidgetsBindingObserver {
     return userTeam == 'B2B Team';
   }
 
-  // Load profile from backend-tmms for B2B users
+  // Load profile from API for both B2B and B2C users
   Future<void> loadProfile() async {
-    if (!isB2BUser) {
-      // For WeFix Team, load from Hive
-      final user = sl<Box<User>>().get(BoxKeys.userData);
-      currentProfile = user;
-      _populateControllers();
-      notifyListeners();
-      return;
-    }
-
     profileStatus.value = ProfileStatus.loading;
     notifyListeners();
 
-    // Fetch profile data
+    // Fetch profile data from API for both teams
     final profileResult = await profileUsecase.getProfile();
-    
-    // Fetch home data to get company information
-    final homeResult = await homeUsecase.getHomeData();
     
     profileResult.fold(
       (failure) {
         profileStatus.value = ProfileStatus.failure;
+        // Fallback to Hive storage if API call fails
+        final user = sl<Box<User>>().get(BoxKeys.userData);
+        if (user != null) {
+          currentProfile = user;
+          _populateControllers();
+        }
         notifyListeners();
       },
       (success) {
@@ -80,24 +74,33 @@ class EditProfileController extends ChangeNotifier with WidgetsBindingObserver {
           profileStatus.value = ProfileStatus.success;
         } else {
           profileStatus.value = ProfileStatus.failure;
+          // Fallback to Hive storage if API returns no data
+          final user = sl<Box<User>>().get(BoxKeys.userData);
+          if (user != null) {
+            currentProfile = user;
+            _populateControllers();
+          }
         }
         notifyListeners();
       },
     );
     
-    // Extract company information from home data
-    homeResult.fold(
-      (failure) {
-        // If home data fetch fails, continue without company info
-        // Don't set status to failure as profile might have loaded successfully
-      },
-      (success) {
-        if (success.data != null) {
-          companyInfo = success.data?.technician?.company;
-          notifyListeners();
-        }
-      },
-    );
+    // Fetch home data to get company information (only for B2B)
+    if (isB2BUser) {
+      final homeResult = await homeUsecase.getHomeData();
+      homeResult.fold(
+        (failure) {
+          // If home data fetch fails, continue without company info
+          // Don't set status to failure as profile might have loaded successfully
+        },
+        (success) {
+          if (success.data != null) {
+            companyInfo = success.data?.technician?.company;
+            notifyListeners();
+          }
+        },
+      );
+    }
   }
 
   void _populateControllers() {

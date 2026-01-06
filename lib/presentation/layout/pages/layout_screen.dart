@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/providers/app_text.dart';
 import '../../../core/unit/app_text_style.dart';
 import '../../../injection_container.dart';
 import '../../drawer/pages/drawer.dart';
@@ -23,12 +22,12 @@ class LayoutScreen extends StatelessWidget {
       body: context.read<LayoutProvider>().screens[context.watch<LayoutProvider>().currentIndex],
       bottomNavigationBar: Consumer<LayoutProvider>(
         builder: (context, value, child) {
+          // Always refresh navigation bar to ensure it's up-to-date with team selection
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (value.items.length < 2 || value.items[0].label != AppText(context, isFunction: true).home) {
-              value.setBottomNavBar( );
-            }
+            value.setBottomNavBar();
           });
-          if (value.items.length < 2) {
+          // Hide navigation bar if empty or if only one item (B2B with only Home)
+          if (value.items.isEmpty || value.items.length <= 1) {
             return const SizedBox.shrink();
           }
           return BottomNavigationBar(

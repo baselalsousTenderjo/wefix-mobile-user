@@ -23,8 +23,8 @@ class ToolsReoistoryImpl implements ToolsReoistory {
   @override
   Future<Either<Failure, Result<List<TicketTool>>>> ticketTools() async {
     try {
-      // Use SERVER_TMMS for ticket tools endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       // Backend-tmms: Tools are stored in ticket.tools array
       // Get ticket first to retrieve tools, or get from company-data if available
@@ -43,8 +43,8 @@ class ToolsReoistoryImpl implements ToolsReoistory {
   @override
   Future<Either<Failure, Result<Unit>>> addTools(CreateToolsParams createToolsParams) async {
     try {
-      // Use SERVER_TMMS for add tools endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       final ticketAddToolsResponse = await client.postRequest(
         // Backend-tmms route: PUT /api/v1/tickets/:id (update tools array)

@@ -23,14 +23,28 @@ abstract class TicketsDetailsReoistory {
 }
 
 class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
+  // Helper method to check if user is B2B Team
+  Future<bool> _isB2BTeam() async {
+    try {
+      final userTeam = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+      return userTeam == 'B2B Team';
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   Future<Either<Failure, Result<TicketsDetails>>> ticketDetails(String ticketId) async {
     try {
-      // Use SERVER_TMMS for ticket details endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
-      // Backend-tmms route: GET /api/v1/tickets/:id
-      final ticketDetailsResponse = await client.getRequest(endpoint: 'tickets/$ticketId', authorization: 'Bearer $token');
+      
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final String endpoint = (await _isB2BTeam()) 
+          ? AppLinks.b2bTicketDetailsUrl(ticketId) 
+          : '${AppLinks.tickets}$ticketId';
+      final ticketDetailsResponse = await client.getRequest(endpoint: endpoint, authorization: 'Bearer $token');
       
       // Handle both direct data and wrapped response formats
       final responseData = ticketDetailsResponse.response.data;
@@ -48,11 +62,13 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
   @override
   Future<Either<Failure, Result<Unit>>> startTickets(String ticketId) async {
     try {
-      // Use SERVER_TMMS for start ticket endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
-      // Backend-tmms route: POST /api/v1/tickets/start
-      await client.postRequest(endpoint: 'tickets/start', body: {'Id': ticketId}, authorization: 'Bearer $token');
+      
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final String endpoint = (await _isB2BTeam()) ? AppLinks.b2bTicketsStart : AppLinks.startTickets;
+      await client.postRequest(endpoint: endpoint, body: {'Id': ticketId}, authorization: 'Bearer $token');
       return Right(Result.success(unit));
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioError(e));
@@ -64,15 +80,18 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
   @override
   Future<Either<Failure, Result<Unit>>> startTicketsWithAttachment(String ticketId, String attachmentUrl) async {
     try {
-      // Use SERVER_TMMS for start ticket endpoint (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
+      
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final String endpoint = (await _isB2BTeam()) ? AppLinks.b2bTicketsStart : AppLinks.startTickets;
       
       // The attachment is already uploaded via authUsecase.uploadFile
       // Pass the attachmentUrl directly to startTicket endpoint
       // The startTicket endpoint will create a File record linking it to the ticket
       await client.postRequest(
-        endpoint: 'tickets/start', 
+        endpoint: endpoint, 
         body: {
           'Id': ticketId,
           'attachmentUrl': attachmentUrl, // Pass attachment URL to startTicket endpoint
@@ -90,13 +109,17 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
   @override
   Future<Either<Failure, Result<Unit>>> completeTicket(String ticketId, String note, String signature, String link) async {
     try {
-      // Use SERVER_TMMS for complete ticket endpoint (backend-tmms)
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
       // Backend-tmms route: PUT /api/v1/tickets/:id (update ticketStatusId to "Completed")
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       
-      // First, get ticket statuses to find "Completed" status ID
-      final statusesResponse = await client.getRequest(endpoint: 'company-data/ticket-statuses', authorization: 'Bearer $token');
+      // First, get ticket statuses to find "Completed" status ID (B2B only)
+      final String statusesEndpoint = (await _isB2BTeam()) ? AppLinks.b2bTicketStatuses : '';
+      if (statusesEndpoint.isEmpty) {
+        return Left(ServerFailure(message: 'Ticket statuses endpoint not available for this team'));
+      }
+      final statusesResponse = await client.getRequest(endpoint: statusesEndpoint, authorization: 'Bearer $token');
       final statuses = statusesResponse.response.data['data'] ?? statusesResponse.response.data;
       final completedStatus = (statuses as List).firstWhere(
         (status) => (status['name'] as String?)?.toLowerCase() == 'completed',
@@ -110,8 +133,12 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
       final completedStatusId = completedStatus['id'] as int;
       
       // Update ticket with completed status, note, and signature
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final String updateEndpoint = (await _isB2BTeam()) 
+          ? AppLinks.b2bTicketUpdateUrl(ticketId) 
+          : '${AppLinks.completeTickets}$ticketId';
       await client.putRequest(
-        endpoint: 'tickets/$ticketId',
+        endpoint: updateEndpoint,
         body: {
           'ticketStatusId': completedStatusId,
           'serviceDescription': note, // Store note in serviceDescription
@@ -139,7 +166,7 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
       
       final dio = DioProvider().dio;
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
-      final baseUrl = AppLinks.serverTMMS;
+      final baseUrl = AppLinks.getServerForTeam();
       
       // Upload each image
       for (String imagePath in images) {
@@ -177,12 +204,11 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
           'entityType': 'ticket',
         });
         
-        // Upload file to backend-tmms
-        // Note: baseUrl already includes /api/v1 (e.g., https://wefix-backend-tmms.ngrok.app/api/v1)
-        // So we just need to append /files/upload
+        // Use B2B route for B2B Team, B2C route for WeFix Team
+        final String uploadEndpoint = (await _isB2BTeam()) ? AppLinks.b2bFilesUpload : AppLinks.uploadFile;
         final uploadUrl = baseUrl.endsWith('/') 
-            ? '${baseUrl}files/upload'
-            : '$baseUrl/files/upload';
+            ? '$baseUrl$uploadEndpoint'
+            : '$baseUrl/$uploadEndpoint';
         
         await dio.post(
           uploadUrl,

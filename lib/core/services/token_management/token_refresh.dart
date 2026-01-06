@@ -15,6 +15,16 @@ import 'token_utils.dart';
 /// Refresh promise to prevent multiple simultaneous refresh calls
 Future<bool>? _refreshPromise;
 
+/// Helper method to check if user is B2B Team
+Future<bool> _isB2BTeam() async {
+  try {
+    final userTeam = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+    return userTeam == 'B2B Team';
+  } catch (e) {
+    return false;
+  }
+}
+
 /// Refreshes the access token using the refresh token
 /// Returns true if successful, false otherwise
 Future<bool> refreshAccessToken() async {
@@ -33,10 +43,15 @@ Future<bool> refreshAccessToken() async {
         return false;
       }
 
-      // Call refresh token API (backend-tmms)
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Call refresh token API using team-based server
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
+      
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final bool isB2B = await _isB2BTeam();
+      final String endpoint = isB2B ? AppLinks.b2bTokenRefresh : AppLinks.tokenRefreshEndpoint;
+      
       final response = await client.postRequest(
-        endpoint: AppLinks.tokenRefreshEndpoint,
+        endpoint: endpoint,
         body: {'refreshToken': refreshToken},
       );
 

@@ -24,36 +24,41 @@ class WidgetTeamSelector extends StatelessWidget {
                 ? 'WeFix Team' 
                 : AppText(context).weFixTeam;
         
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColor.grey.withOpacity(0.3)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _buildTeamTab(
-                  context: context,
-                  team: 'B2B Team',
-                  label: b2bLabel,
-                  isSelected: authProvider.selectedTeam == 'B2B Team',
-                  onTap: () => authProvider.switchTeam('B2B Team'),
-                ),
-              ),
-              Expanded(
-                child: _buildTeamTab(
-                  context: context,
-                  team: 'WeFix Team',
-                  label: weFixLabel,
-                  isSelected: authProvider.selectedTeam == 'WeFix Team',
-                  onTap: () => authProvider.switchTeam('WeFix Team'),
-                ),
-              ),
-            ],
-          ),
-        );
+            return ValueListenableBuilder<String>(
+              valueListenable: authProvider.selectedTeam,
+              builder: (context, selectedTeam, child) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColor.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColor.grey.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildTeamTab(
+                          context: context,
+                          team: 'B2B Team',
+                          label: b2bLabel,
+                          isSelected: selectedTeam == 'B2B Team',
+                          onTap: () => authProvider.switchTeam('B2B Team'),
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildTeamTab(
+                          context: context,
+                          team: 'WeFix Team',
+                          label: weFixLabel,
+                          isSelected: selectedTeam == 'WeFix Team',
+                          onTap: () => authProvider.switchTeam('WeFix Team'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
           },
         );
       },

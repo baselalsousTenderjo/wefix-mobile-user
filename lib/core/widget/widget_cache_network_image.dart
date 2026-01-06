@@ -24,8 +24,8 @@ class WidgetCachNetworkImage extends StatelessWidget {
     
     // If it's a relative path (starts with /), construct full URL
     if (imagePath.startsWith('/')) {
-      // Use SERVER_TMMS as base URL (backend-tmms handles file serving)
-      String baseUrl = AppLinks.serverTMMS;
+      // Use team-based server (handles file serving)
+      String baseUrl = AppLinks.getServerForTeam();
       // Remove /api/v1 if present
       baseUrl = baseUrl.replaceAll('/api/v1', '');
       baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
@@ -33,7 +33,7 @@ class WidgetCachNetworkImage extends StatelessWidget {
     }
     
     // If it doesn't start with /, assume it's a relative path and prepend /
-    String baseUrl = AppLinks.serverTMMS;
+    String baseUrl = AppLinks.getServerForTeam();
     baseUrl = baseUrl.replaceAll('/api/v1', '');
     baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
     return '$baseUrl/$imagePath';

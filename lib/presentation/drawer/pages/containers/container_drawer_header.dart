@@ -36,7 +36,7 @@ class ContainerDrawerHeader extends StatelessWidget {
             if (technician.image!.startsWith('http://') || technician.image!.startsWith('https://')) {
               imageUrl = technician.image;
             } else {
-              String baseUrl = AppLinks.serverTMMS;
+              String baseUrl = AppLinks.getServerForTeam();
               baseUrl = baseUrl.replaceAll('/api/v1', '');
               baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
               imageUrl = '$baseUrl${technician.image}';
@@ -45,7 +45,7 @@ class ContainerDrawerHeader extends StatelessWidget {
             if (user.profileImage!.startsWith('http://') || user.profileImage!.startsWith('https://')) {
               imageUrl = user.profileImage;
             } else {
-              String baseUrl = AppLinks.serverTMMS;
+              String baseUrl = AppLinks.getServerForTeam();
               baseUrl = baseUrl.replaceAll('/api/v1', '');
               baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
               imageUrl = '$baseUrl${user.profileImage}';
@@ -54,7 +54,7 @@ class ContainerDrawerHeader extends StatelessWidget {
             if (user.image!.startsWith('http://') || user.image!.startsWith('https://')) {
               imageUrl = user.image;
             } else {
-              String baseUrl = AppLinks.serverTMMS;
+              String baseUrl = AppLinks.getServerForTeam();
               baseUrl = baseUrl.replaceAll('/api/v1', '');
               baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
               imageUrl = '$baseUrl${user.image}';
@@ -114,25 +114,103 @@ class ContainerDrawerHeader extends StatelessWidget {
         },
       );
     } else {
-      // For WeFix Team users, use existing Hive storage
+      // For B2C (WeFix Team) users, show profile details from Hive storage
       return ValueListenableBuilder(
         valueListenable: sl<Box<User>>().listenable(),
         builder: (context, value, child) {
           User? user = value.get(BoxKeys.userData);
+          
+          // Construct full URL for profile image if it's relative
+          String? imageUrl;
+          if (user?.image != null && user!.image!.isNotEmpty) {
+            if (user.image!.startsWith('http://') || user.image!.startsWith('https://')) {
+              imageUrl = user.image;
+            } else {
+              String baseUrl = AppLinks.getServerForTeam();
+              baseUrl = baseUrl.replaceAll('/api/v1', '');
+              baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+              imageUrl = '$baseUrl${user.image}';
+            }
+          } else if (user?.profileImage != null && user!.profileImage!.isNotEmpty) {
+            if (user.profileImage!.startsWith('http://') || user.profileImage!.startsWith('https://')) {
+              imageUrl = user.profileImage;
+            } else {
+              String baseUrl = AppLinks.getServerForTeam();
+              baseUrl = baseUrl.replaceAll('/api/v1', '');
+              baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+              imageUrl = '$baseUrl${user.profileImage}';
+            }
+          }
+          
+          // Get display name
+          final displayName = user?.name ?? user?.fullName ?? '';
+          
+          // Get email
+          final email = user?.email ?? '';
+          
+          // Get mobile
+          final mobile = user?.mobile ?? user?.mobileNumber ?? '';
+          
+          // Get additional B2C profile details
+          final profession = user?.profession ?? '';
+          final rating = user?.rating;
+          
           return Container(
             padding: const EdgeInsets.all(10),
             child: Row(
               children: [
-                WidgetCachNetworkImage(width: 70, hieght: 70, image: user?.image ?? '', radius: 1000),
+                WidgetCachNetworkImage(
+                  width: 70,
+                  hieght: 70,
+                  image: imageUrl ?? '',
+                  radius: 1000,
+                ),
                 10.gap,
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(user?.name ?? '', overflow: TextOverflow.ellipsis, style: AppTextStyle.style14B),
-                      Text(user?.email ?? '', style: AppTextStyle.style12.copyWith(color: AppColor.grey)),
-                      Text(user?.mobile ?? '', style: AppTextStyle.style12.copyWith(color: AppColor.grey)),
+                      // Name
+                      if (displayName.isNotEmpty)
+                        Text(
+                          displayName,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyle.style14B,
+                        ),
+                      // Email
+                      if (email.isNotEmpty)
+                        Text(
+                          email,
+                          style: AppTextStyle.style12.copyWith(color: AppColor.grey),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      // Mobile
+                      if (mobile.isNotEmpty)
+                        Text(
+                          mobile,
+                          style: AppTextStyle.style12.copyWith(color: AppColor.grey),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      // Profession (if available)
+                      if (profession.isNotEmpty)
+                        Text(
+                          profession,
+                          style: AppTextStyle.style12.copyWith(color: AppColor.primaryColor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      // Rating (if available)
+                      if (rating != null && rating.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(Icons.star, size: 14, color: AppColor.primaryColor),
+                            4.gap,
+                            Text(
+                              rating,
+                              style: AppTextStyle.style12.copyWith(color: AppColor.primaryColor),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),

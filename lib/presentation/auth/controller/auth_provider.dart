@@ -38,7 +38,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   bool isRegister = false;
 
   // Team selection: B2B Team (default) or WeFix Team
-  String selectedTeam = 'B2B Team'; // Default to B2B Team
+  final ValueNotifier<String> selectedTeam = ValueNotifier<String>('B2B Team'); // Default to B2B Team
 
   // Auth  Variables
   final key = GlobalKey<FormState>();
@@ -226,7 +226,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           return;
         }
         
-        final loginRequiest = await authUsecase.login(mobile: normalizedMobile, team: selectedTeam);
+        final loginRequiest = await authUsecase.login(mobile: normalizedMobile, team: selectedTeam.value);
         loginRequiest.fold(
           (l) {
             loginState.value = LoginState.failure;
@@ -304,6 +304,13 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           },
           (r) {
             loginState.value = LoginState.success;
+            // Store team selection before navigating to OTP screen
+            try {
+              sl<Box>(instanceName: BoxKeys.appBox).put(BoxKeys.userTeam, selectedTeam.value);
+            } catch (e) {
+              log('Error storing team: $e');
+            }
+            
             // Pass normalized mobile to OTP screen
             String normalizedMobile = mobile.text.replaceAll(' ', '').replaceAll('-', '').trim();
             
@@ -314,8 +321,8 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
               otpFromResponse = responseData['otp']?.toString();
             }
             
-            // Build URL with mobile and optional OTP
-            String otpUrl = '${RouterKey.login + RouterKey.otp}?mobile=${Uri.encodeComponent(normalizedMobile)}';
+            // Build URL with mobile, team, and optional OTP
+            String otpUrl = '${RouterKey.login + RouterKey.otp}?mobile=${Uri.encodeComponent(normalizedMobile)}&team=${Uri.encodeComponent(selectedTeam.value)}';
             if (otpFromResponse != null) {
               otpUrl += '&otp=${Uri.encodeComponent(otpFromResponse)}';
             }
@@ -483,8 +490,8 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   // Switch between team login screens
   void switchTeam(String team) {
-    if (selectedTeam != team) {
-      selectedTeam = team;
+    if (selectedTeam.value != team) {
+      selectedTeam.value = team;
       notifyListeners();
     }
   }
@@ -593,7 +600,24 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           }
         }
         
-        final sendOtpResponse = await authUsecase.sendOtp(mobile: normalizedPhone, otp: otp.text, fcm: fcmToken ?? '', team: selectedTeam);
+        // Get team from storage if available, otherwise use current selectedTeam
+        String teamToUse = selectedTeam.value;
+        try {
+          final storedTeam = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+          if (storedTeam != null) {
+            teamToUse = storedTeam.toString();
+          }
+        } catch (e) {
+          // Use selectedTeam if storage fails
+          teamToUse = selectedTeam.value;
+        }
+        
+        // If team is empty, default to B2B Team (since that's the default)
+        if (teamToUse.isEmpty) {
+          teamToUse = 'B2B Team';
+        }
+        
+        final sendOtpResponse = await authUsecase.sendOtp(mobile: normalizedPhone, otp: otp.text, fcm: fcmToken ?? '', team: teamToUse);
         sendOtpResponse.fold(
           (l) {
             sendOTPState.value = SendState.failure;
@@ -637,63 +661,70 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
               );
             }
             
-            // Check user role before allowing login
-            // Only allow TECHNICIAN (21) and SUB TECHNICIAN (22)
-            final userRoleId = r.data?.user?.userRoleId;
+            // Check user role before allowing login - only for B2B Team
+            // For B2C (WeFix Team), the backend-tjms endpoint already validates role (RoleId == 2)
+            // So we skip role check for B2C and only check for B2B Team
+            final bool isB2BTeam = teamToUse == 'B2B Team';
             
-            // Handle null role ID
-            if (userRoleId == null) {
-              sendOTPState.value = SendState.failure;
-              return SmartDialog.show(
-                builder:
-                    (context) => WidgetDilog(
-                      isError: true,
-                      title: AppText(context).warning,
-                      message: AppText(context).userRoleNotFoundAccessDenied,
-                      cancelText: AppText(context).back,
-                      onCancel: () => SmartDialog.dismiss(),
-                    ),
-              );
-            }
-            
-            // Validate role ID is a valid positive integer
-            if (userRoleId <= 0) {
-              sendOTPState.value = SendState.failure;
-              return SmartDialog.show(
-                builder:
-                    (context) => WidgetDilog(
-                      isError: true,
-                      title: AppText(context).warning,
-                      message: AppText(context).invalidUserRoleIdAccessDenied,
-                      cancelText: AppText(context).back,
-                      onCancel: () => SmartDialog.dismiss(),
-                    ),
-              );
-            }
-            
-            // Check if user has allowed role (21 = TECHNICIAN, 22 = SUB TECHNICIAN)
-            if (userRoleId != 21 && userRoleId != 22) {
-              sendOTPState.value = SendState.failure;
-              return SmartDialog.show(
-                builder:
-                    (context) {
-                      String roleName = _getRoleName(context, userRoleId);
-                      String message = AppText(context).accessDeniedTechniciansOnlyWithRole(roleName);
-                      // Fallback if translation is empty
-                      if (message.isEmpty) {
-                        message = 'Access denied. This app is only available for Technicians. Your role: $roleName';
-                      }
-                      log('Access denied for role: $userRoleId ($roleName)');
-                      return WidgetDilog(
+            if (isB2BTeam) {
+              // Only check role for B2B Team (backend-tmms provides userRoleId)
+              final userRoleId = r.data?.user?.userRoleId;
+              
+              // Handle null role ID
+              if (userRoleId == null) {
+                sendOTPState.value = SendState.failure;
+                return SmartDialog.show(
+                  builder:
+                      (context) => WidgetDilog(
                         isError: true,
                         title: AppText(context).warning,
-                        message: message,
+                        message: AppText(context).userRoleNotFoundAccessDenied,
                         cancelText: AppText(context).back,
                         onCancel: () => SmartDialog.dismiss(),
-                      );
-                    },
-              );
+                      ),
+                );
+              }
+              
+              // Validate role ID is a valid positive integer
+              if (userRoleId <= 0) {
+                sendOTPState.value = SendState.failure;
+                return SmartDialog.show(
+                  builder:
+                      (context) => WidgetDilog(
+                        isError: true,
+                        title: AppText(context).warning,
+                        message: AppText(context).invalidUserRoleIdAccessDenied,
+                        cancelText: AppText(context).back,
+                        onCancel: () => SmartDialog.dismiss(),
+                      ),
+                );
+              }
+              
+              // Check if user has allowed role (21 = TECHNICIAN, 22 = SUB TECHNICIAN)
+              if (userRoleId != 21 && userRoleId != 22) {
+                sendOTPState.value = SendState.failure;
+                return SmartDialog.show(
+                  builder:
+                      (context) {
+                        String roleName = _getRoleName(context, userRoleId);
+                        String message = AppText(context).accessDeniedTechniciansOnlyWithRole(roleName);
+                        // Fallback if translation is empty
+                        if (message.isEmpty) {
+                          message = 'Access denied. This app is only available for Technicians. Your role: $roleName';
+                        }
+                        log('Access denied for role: $userRoleId ($roleName)');
+                        return WidgetDilog(
+                          isError: true,
+                          title: AppText(context).warning,
+                          message: message,
+                          cancelText: AppText(context).back,
+                          onCancel: () => SmartDialog.dismiss(),
+                        );
+                      },
+                );
+              }
             }
+            // For B2C (WeFix Team), skip role check - backend-tjms already validated role
             
             // User has authorized role - proceed with login
             final box = sl<Box>(instanceName: BoxKeys.appBox);
@@ -701,7 +732,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
             
             box.put(BoxKeys.enableAuth, true);
             box.put(BoxKeys.usertoken, r.data?.token);
-            box.put(BoxKeys.userTeam, selectedTeam); // Store team selection
+            box.put(BoxKeys.userTeam, selectedTeam.value); // Store team selection
             
             // Token expiration and refresh token are now saved in the repository
             // If not saved there (e.g., for WeFix Team), set a default expiration
@@ -774,7 +805,19 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         );
       }
       
-      final loginRequiest = await authUsecase.login(mobile: normalizedPhone);
+      // Get team from storage if available, otherwise use current selectedTeam
+      String? teamToUse = selectedTeam.value;
+      try {
+        final storedTeam = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+        if (storedTeam != null) {
+          teamToUse = storedTeam.toString();
+        }
+      } catch (e) {
+        // Use selectedTeam if storage fails
+        teamToUse = selectedTeam.value;
+      }
+      
+      final loginRequiest = await authUsecase.login(mobile: normalizedPhone, team: teamToUse);
       loginRequiest.fold(
         (l) {
           SmartDialog.dismiss();
@@ -881,6 +924,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   void dispose() {
     mobile.dispose();
     otp.dispose();
+    selectedTeam.dispose();
     super.dispose();
   }
 }

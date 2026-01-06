@@ -1,4 +1,8 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive/hive.dart';
+
+import '../services/hive_services/box_kes.dart';
+import '../../injection_container.dart';
 
 class AppLinks {
   AppLinks._();
@@ -8,6 +12,32 @@ class AppLinks {
   // SERVER_TMMS for authentication endpoints
   static final String serverTMMS = dotenv.env['SERVER_TMMS'] ?? dotenv.env['SERVER']!;
   static final String chatChannel = dotenv.env['CHAT_CHANNEL']!;
+  
+  // ============================== Dynamic Server Selection ==============================
+  /// Get server URL based on stored team selection
+  /// Returns SERVER_TMMS for B2B Team, SERVER for WeFix Team
+  /// Use this for Home, Profile, and Tickets pages
+  static String getServerForTeam() {
+    try {
+      final userTeam = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+      return (userTeam == 'B2B Team') ? serverTMMS : server;
+    } catch (e) {
+      // Fallback to B2C server if team not found (shouldn't happen after login)
+      return server;
+    }
+  }
+  
+  /// Get server URL based on provided team parameter
+  /// Returns SERVER_TMMS for B2B Team, SERVER for WeFix Team
+  /// Use this when team is available as a parameter (e.g., during login)
+  static String getServerForTeamParam(String? team) {
+    return (team == 'B2B Team') ? serverTMMS : server;
+  }
+  
+  /// Always return B2C server (for pages that don't depend on team)
+  static String getServerForCommon() {
+    return server;
+  }
   // ============================== Language ==============================
   static final String language = dotenv.env['LANGUAGE']!;
   // ============================== Auth ==============================
@@ -57,4 +87,39 @@ class AppLinks {
   static final int tokenDefaultExpirationHours = int.parse(dotenv.env['TOKEN_DEFAULT_EXPIRATION_HOURS'] ?? '24');
   static final int tokenFallbackExpirationSeconds = int.parse(dotenv.env['TOKEN_FALLBACK_EXPIRATION_SECONDS'] ?? '3600');
   static final String tokenRefreshEndpoint = dotenv.env['TOKEN_REFRESH_ENDPOINT'] ?? 'user/refresh-token';
+  static final String b2bTokenRefresh = dotenv.env['B2B_TOKEN_REFRESH'] ?? 'user/refresh-token';
+  
+  // ============================== B2B Routes (backend-tmms) ==============================
+  // Auth Routes
+  static final String b2bRequestOTP = dotenv.env['B2B_REQUEST_OTP'] ?? 'user/request-otp';
+  static final String b2bVerifyOTP = dotenv.env['B2B_VERIFY_OTP'] ?? 'user/verify-otp';
+  
+  // User Routes
+  static final String b2bUserProfile = dotenv.env['B2B_USER_PROFILE'] ?? 'user/profile';
+  static final String b2bUserMe = dotenv.env['B2B_USER_ME'] ?? 'user/me';
+  
+  // Ticket Routes
+  static final String b2bTicketsHome = dotenv.env['B2B_TICKETS_HOME'] ?? 'tickets/home';
+  static final String b2bTicketsStart = dotenv.env['B2B_TICKETS_START'] ?? 'tickets/start';
+  static final String b2bTicketsUpdate = dotenv.env['B2B_TICKETS_UPDATE'] ?? 'tickets'; // Base path, append /:id
+  static final String b2bTicketsDetails = dotenv.env['B2B_TICKETS_DETAILS'] ?? 'tickets'; // Base path, append /:id
+  
+  // File Upload
+  static final String b2bFilesUpload = dotenv.env['B2B_FILES_UPLOAD'] ?? 'files/upload';
+  
+  // Company Data Routes
+  static final String b2bTicketStatuses = dotenv.env['B2B_TICKET_STATUSES'] ?? 'company-data/ticket-statuses';
+  static final String b2bTicketTypes = dotenv.env['B2B_TICKET_TYPES'] ?? 'company-data/ticket-types';
+  
+  // Helper method to build ticket update URL
+  static String b2bTicketUpdateUrl(String ticketId) {
+    final base = b2bTicketsUpdate.endsWith('/') ? b2bTicketsUpdate.substring(0, b2bTicketsUpdate.length - 1) : b2bTicketsUpdate;
+    return '$base/$ticketId';
+  }
+  
+  // Helper method to build ticket details URL
+  static String b2bTicketDetailsUrl(String ticketId) {
+    final base = b2bTicketsDetails.endsWith('/') ? b2bTicketsDetails.substring(0, b2bTicketsDetails.length - 1) : b2bTicketsDetails;
+    return '$base/$ticketId';
+  }
 }

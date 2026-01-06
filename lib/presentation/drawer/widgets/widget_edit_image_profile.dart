@@ -18,14 +18,14 @@ class WidhetEditImageProfile extends StatelessWidget {
     
     // If it's a relative path (starts with /), construct full URL
     if (imagePath.startsWith('/')) {
-      String baseUrl = AppLinks.serverTMMS;
+      String baseUrl = AppLinks.getServerForTeam();
       baseUrl = baseUrl.replaceAll('/api/v1', '');
       baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
       return '$baseUrl$imagePath';
     }
     
     // If it doesn't start with /, assume it's a relative path
-    String baseUrl = AppLinks.serverTMMS;
+    String baseUrl = AppLinks.getServerForTeam();
     baseUrl = baseUrl.replaceAll('/api/v1', '');
     baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
     return '$baseUrl/$imagePath';

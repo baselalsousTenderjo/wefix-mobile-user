@@ -30,9 +30,9 @@ class AuthScreen extends StatelessWidget {
               title:
                   context.watch<AuthProvider>().isRegister == true
                       ? const SizedBox(width: 120, child: Image(image: AssetImage(Assets.imageLogin)))
-                      : Builder(
-                          builder: (context) {
-                            final selectedTeam = context.watch<AuthProvider>().selectedTeam;
+                      : ValueListenableBuilder<String>(
+                          valueListenable: context.watch<AuthProvider>().selectedTeam,
+                          builder: (context, selectedTeam, child) {
                             final teamLabel = selectedTeam == 'B2B Team'
                                 ? AppText(context).b2bTeam
                                 : AppText(context).weFixTeam;

@@ -18,14 +18,26 @@ abstract class HomeRepoistory {
 }
 
 class HomeRepoistoryImpl implements HomeRepoistory {
+  // Helper method to check if user is B2B Team
+  Future<bool> _isB2BTeam() async {
+    try {
+      final userTeam = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.userTeam);
+      return userTeam == 'B2B Team';
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   Future<Either<Failure, Result<HomeModel>>> getHomeData() async {
     try {
-      // Use SERVER_TMMS for home endpoint (backend-tmms)
-      // Backend-tmms route convention: /api/v1/tickets/home
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
-      final homeResponse = await client.getRequest(endpoint: 'tickets/home', authorization: 'Bearer $token');
+      
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final String endpoint = (await _isB2BTeam()) ? AppLinks.b2bTicketsHome : AppLinks.home;
+      final homeResponse = await client.getRequest(endpoint: endpoint, authorization: 'Bearer $token');
       
       // Handle both direct data and wrapped response formats
       final responseData = homeResponse.response.data;
@@ -43,11 +55,13 @@ class HomeRepoistoryImpl implements HomeRepoistory {
   @override
   Future<Either<Failure, Result<bool>>> checkUser() async {
     try {
-      // Use SERVER_TMMS for check access endpoint (backend-tmms)
+      // Use team-based server: SERVER_TMMS for B2B Team, SERVER for WeFix Team
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
-      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.serverTMMS);
-      // Backend-tmms route: GET /api/v1/user/me (check user role)
-      final response = await client.getRequest(endpoint: 'user/me', authorization: 'Bearer $token');
+      final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
+      
+      // Use B2B route for B2B Team, B2C route for WeFix Team
+      final String endpoint = (await _isB2BTeam()) ? AppLinks.b2bUserMe : AppLinks.checkAccess;
+      final response = await client.getRequest(endpoint: endpoint, authorization: 'Bearer $token');
       if (response.response.statusCode == 200) {
         // Check if user has valid role (Technician 21 or Sub-Technician 22)
         final userData = response.response.data['data'] ?? response.response.data['user'] ?? response.response.data;

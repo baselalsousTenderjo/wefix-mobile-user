@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
- import 'package:provider/provider.dart';
+import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/constant/app_image.dart';
 import '../../../core/extension/gap.dart';
 import '../../../core/providers/app_text.dart';
+import '../../../core/services/hive_services/box_kes.dart';
 import '../../../core/unit/app_text_style.dart';
 import '../../../core/widget/language_button.dart';
 import '../../../injection_container.dart';
@@ -14,13 +16,27 @@ import 'containers/container_form_verify.dart';
 class VerifyScreen extends StatelessWidget {
   final String mobile;
   final String? otp;
-  const VerifyScreen({super.key, required this.mobile, this.otp});
+  final String? team;
+  const VerifyScreen({super.key, required this.mobile, this.otp, this.team});
 
   @override
   Widget build(BuildContext context) {
      return Scaffold(
       body: ChangeNotifierProvider(
-        create: (context) => sl<AuthProvider>(),
+        create: (context) {
+          final provider = sl<AuthProvider>();
+          // Set team from URL parameter if available
+          if (team != null && team!.isNotEmpty) {
+            provider.switchTeam(team!);
+            // Also store it in Hive
+            try {
+              sl<Box>(instanceName: BoxKeys.appBox).put(BoxKeys.userTeam, team!);
+            } catch (e) {
+              // Silent fail
+            }
+          }
+          return provider;
+        },
         child: Consumer<AuthProvider>(
           builder:
               (context, value, child) => Form(
