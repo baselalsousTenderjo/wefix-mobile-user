@@ -76,6 +76,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   // Validation state
   Map<String, String?> fieldErrors = {}; // Field name -> error message
   bool isTeamLeaderVisible = true; // Show/hide Team Leader DDL based on role
+  bool isDelegatedToWeFix = false; // Track if ticket is delegated to WeFix (White Label + Managed By WeFix Team)
 
   // Lists (these should be fetched from APIs)
   List<DropdownCardItem> contracts = [];
@@ -266,13 +267,17 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       final contractsData = results[0];
       if (contractsData != null) {
         contracts = contractsData
-            .map((item) => DropdownCardItem(
-                  id: item['id'] as int,
-                  title: item['title'] as String? ?? item['contractReference'] as String? ?? '',
-                  subtitle: item['subtitle'] as String? ?? item['contractTitle'] as String?,
-                  icon: Icons.description,
-                  data: item,
-                ))
+            .map((item) {
+              // Log contract data to verify businessModelLookupId and managedByLookupId are present
+              log('📋 Contract data: ${item['id']} - businessModelLookupId: ${item['businessModelLookupId']}, managedByLookupId: ${item['managedByLookupId']}');
+              return DropdownCardItem(
+                id: item['id'] as int,
+                title: item['title'] as String? ?? item['contractReference'] as String? ?? '',
+                subtitle: item['subtitle'] as String? ?? item['contractTitle'] as String?,
+                icon: Icons.description,
+                data: item,
+              );
+            })
             .toList();
       }
 
@@ -396,7 +401,30 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       }
 
       // Auto-select first items
-      if (contracts.isNotEmpty) selectedContract = contracts.first;
+      if (contracts.isNotEmpty) {
+        selectedContract = contracts.first;
+        
+        // Check if auto-selected contract is Managed By WeFix Team
+        // Hide Team Leader and Technician when managedByLookupId = 27 (WeFix Team)
+        final contractData = selectedContract?.data;
+        final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
+        final managedByLookupId = contractData?['managedByLookupId'] as int?;
+        
+        log('🔍 Auto-selected contract - businessModelLookupId: $businessModelLookupId, managedByLookupId: $managedByLookupId');
+        
+        const WEFIX_TEAM_MANAGED_BY_ID = 27;
+        
+        // Hide fields when managed by WeFix Team (regardless of business model)
+        isDelegatedToWeFix = (managedByLookupId == WEFIX_TEAM_MANAGED_BY_ID);
+        
+        log('🔍 Auto-selected contract isDelegatedToWeFix: $isDelegatedToWeFix');
+        
+        // If delegated, clear Team Leader and Technician selections
+        if (isDelegatedToWeFix) {
+          selectedTeamLeader = null;
+          selectedTechnician = null;
+        }
+      }
       if (branches.isNotEmpty) {
         selectedBranch = branches.first;
         // Load zones for the first branch
@@ -539,6 +567,28 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             selectedContract = contracts.firstWhere(
               (contract) => contract.id == contractId,
             );
+            
+            // Check if contract is Managed By WeFix Team
+            // Hide Team Leader and Technician when managedByLookupId = 27 (WeFix Team)
+            // Works for both B2B (24) and White Label (25) business models
+            final contractData = selectedContract?.data;
+            final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
+            final managedByLookupId = contractData?['managedByLookupId'] as int?;
+            
+            log('🔍 Contract loaded from ticket data - businessModelLookupId: $businessModelLookupId, managedByLookupId: $managedByLookupId');
+            
+            const WEFIX_TEAM_MANAGED_BY_ID = 27;
+            
+            // Hide fields when managed by WeFix Team (regardless of business model)
+            isDelegatedToWeFix = (managedByLookupId == WEFIX_TEAM_MANAGED_BY_ID);
+            
+            log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix');
+            
+            // If delegated, clear Team Leader and Technician selections
+            if (isDelegatedToWeFix) {
+              selectedTeamLeader = null;
+              selectedTechnician = null;
+            }
           }
         } catch (e) {
           log('Could not find matching contract: $e');
@@ -824,13 +874,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       }
       // Note: Emergency tickets will have time auto-generated in _submit() if not selected
       // Note: Corrective and Preventive tickets can select any available time slot (no 120-minute restriction)
-      if (isTeamLeaderVisible && selectedTeamLeader == null) {
-        fieldErrors['teamLeader'] = '${localizations.teamLeaderId} ${localizations.required}';
-        isValid = false;
-      }
-      if (selectedTechnician == null) {
-        fieldErrors['technician'] = '${localizations.technicianId} ${localizations.required}';
-        isValid = false;
+      // Team Leader and Technician are only required if ticket is NOT delegated to WeFix
+      if (!isDelegatedToWeFix) {
+        if (isTeamLeaderVisible && selectedTeamLeader == null) {
+          fieldErrors['teamLeader'] = '${localizations.teamLeaderId} ${localizations.required}';
+          isValid = false;
+        }
+        if (selectedTechnician == null) {
+          fieldErrors['technician'] = '${localizations.technicianId} ${localizations.required}';
+          isValid = false;
+        }
       }
     } else if (_tabController.index == 1) {
       // Tab 2: Service Details validation
@@ -1204,10 +1257,14 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         if (timeFromStr == null || timeToStr == null) {
           missingFields.add(localizations.timeLabel);
         }
-        if (isTeamLeaderVisible && selectedTeamLeader == null) {
-          missingFields.add(localizations.teamLeaderId);
+        if (!isDelegatedToWeFix) {
+          if (isTeamLeaderVisible && selectedTeamLeader == null) {
+            missingFields.add(localizations.teamLeaderId);
+          }
+          if (selectedTechnician == null) {
+            missingFields.add(localizations.technicianId);
+          }
         }
-        if (selectedTechnician == null) missingFields.add(localizations.technicianId);
         if (selectedMainService == null) missingFields.add(localizations.mainService);
         if (selectedSubService == null) missingFields.add(localizations.subService);
 
@@ -1223,25 +1280,32 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         final roleIdInt = currentUserRoleId is int ? currentUserRoleId : (currentUserRoleId is String ? int.tryParse(currentUserRoleId.toString()) : null);
         final currentUserId = currentAppProvider.userModel?.customer.id;
 
-        int teamLeaderId;
-        if (roleIdInt == 20) {
-          // Team Leader: Must assign to themselves
-          if (selectedTeamLeader == null || selectedTeamLeader!.id != currentUserId) {
-            // Force assign to current user (currentUserId should not be null for authenticated users)
-            if (currentUserId == null) {
-              throw Exception('Current user ID is null. Please log in again.');
+        int? teamLeaderId;
+        if (!isDelegatedToWeFix) {
+          // Only validate and assign Team Leader if NOT delegated to WeFix
+          if (roleIdInt == 20) {
+            // Team Leader: Must assign to themselves
+            if (selectedTeamLeader == null || selectedTeamLeader!.id != currentUserId) {
+              // Force assign to current user (currentUserId should not be null for authenticated users)
+              if (currentUserId == null) {
+                throw Exception('Current user ID is null. Please log in again.');
+              }
+              teamLeaderId = currentUserId;
+              log('Team Leader: Forcing assignment to current user (ID: $teamLeaderId)');
+            } else {
+              teamLeaderId = selectedTeamLeader!.id;
             }
-            teamLeaderId = currentUserId;
-            log('Team Leader: Forcing assignment to current user (ID: $teamLeaderId)');
           } else {
+            // Admin: Can assign to any Team Leader
+            if (selectedTeamLeader == null) {
+              throw Exception('Team Leader selection is required');
+            }
             teamLeaderId = selectedTeamLeader!.id;
           }
         } else {
-          // Admin: Can assign to any Team Leader
-          if (selectedTeamLeader == null) {
-            throw Exception('Team Leader selection is required');
-          }
-          teamLeaderId = selectedTeamLeader!.id;
+          // When delegated to WeFix, Team Leader ID should be null
+          teamLeaderId = null;
+          log('Ticket delegated to WeFix: Team Leader ID set to null');
         }
         // Admin/Team Leader can update all fields
         // Remove subServiceId if it's null (backend doesn't accept undefined fields)
@@ -1255,8 +1319,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           'ticketDate': ticketDateStr,
           'ticketTimeFrom': timeFromStr!,
           'ticketTimeTo': timeToStr!,
-          'assignToTeamLeaderId': teamLeaderId, // Use validated team leader ID
-          'assignToTechnicianId': selectedTechnician!.id,
           'ticketDescription': ticketDescription.text.trim(),
           'havingFemaleEngineer': false,
           'withMaterial': false,
@@ -1266,6 +1328,12 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           // Note: fileIds will be sent separately after uploading files
           // Note: customerName, tools can be added later
         });
+        
+        // Only include Team Leader and Technician if ticket is NOT delegated to WeFix
+        if (!isDelegatedToWeFix && teamLeaderId != null) {
+          ticketData['assignToTeamLeaderId'] = teamLeaderId;
+          ticketData['assignToTechnicianId'] = selectedTechnician!.id;
+        }
 
         // Add ticket status if editing
         if (widget.ticketData != null && selectedTicketStatus != null) {
@@ -1820,8 +1888,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ),
           const SizedBox(height: 16),
 
-          // 5. Team Leader Dropdown (hidden for Team Leaders, visible for Admins)
-          if (isTeamLeaderVisible) ...[
+          // 5. Team Leader Dropdown (hidden for Team Leaders, visible for Admins, and hidden when delegated to WeFix)
+          if (isTeamLeaderVisible && !isDelegatedToWeFix) ...[
             Container(
               key: _teamLeaderKey,
               child: _buildDropdownCard(
@@ -1845,28 +1913,30 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             const SizedBox(height: 16),
           ],
 
-          // 6. Technician Dropdown
-          Container(
-            key: _technicianKey,
-            child: _buildDropdownCard(
-              title: '${localizations.technicianId} *',
-              selectedItem: selectedTechnician,
-              items: technicians,
-              onTap: () => _showDropdownBottomSheet(
-                title: localizations.technicianId,
-                items: technicians,
+          // 6. Technician Dropdown (hidden when ticket is delegated to WeFix)
+          if (!isDelegatedToWeFix) ...[
+            Container(
+              key: _technicianKey,
+              child: _buildDropdownCard(
+                title: '${localizations.technicianId} *',
                 selectedItem: selectedTechnician,
-                onSelected: (item) {
-                  setState(() {
-                    selectedTechnician = item;
-                    fieldErrors.remove('technician');
-                  });
-                },
+                items: technicians,
+                onTap: () => _showDropdownBottomSheet(
+                  title: localizations.technicianId,
+                  items: technicians,
+                  selectedItem: selectedTechnician,
+                  onSelected: (item) {
+                    setState(() {
+                      selectedTechnician = item;
+                      fieldErrors.remove('technician');
+                    });
+                  },
+                ),
+                errorMessage: fieldErrors['technician'],
               ),
-              errorMessage: fieldErrors['technician'],
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
+          ],
 
           // 7. Contract Reference Dropdown
           Container(
@@ -1879,12 +1949,34 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 title: localizations.contractId,
                 items: contracts,
                 selectedItem: selectedContract,
-                onSelected: (item) {
-                  setState(() {
-                    selectedContract = item;
-                    fieldErrors.remove('contract');
-                  });
-                },
+              onSelected: (item) {
+                setState(() {
+                  selectedContract = item;
+                  fieldErrors.remove('contract');
+                  
+                  // Check if contract is Managed By WeFix Team
+                  // Hide Team Leader and Technician when managedByLookupId = 27 (WeFix Team)
+                  // Works for both B2B (24) and White Label (25) business models
+                  final contractData = item.data;
+                  final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
+                  final managedByLookupId = contractData?['managedByLookupId'] as int?;
+                  
+                  log('🔍 Contract selected - businessModelLookupId: $businessModelLookupId, managedByLookupId: $managedByLookupId');
+                  
+                  const WEFIX_TEAM_MANAGED_BY_ID = 27;
+                  
+                  // Hide fields when managed by WeFix Team (regardless of business model)
+                  isDelegatedToWeFix = (managedByLookupId == WEFIX_TEAM_MANAGED_BY_ID);
+                  
+                  log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix');
+                  
+                  // If delegated, clear Team Leader and Technician selections
+                  if (isDelegatedToWeFix) {
+                    selectedTeamLeader = null;
+                    selectedTechnician = null;
+                  }
+                });
+              },
               ),
               errorMessage: fieldErrors['contract'],
             ),
@@ -2161,8 +2253,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ],
 
 
-          // 8. Team Leader
-          if (selectedTeamLeader != null && selectedTeamLeader!.title.isNotEmpty) ...[
+          // 8. Team Leader (only show if not delegated to WeFix)
+          if (!isDelegatedToWeFix && selectedTeamLeader != null && selectedTeamLeader!.title.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.teamLeaderId,
               value: selectedTeamLeader!.title,
@@ -2171,12 +2263,22 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             const SizedBox(height: 16),
           ],
 
-          // 9. Technician
-          if (selectedTechnician != null && selectedTechnician!.title.isNotEmpty) ...[
+          // 9. Technician (only show if not delegated to WeFix)
+          if (!isDelegatedToWeFix && selectedTechnician != null && selectedTechnician!.title.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.technicianId,
               value: selectedTechnician!.title,
               icon: Icons.engineering,
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          // Show delegation message if delegated to WeFix
+          if (isDelegatedToWeFix) ...[
+            _buildSummaryRow(
+              label: 'Delegation',
+              value: 'Delegated to WeFix Team',
+              icon: Icons.how_to_reg,
             ),
             const SizedBox(height: 16),
           ],
