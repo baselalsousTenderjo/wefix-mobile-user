@@ -19,6 +19,10 @@ import 'package:wefix/Data/Functions/app_size.dart';
 import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/Constant/theme/color_constant.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:wefix/Data/services/device_info_service.dart';
+import 'package:wefix/Data/model/mms_user_model.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:wefix/l10n/app_localizations.dart';
 
 import '../../../Data/Helper/cache_helper.dart';
 
@@ -27,6 +31,7 @@ class VerifyCodeScreen extends StatefulWidget {
   final String? otp;
   final String? phone;
   final List? signUp;
+  final bool? isBusinessServices; // Flag to indicate Business Services login
 
   const VerifyCodeScreen({
     super.key,
@@ -34,6 +39,7 @@ class VerifyCodeScreen extends StatefulWidget {
     this.phone,
     this.signUp,
     this.otp,
+    this.isBusinessServices = false,
   });
 
   @override
@@ -261,17 +267,33 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> with CodeAutoFill {
   }
 
   checkOtp() {
-    if (widget.otp == textEditingController.text) {
+    // For Business Services, always verify with backend (widget.otp is only for dev/testing)
+    // For My Services, widget.otp might be used for quick validation, but still verify with backend
+    if (widget.isBusinessServices == true) {
+      // Business Services: Always verify with backend API
+      // Skip the widget.otp check since it's only for development/testing
       checkOtpFun();
     } else {
-      showDialog(
-        context: context,
-        builder: (context) => WidgetDialog(
-          title: AppText(context, isFunction: true).warning,
-          desc: AppText(context, isFunction: true).otpWrong,
-          isError: true,
-        ),
-      );
+      // My Services: If widget.otp is provided (for development/testing), do a quick check
+      // But still verify with backend in checkOtpFun()
+      if (widget.otp != null && widget.otp!.isNotEmpty) {
+        // Quick validation for development (optional)
+        if (widget.otp == textEditingController.text.trim()) {
+          checkOtpFun();
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => WidgetDialog(
+              title: AppText(context, isFunction: true).warning,
+              desc: AppText(context, isFunction: true).otpWrong,
+              isError: true,
+            ),
+          );
+        }
+      } else {
+        // No widget.otp provided, verify directly with backend
+        checkOtpFun();
+      }
     }
   }
 
@@ -297,49 +319,189 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> with CodeAutoFill {
     AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
     try {
       setState(() => loading = true);
-      await Authantication.checkOtp(
-        otp: textEditingController.text,
-        fcmToken: appProvider.fcmToken ?? "",
-        phone: widget.phone.toString(),
-      ).then((value) {
-        setState(() => userModel = value);
-        if (value?.status == true) {
-          appProvider.addUser(user: value);
-          log(appProvider.userModel?.token.toString() ?? "");
-          Map? showTour = CacheHelper.getData(key: CacheHelper.showTour) == null
-              ? null
-              : json.decode(CacheHelper.getData(key: CacheHelper.showTour));
-          if (showTour == null) {
-            CacheHelper.saveData(
-                key: CacheHelper.showTour,
-                value: json.encode({
-                  "home": true,
-                  "subCategory": true,
-                  "addAttachment": true,
-                  "appointmentDetails": true,
-                  "checkout": true,
-                }));
+      
+      // Check if this is Business Services login
+      if (widget.isBusinessServices == true) {
+        // Use Business Services OTP verification
+        try {
+          // Get FCM token
+          String? fcmToken;
+          try {
+            fcmToken = await FirebaseMessaging.instance.getToken();
+          } catch (e) {
+            log('Error getting FCM token: $e');
+            fcmToken = 'device-token-placeholder';
           }
 
-          Navigator.pushAndRemoveUntil(
-            context,
-            downToTop(const HomeLayout()),
-            (route) => false,
+          // Get device ID with full metadata
+          final deviceMetadata = await DeviceInfoService.getDeviceMetadata();
+          final deviceId = jsonEncode(deviceMetadata);
+
+          // Trim OTP to remove any whitespace
+          final trimmedOTP = textEditingController.text.trim();
+          
+          final loginResult = await Authantication.mmsVerifyOTP(
+            mobile: widget.phone ?? '',
+            otp: trimmedOTP,
+            deviceId: deviceId,
+            fcmToken: fcmToken ?? 'device-token-placeholder',
           );
-        } else {
-          showDialog(
-            context: context,
-            builder: (context) => WidgetDialog(
-              title: AppText(context, isFunction: true).warning,
-              desc: AppText(context, isFunction: true).otpWrong,
-              isError: true,
-            ),
-          );
+
+          if (!loginResult['success']) {
+            if (mounted) {
+              final errorMessage = loginResult['message'] ?? 'Invalid OTP';
+              showDialog(
+                context: context,
+                builder: (context) => WidgetDialog(
+                  title: AppText(context, isFunction: true).warning,
+                  desc: errorMessage,
+                  isError: true,
+                ),
+              );
+            }
+            setState(() => loading = false);
+            return;
+          }
+
+          final mmsUser = loginResult['data'] as MmsUserModel?;
+          if (mmsUser != null && mmsUser.success && mmsUser.user != null) {
+            final userRoleId = mmsUser.user!.userRoleId;
+            
+            // Prevent technicians and sub-technicians from logging in
+            if (userRoleId == 21 || userRoleId == 22) {
+              if (mounted) {
+                final localizations = AppLocalizations.of(context)!;
+                String errorMessage;
+                if (userRoleId == 21) {
+                  errorMessage = localizations.technicianNotAllowed;
+                } else {
+                  errorMessage = localizations.subTechnicianNotAllowed;
+                }
+                showDialog(
+                  context: context,
+                  builder: (context) => WidgetDialog(
+                    title: AppText(context, isFunction: true).warning,
+                    desc: errorMessage,
+                    isError: true,
+                  ),
+                );
+              }
+              setState(() => loading = false);
+              return;
+            }
+
+            final userModel = UserModel(
+              status: true,
+              token: mmsUser.token?.accessToken ?? '',
+              message: mmsUser.message,
+              qrCodePath: null,
+              wallet: 0,
+              customer: Customer(
+                id: mmsUser.user!.id,
+                roleId: userRoleId,
+                name: mmsUser.user!.fullName,
+                mobile: mmsUser.user!.mobileNumber ?? '',
+                email: mmsUser.user!.email ?? '',
+                createdDate: mmsUser.user!.createdAt,
+                password: null,
+                oldPassword: null,
+                otp: 0,
+                address: '',
+                providerId: 0,
+              ),
+            );
+
+            appProvider.addUser(user: userModel);
+            
+            if (mmsUser.token != null) {
+              appProvider.setTokens(
+                access: mmsUser.token!.accessToken,
+                refresh: mmsUser.token!.refreshToken,
+                type: mmsUser.token!.tokenType,
+                expires: mmsUser.token!.expiresIn,
+              );
+            }
+
+            if (mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                downToTop(const HomeLayout()),
+                (route) => false,
+              );
+            }
+          } else {
+            if (mounted) {
+              showDialog(
+                context: context,
+                builder: (context) => WidgetDialog(
+                  title: AppText(context, isFunction: true).someThingError,
+                  desc: AppLocalizations.of(context)!.invalidCredentials,
+                  isError: true,
+                ),
+              );
+            }
+          }
+          setState(() => loading = false);
+        } catch (e) {
+          log('Business Services OTP verification error: $e');
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (context) => WidgetDialog(
+                title: AppText(context, isFunction: true).someThingError,
+                desc: 'Network error. Please try again.',
+                isError: true,
+              ),
+            );
+          }
+          setState(() => loading = false);
         }
-        setState(() => loading = false);
-      });
+      } else {
+        // Use My Services OTP verification (existing flow)
+        await Authantication.checkOtp(
+          otp: textEditingController.text,
+          fcmToken: appProvider.fcmToken ?? "",
+          phone: widget.phone.toString(),
+        ).then((value) {
+          setState(() => userModel = value);
+          if (value?.status == true) {
+            appProvider.addUser(user: value);
+            log(appProvider.userModel?.token.toString() ?? "");
+            Map? showTour = CacheHelper.getData(key: CacheHelper.showTour) == null
+                ? null
+                : json.decode(CacheHelper.getData(key: CacheHelper.showTour));
+            if (showTour == null) {
+              CacheHelper.saveData(
+                  key: CacheHelper.showTour,
+                  value: json.encode({
+                    "home": true,
+                    "subCategory": true,
+                    "addAttachment": true,
+                    "appointmentDetails": true,
+                    "checkout": true,
+                  }));
+            }
+
+            Navigator.pushAndRemoveUntil(
+              context,
+              downToTop(const HomeLayout()),
+              (route) => false,
+            );
+          } else {
+            showDialog(
+              context: context,
+              builder: (context) => WidgetDialog(
+                title: AppText(context, isFunction: true).warning,
+                desc: AppText(context, isFunction: true).otpWrong,
+                isError: true,
+              ),
+            );
+          }
+          setState(() => loading = false);
+        });
+      }
     } catch (e) {
-      log('Login Is Error');
+      log('checkOtpFun() [ ERROR ] -> $e');
       setState(() => loading = false);
     }
   }

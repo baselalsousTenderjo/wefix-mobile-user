@@ -187,7 +187,85 @@ class Authantication {
     }
   }
 
-  // * MMS Login (Company Personnel)
+  // * MMS Request OTP (Business Services - Phone-based login)
+  static Future<Map<String, dynamic>> mmsRequestOTP({
+    required String mobile,
+    required String deviceId,
+    required String fcmToken,
+  }) async {
+    try {
+      final response = await HttpHelper.postData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsRequestOTP,
+        data: {
+          'mobile': mobile,
+          'deviceId': deviceId,
+          'fcmToken': fcmToken,
+        },
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'OTP sent successfully',
+          'otp': body['otp'], // Only in development
+        };
+      } else {
+        String errorMessage = body['message'] ?? 
+                              body['error'] ?? 
+                              'Failed to send OTP';
+        return {'success': false, 'message': errorMessage};
+      }
+    } catch (e) {
+      log('mmsRequestOTP() [ ERROR ] -> $e');
+      return {'success': false, 'message': 'Network error. Please try again.'};
+    }
+  }
+
+  // * MMS Verify OTP (Business Services - Phone-based login)
+  static Future<Map<String, dynamic>> mmsVerifyOTP({
+    required String mobile,
+    required String otp,
+    required String deviceId,
+    required String fcmToken,
+  }) async {
+    try {
+      // Trim OTP to remove any whitespace
+      final trimmedOTP = otp.trim();
+      
+      final response = await HttpHelper.postData2(
+        query: EndPoints.mmsBaseUrl + EndPoints.mmsVerifyOTP,
+        data: {
+          'mobile': mobile,
+          'otp': trimmedOTP,
+          'deviceId': deviceId,
+          'fcmToken': fcmToken,
+        },
+      );
+
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body['success'] == true) {
+        mmsUserModel = MmsUserModel.fromJson(body);
+        if (mmsUserModel != null) {
+          return {'success': true, 'data': mmsUserModel, 'message': null};
+        } else {
+          return {'success': false, 'data': null, 'message': 'Failed to parse user data'};
+        }
+      } else {
+        String errorMessage = body['message'] ?? 
+                              body['error'] ?? 
+                              'Invalid OTP';
+        return {'success': false, 'data': null, 'message': errorMessage};
+      }
+    } catch (e) {
+      log('mmsVerifyOTP() [ ERROR ] -> $e');
+      return {'success': false, 'data': null, 'message': 'Network error. Please try again.'};
+    }
+  }
+
+  // * MMS Login (Company Personnel) - DEPRECATED: Use mmsRequestOTP and mmsVerifyOTP instead
   static MmsUserModel? mmsUserModel;
   static Future<Map<String, dynamic>> mmsLogin({
     required String email,
@@ -207,6 +285,15 @@ class Authantication {
       );
 
       final body = json.decode(response.body);
+
+      // Email/password login is deprecated
+      if (response.statusCode == 400) {
+        return {
+          'success': false,
+          'data': null,
+          'message': body['message'] ?? 'Email/password login is no longer supported. Please use phone number and OTP.',
+        };
+      }
 
       if (response.statusCode == 200 && body['success'] == true) {
         mmsUserModel = MmsUserModel.fromJson(body);

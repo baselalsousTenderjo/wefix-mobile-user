@@ -18,7 +18,6 @@ import 'package:wefix/Data/Functions/navigation.dart';
 import 'package:wefix/Data/Helper/cache_helper.dart';
 import 'package:wefix/Data/appText/appText.dart';
 import 'package:wefix/Data/model/login_model.dart';
-import 'package:wefix/Data/model/mms_user_model.dart';
 import 'package:wefix/Data/model/user_model.dart';
 import 'package:wefix/Data/services/device_info_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -28,6 +27,7 @@ import 'package:wefix/Presentation/Components/widget_dialog.dart';
 import 'package:wefix/Presentation/Components/widget_phone_form_fields.dart';
 import 'package:wefix/Presentation/auth/Screens/forget_password_screen.dart';
 import 'package:wefix/Presentation/auth/Screens/otp_screen.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:wefix/Presentation/auth/sign_up_screen.dart';
 import 'package:wefix/layout_screen.dart';
 
@@ -71,13 +71,37 @@ class _LoginScreenState extends State<LoginScreen> {
   String authrized = "not Auth";
 
   LoginModel? loginModel;
+  
+  // Store the PhoneNumber object to get the full international format when needed
+  PhoneNumber? currentPhoneNumber;
 
   @override
   void initState() {
     isBiometricAuthAvailable();
     requestNotificationPermission(context);
     checkBiometrics();
+    
+    // Add listener to remove leading zero for Jordanian numbers
+    phone.addListener(() {
+      if (currentPhoneNumber?.isoCode == 'JO' && phone.text.isNotEmpty && phone.text.startsWith('0')) {
+        // Remove leading zero
+        String textWithoutZero = phone.text.substring(1);
+        phone.value = TextEditingValue(
+          text: textWithoutZero,
+          selection: TextSelection.collapsed(offset: textWithoutZero.length),
+        );
+      }
+    });
+    
     super.initState();
+  }
+  
+  @override
+  void dispose() {
+    phone.dispose();
+    password.dispose();
+    email.dispose();
+    super.dispose();
   }
 
   @override
@@ -195,131 +219,76 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (!isCompanyPersonnel) ...[
                         // * Phone Number (Regular User)
                         WidgetPhoneField(
-                        // validator: (p0) {
-                        //   if (phone.text.isEmpty) {
-                        //     return "Requierd";
-                        //   } else {
-                        //     return null;
-                        //   }
-                        // },
-                        message:
-                            phone.text.isEmpty ? "required" : "invalidPhone",
+                          phoneController: phone,
+                          message:
+                              phone.text.isEmpty ? "required" : "invalidPhone",
                           onCountryChanged: (value) {
-                            phone.text = value.phoneNumber.toString();
+                            // Store the PhoneNumber object to get full international format when needed
+                            setState(() {
+                              currentPhoneNumber = value;
+                            });
+                            
+                            // Remove leading zero for Jordanian numbers (JO)
+                            if (value.isoCode == 'JO' && phone.text.isNotEmpty && phone.text.startsWith('0')) {
+                              // Remove leading zero
+                              String textWithoutZero = phone.text.substring(1);
+                              phone.value = TextEditingValue(
+                                text: textWithoutZero,
+                                selection: TextSelection.collapsed(offset: textWithoutZero.length),
+                              );
+                            }
                           },
                         ),
                       ] else ...[
-                        // * Email Field (Company Personnel)
-                        TextFormField(
-                          controller: email,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            fillColor: AppColors.greyColorback,
-                            filled: true,
-                            hintText: AppText(context).email,
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide(
-                                color: AppColors(context).primaryColor,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide(
-                                color: AppColors.backgroundColor,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide(
-                                color: AppColors(context).primaryColor,
-                              ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(context)!.emailRequired;
+                        // * Phone Number Field (Business Services - now uses OTP)
+                        // Same phone field as My Services, but for Business Services login
+                        WidgetPhoneField(
+                          phoneController: phone,
+                          message:
+                              phone.text.isEmpty ? "required" : "invalidPhone",
+                          onCountryChanged: (value) {
+                            // Store the PhoneNumber object to get full international format when needed
+                            setState(() {
+                              currentPhoneNumber = value;
+                            });
+                            
+                            // Remove leading zero for Jordanian numbers (JO)
+                            if (value.isoCode == 'JO' && phone.text.isNotEmpty && phone.text.startsWith('0')) {
+                              // Remove leading zero
+                              String textWithoutZero = phone.text.substring(1);
+                              phone.value = TextEditingValue(
+                                text: textWithoutZero,
+                                selection: TextSelection.collapsed(offset: textWithoutZero.length),
+                              );
                             }
-                            if (!value.contains('@')) {
-                              return AppText(context).invalidEmail;
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: AppSize(context).height * 0.01),
-                        // * Password Field (Company Personnel)
-                        TextFormField(
-                          controller: password,
-                          obscureText: !isVisiable,
-                          decoration: InputDecoration(
-                            fillColor: AppColors.greyColorback,
-                            filled: true,
-                            hintText: AppText(context).password,
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                isVisiable
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  isVisiable = !isVisiable;
-                                });
-                              },
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide(
-                                color: AppColors(context).primaryColor,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide(
-                                color: AppColors.backgroundColor,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7),
-                              borderSide: BorderSide(
-                                color: AppColors(context).primaryColor,
-                              ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(context)!.passwordRequired;
-                            }
-                            return null;
                           },
                         ),
                       ],
                       SizedBox(height: AppSize(context).height * .01),
-                      // * Forget Password
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(context,
-                                  rightToLeft(const ForgetPasswordScreen()));
-                            },
-                            child: Text.rich(
-                              TextSpan(
-                                text: AppText(context).forgetPassword,
-                                children: [
-                                  TextSpan(
-                                      text: " ${AppText(context).reset}",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold))
-                                ],
+                      // * Forget Password (only show for My Services, not Business Services)
+                      if (!isCompanyPersonnel)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(context,
+                                    rightToLeft(const ForgetPasswordScreen()));
+                              },
+                              child: Text.rich(
+                                TextSpan(
+                                  text: AppText(context).forgetPassword,
+                                  children: [
+                                    TextSpan(
+                                        text: " ${AppText(context).reset}",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold))
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
                       SizedBox(height: AppSize(context).height * .04),
                       // * Login
                       Row(
@@ -331,15 +300,62 @@ class _LoginScreenState extends State<LoginScreen> {
                               loading: loading,
                               height: AppSize(context).height * .06,
                               onTap: () async {
-                                if (key.currentState!.validate()) {
+                                if (isCompanyPersonnel) {
+                                  // Business Services: Validate phone and use OTP flow
+                                  if (phone.text.trim().isEmpty) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => WidgetDialog(
+                                        title: AppText(context, isFunction: true).warning,
+                                        desc: 'Phone number must be between 9 and 15 digits',
+                                        isError: true,
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  // Validate phone number length (digits only, excluding country code formatting)
+                                  String phoneDigits = phone.text.replaceAll(RegExp(r'[^\d]'), '');
+                                  if (phoneDigits.length < 9 || phoneDigits.length > 15) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => WidgetDialog(
+                                        title: AppText(context, isFunction: true).warning,
+                                        desc: 'Phone number must be between 9 and 15 digits',
+                                        isError: true,
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  await mmsRequestOTP();
+                                } else {
+                                  // My Services: Validate phone before login
+                                  if (phone.text.trim().isEmpty) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => WidgetDialog(
+                                        title: AppText(context, isFunction: true).warning,
+                                        desc: 'Phone number must be between 9 and 15 digits',
+                                        isError: true,
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  // Validate phone number length (digits only, excluding country code formatting)
+                                  String phoneDigits = phone.text.replaceAll(RegExp(r'[^\d]'), '');
+                                  if (phoneDigits.length < 9 || phoneDigits.length > 15) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => WidgetDialog(
+                                        title: AppText(context, isFunction: true).warning,
+                                        desc: 'Phone number must be between 9 and 15 digits',
+                                        isError: true,
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  // My Services: Use existing phone OTP flow
                                   login();
                                 }
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => VerifyCodeScreen(),
-                                //   ),
-                                // );
                               },
                             ),
                           ),
@@ -536,10 +552,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future login() async {
     if (isCompanyPersonnel) {
-      // MMS login for company personnel
-      await mmsLogin();
+      // Business Services: Use phone number OTP flow
+      await mmsRequestOTP();
     } else {
-      // Regular phone-based login
+      // My Services: Regular phone-based login
       await regularLogin();
     }
   }
@@ -549,19 +565,32 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         loading = true;
       });
+      // Get the full international phone number from stored PhoneNumber object
+      String phoneNumberToSend = currentPhoneNumber?.phoneNumber ?? phone.text;
+      // If phoneNumber doesn't start with +, use the stored PhoneNumber's international format
+      if (!phoneNumberToSend.startsWith('+') && currentPhoneNumber != null) {
+        phoneNumberToSend = currentPhoneNumber!.phoneNumber ?? phone.text;
+      }
+      
       await Authantication.login(user: {
-        'Mobile': phone.text,
+        'Mobile': phoneNumberToSend,
       }).then((value) {
         if (value?.status != false) {
           setState(() {
             loginModel = value;
           });
           // appProvider.addUser(user: value);
+          // Get the full international phone number from stored PhoneNumber object
+          String phoneNumberForOTP = currentPhoneNumber?.phoneNumber ?? phone.text;
+          if (!phoneNumberForOTP.startsWith('+') && currentPhoneNumber != null) {
+            phoneNumberForOTP = currentPhoneNumber!.phoneNumber ?? phone.text;
+          }
+          
           Navigator.push(
             context,
             downToTop(VerifyCodeScreen(
               otp: loginModel?.otp.toString() ?? "",
-              phone: phone.text,
+              phone: phoneNumberForOTP,
             )),
           );
           setState(() {
@@ -597,9 +626,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future mmsLogin() async {
-    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-    
+  // Request OTP for Business Services login
+  Future mmsRequestOTP() async {
     try {
       setState(() {
         loading = true;
@@ -618,19 +646,34 @@ class _LoginScreenState extends State<LoginScreen> {
       final deviceMetadata = await DeviceInfoService.getDeviceMetadata();
       final deviceId = jsonEncode(deviceMetadata); // Send as JSON string with all metadata
 
-      final loginResult = await Authantication.mmsLogin(
-        email: email.text.trim(),
-        password: password.text,
+      // Get the full international phone number from stored PhoneNumber object
+      String phoneNumber = currentPhoneNumber?.phoneNumber ?? phone.text.trim();
+      // Ensure it starts with + (the PhoneNumber object should provide this)
+      if (!phoneNumber.startsWith('+')) {
+        // If phone doesn't start with +, try to construct it from PhoneNumber object
+        if (currentPhoneNumber != null) {
+          phoneNumber = currentPhoneNumber!.phoneNumber ?? phone.text.trim();
+        } else {
+          // Fallback: add + if missing
+          phoneNumber = phoneNumber.startsWith('00') 
+              ? '+' + phoneNumber.substring(2)
+              : (phoneNumber.startsWith('962') ? '+$phoneNumber' : phoneNumber);
+        }
+      }
+
+      final otpResult = await Authantication.mmsRequestOTP(
+        mobile: phoneNumber,
         deviceId: deviceId,
         fcmToken: fcmToken ?? 'device-token-placeholder',
       );
 
-      if (!loginResult['success']) {
-        setState(() {
-          loading = false;
-        });
+      setState(() {
+        loading = false;
+      });
+
+      if (!otpResult['success']) {
         if (mounted) {
-          final errorMessage = loginResult['message'] ?? 'Invalid login credentials';
+          final errorMessage = otpResult['message'] ?? 'Failed to send OTP';
           showDialog(
             context: context,
             builder: (context) => WidgetDialog(
@@ -643,115 +686,36 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final mmsUser = loginResult['data'] as MmsUserModel?;
-      if (mmsUser != null && mmsUser.success && mmsUser.user != null) {
-        // Convert MmsUserModel to UserModel format
-        // Use userRoleId from MMS response (from COMPANY_ROLE lookup table)
-        // This can be: 18 (Admin), 20 (Team Leader), 21 (Technician), 22 (Sub-Technician)
-        final userRoleId = mmsUser.user!.userRoleId;
-        
-        // Prevent technicians and sub-technicians from logging in
-        if (userRoleId == 21 || userRoleId == 22) {
-          setState(() {
-            loading = false;
-          });
-          if (mounted) {
-            final localizations = AppLocalizations.of(context)!;
-            String errorMessage;
-            if (userRoleId == 21) {
-              errorMessage = localizations.technicianNotAllowed;
-            } else {
-              errorMessage = localizations.subTechnicianNotAllowed;
-            }
-            showDialog(
-              context: context,
-              builder: (context) => WidgetDialog(
-                title: AppText(context, isFunction: true).warning,
-                desc: errorMessage,
-                isError: true,
-              ),
-            );
-          }
-          return;
-        }
-        final userModel = UserModel(
-          status: true,
-          token: mmsUser.token?.accessToken ?? '',
-          message: mmsUser.message,
-          qrCodePath: null,
-          wallet: 0,
-          customer: Customer(
-            id: mmsUser.user!.id,
-            roleId: userRoleId, // Use userRoleId from MMS response (from COMPANY_ROLE lookup table)
-            name: mmsUser.user!.fullName,
-            mobile: mmsUser.user!.mobileNumber ?? '',
-            email: mmsUser.user!.email ?? '',
-            createdDate: mmsUser.user!.createdAt,
-            password: null,
-            oldPassword: null,
-            otp: 0,
-            address: '',
-            providerId: 0,
+      // Navigate to OTP verification screen
+      // Store the phone number used for OTP request so we can use the same format for verification
+      if (mounted) {
+        Navigator.push(
+          context,
+          rightToLeft(
+            VerifyCodeScreen(
+              phone: phoneNumber, // Use the same normalized phone number format
+              otp: otpResult['otp'], // For development/testing
+              isBusinessServices: true, // Flag to indicate Business Services login
+            ),
           ),
         );
-
-        // Update AppProvider with user data
-        appProvider.addUser(user: userModel);
-        
-        // Save both access token and refresh token in AppProvider
-        if (mmsUser.token != null) {
-          appProvider.setTokens(
-            access: mmsUser.token!.accessToken,
-            refresh: mmsUser.token!.refreshToken,
-            type: mmsUser.token!.tokenType,
-            expires: mmsUser.token!.expiresIn,
-        );
-        }
-
-        // Navigate to home - HomeScreen will automatically show B2BHome for company personnel (roleId == 18)
-        Navigator.pushAndRemoveUntil(
-          context,
-          downToTop(const HomeLayout()),
-          (route) => false,
-        );
-
-        setState(() {
-          loading = false;
-        });
-      } else {
+      }
+    } catch (e) {
+      log('mmsRequestOTP() [ ERROR ] -> $e');
+      setState(() {
+        loading = false;
+      });
+      if (mounted) {
         showDialog(
           context: context,
           builder: (context) => WidgetDialog(
             title: AppText(context, isFunction: true).someThingError,
-            desc: AppLocalizations.of(context)!.invalidCredentials,
-            bottonText: AppText(context, isFunction: true).ok,
-            onTap: () {
-              Navigator.pop(context);
-            },
+            desc: 'Network error. Please try again.',
             isError: true,
           ),
         );
-        setState(() {
-          loading = false;
-        });
       }
-    } catch (e) {
-      log('MMS Login Error: $e');
-      showDialog(
-        context: context,
-        builder: (context) => WidgetDialog(
-          title: AppText(context, isFunction: true).someThingError,
-          desc: AppLocalizations.of(context)!.loginFailed,
-          bottonText: AppText(context, isFunction: true).ok,
-          onTap: () {
-            Navigator.pop(context);
-          },
-          isError: true,
-        ),
-      );
-      setState(() {
-        loading = false;
-      });
     }
   }
+
 }
