@@ -674,11 +674,20 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!otpResult['success']) {
         if (mounted) {
           final errorMessage = otpResult['message'] ?? 'Failed to send OTP';
+          
+          // Check if this is a technician restriction error
+          final isTechnicianError = errorMessage.toLowerCase().contains('technician') || 
+                                   errorMessage.toLowerCase().contains('not allowed');
+          
           showDialog(
             context: context,
             builder: (context) => WidgetDialog(
               title: AppText(context, isFunction: true).warning,
-              desc: errorMessage,
+              desc: isTechnicianError 
+                  ? (errorMessage.toLowerCase().contains('sub-technician')
+                      ? AppLocalizations.of(context)!.subTechnicianNotAllowed
+                      : AppLocalizations.of(context)!.technicianNotAllowed)
+                  : errorMessage,
               isError: true,
             ),
           );

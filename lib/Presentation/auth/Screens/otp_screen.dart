@@ -365,31 +365,10 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> with CodeAutoFill {
 
           final mmsUser = loginResult['data'] as MmsUserModel?;
           if (mmsUser != null && mmsUser.success && mmsUser.user != null) {
-            final userRoleId = mmsUser.user!.userRoleId;
+            // Technician check is now done at OTP request stage, not here
+            // If we reach here, the user is allowed to login
             
-            // Prevent technicians and sub-technicians from logging in
-            if (userRoleId == 21 || userRoleId == 22) {
-              if (mounted) {
-                final localizations = AppLocalizations.of(context)!;
-                String errorMessage;
-                if (userRoleId == 21) {
-                  errorMessage = localizations.technicianNotAllowed;
-                } else {
-                  errorMessage = localizations.subTechnicianNotAllowed;
-                }
-                showDialog(
-                  context: context,
-                  builder: (context) => WidgetDialog(
-                    title: AppText(context, isFunction: true).warning,
-                    desc: errorMessage,
-                    isError: true,
-                  ),
-                );
-              }
-              setState(() => loading = false);
-              return;
-            }
-
+            final userRoleId = mmsUser.user!.userRoleId;
             final userModel = UserModel(
               status: true,
               token: mmsUser.token?.accessToken ?? '',
