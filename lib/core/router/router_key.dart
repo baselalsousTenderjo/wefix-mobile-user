@@ -12,4 +12,5 @@ class RouterKey {
   static const String chat = '/chat';
   static const String completionChecklist = '/completionChecklist';
   static const String webview = '/webview';
+  static const String versionCheck = '/version-check';
 }

@@ -13,6 +13,7 @@ import '../../presentation/ticktes_details/pages/select_products_screen.dart';
 import '../../presentation/layout/pages/layout_screen.dart';
 import '../../presentation/layout/pages/notification_screen.dart';
 import '../../presentation/splash/pages/splash_screen.dart';
+import '../../presentation/version_check/pages/version_check_screen.dart';
 import '../context/global.dart';
 import '../widget/webview_screen.dart';
 import 'router_key.dart';
@@ -25,6 +26,8 @@ final goRouter = GoRouter(
   routes: [
     // --- Splash and
     _pageRouter(path: RouterKey.splash, screen: const SplashScreen()),
+    // --- Version Check Route ---
+    _pageRouter(path: RouterKey.versionCheck, screen: const VersionCheckScreen()),
     // ---Authentication Routes ---
     _pageRouter(
       path: RouterKey.login,

@@ -608,4 +608,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pleaseWaitBeforeRequestingOTP => 'يرجى الانتظار قبل طلب رمز جديد';
+
+  @override
+  String get updateRequired => 'تحديث مطلوب';
+
+  @override
+  String get updateRequiredDescription => 'إصدار جديد من التطبيق متاح. يرجى التحديث للمتابعة في استخدام التطبيق.';
+
+  @override
+  String get updateNow => 'تحديث الآن';
+
+  @override
+  String get later => 'لاحقاً';
+
+  @override
+  String get couldNotOpenStore => 'تعذر فتح المتجر. يرجى التحديث يدوياً.';
 }

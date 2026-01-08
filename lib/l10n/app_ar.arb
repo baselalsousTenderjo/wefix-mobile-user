@@ -213,6 +213,11 @@
       "accountDoesNotExist":"الحساب غير موجود بهذا الرقم",
       "invalidPhoneNumberFormat":"تنسيق رقم الهاتف غير صحيح",
       "accountTemporarilyLocked":"الحساب مؤقتاً مقفل",
-      "pleaseWaitBeforeRequestingOTP":"يرجى الانتظار قبل طلب رمز جديد"
+      "pleaseWaitBeforeRequestingOTP":"يرجى الانتظار قبل طلب رمز جديد",
+      "updateRequired":"تحديث مطلوب",
+      "updateRequiredDescription":"إصدار جديد من التطبيق متاح. يرجى التحديث للمتابعة في استخدام التطبيق.",
+      "updateNow":"تحديث الآن",
+      "later":"لاحقاً",
+      "couldNotOpenStore":"تعذر فتح المتجر. يرجى التحديث يدوياً."
 
 }

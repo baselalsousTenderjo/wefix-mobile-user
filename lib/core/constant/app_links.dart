@@ -122,4 +122,10 @@ class AppLinks {
     final base = b2bTicketsDetails.endsWith('/') ? b2bTicketsDetails.substring(0, b2bTicketsDetails.length - 1) : b2bTicketsDetails;
     return '$base/$ticketId';
   }
+  
+  // ============================== App Store & Play Store ==============================
+  static final String androidPackageName = dotenv.env['ANDROID_PACKAGE_NAME'] ?? 'com.tender.wefixsp.app';
+  static final String iosBundleId = dotenv.env['IOS_BUNDLE_ID'] ?? 'com.tender.wefixsp.app';
+  static String get playStoreUrl => dotenv.env['PLAY_STORE_URL'] ?? 'https://play.google.com/store/apps/details?id=$androidPackageName';
+  static final String appStoreUrl = dotenv.env['APP_STORE_URL'] ?? 'https://apps.apple.com/us/app/wefix-technicians/id6749498779';
 }

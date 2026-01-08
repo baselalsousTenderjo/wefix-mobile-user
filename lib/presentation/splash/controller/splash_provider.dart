@@ -12,6 +12,7 @@ import '../../../core/providers/domain/usecase/language_usecase.dart';
 import '../../../core/providers/language_provider/l10n_provider.dart';
 import '../../../core/router/router_key.dart';
 import '../../../core/services/hive_services/box_kes.dart';
+import '../../../core/services/version_check_service.dart';
 import '../../../injection_container.dart';
 
 class SplashProvider extends ChangeNotifier {
@@ -38,6 +39,14 @@ class SplashProvider extends ChangeNotifier {
 
   void init(BuildContext context) async {
     await Future.delayed(const Duration(microseconds: 1000), () async {
+      // Check for app update first
+      final needsUpdate = await VersionCheckService.checkForUpdate();
+      if (needsUpdate) {
+        context.go(RouterKey.versionCheck);
+        return;
+      }
+      
+      // If no update needed, proceed with normal navigation
       final enableAuth = sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.enableAuth);
       if (enableAuth != null) {
         context.go(RouterKey.layout);

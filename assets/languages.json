@@ -4157,6 +4157,36 @@
           "wordKey": "failedToSendOTP",
           "value": "فشل في إرسال رمز التحقق",
           "lang": "ar"
+        },
+        {
+          "id": 2400,
+          "wordKey": "updateRequired",
+          "value": "تحديث مطلوب",
+          "lang": "ar"
+        },
+        {
+          "id": 2401,
+          "wordKey": "updateRequiredDescription",
+          "value": "إصدار جديد من التطبيق متاح. يرجى التحديث للمتابعة في استخدام التطبيق.",
+          "lang": "ar"
+        },
+        {
+          "id": 2402,
+          "wordKey": "updateNow",
+          "value": "تحديث الآن",
+          "lang": "ar"
+        },
+        {
+          "id": 2403,
+          "wordKey": "later",
+          "value": "لاحقاً",
+          "lang": "ar"
+        },
+        {
+          "id": 2404,
+          "wordKey": "couldNotOpenStore",
+          "value": "تعذر فتح المتجر. يرجى التحديث يدوياً.",
+          "lang": "ar"
         }
       ],
       "key": "ar"
@@ -8450,6 +8480,36 @@
           "id": 2379,
           "wordKey": "pleaseWaitBeforeRequestingOTP",
           "value": "Please wait before requesting a new code",
+          "lang": "en"
+        },
+        {
+          "id": 2400,
+          "wordKey": "updateRequired",
+          "value": "Update Required",
+          "lang": "en"
+        },
+        {
+          "id": 2401,
+          "wordKey": "updateRequiredDescription",
+          "value": "A new version of the app is available. Please update to continue using the app.",
+          "lang": "en"
+        },
+        {
+          "id": 2402,
+          "wordKey": "updateNow",
+          "value": "Update Now",
+          "lang": "en"
+        },
+        {
+          "id": 2403,
+          "wordKey": "later",
+          "value": "Later",
+          "lang": "en"
+        },
+        {
+          "id": 2404,
+          "wordKey": "couldNotOpenStore",
+          "value": "Could not open store. Please update manually.",
           "lang": "en"
         }
       ]

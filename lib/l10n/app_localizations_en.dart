@@ -608,4 +608,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseWaitBeforeRequestingOTP => 'Please wait before requesting a new code';
+
+  @override
+  String get updateRequired => 'Update Required';
+
+  @override
+  String get updateRequiredDescription => 'A new version of the app is available. Please update to continue using the app.';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get couldNotOpenStore => 'Could not open store. Please update manually.';
 }
