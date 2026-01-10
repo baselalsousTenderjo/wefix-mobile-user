@@ -482,13 +482,16 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> with CodeAutoFill {
         }
       } else {
         // Use My Services OTP verification (existing flow)
-        await Authantication.checkOtp(
-          otp: textEditingController.text,
+        final checkOtpResult = await Authantication.checkOtp(
+          otp: textEditingController.text.trim(),
           fcmToken: appProvider.fcmToken ?? "",
           phone: widget.phone.toString(),
-        ).then((value) {
+        );
+
+        if (checkOtpResult['success'] == true && checkOtpResult['data'] != null) {
+          final value = checkOtpResult['data'] as UserModel;
           setState(() => userModel = value);
-          if (value?.status == true) {
+          if (value.status == true) {
             appProvider.addUser(user: value);
             log(appProvider.userModel?.token.toString() ?? "");
             Map? showTour = CacheHelper.getData(key: CacheHelper.showTour) == null
@@ -512,17 +515,59 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> with CodeAutoFill {
               (route) => false,
             );
           } else {
+            if (mounted) {
+              // Get localized error message from backend response or use default
+              final lang = Localizations.localeOf(context).languageCode;
+              String errorMessage = (lang == 'ar' && checkOtpResult['messageAr'] != null)
+                  ? checkOtpResult['messageAr']
+                  : (checkOtpResult['message'] ?? AppLocalizations.of(context)!.invalidCredentials);
+              
+              showDialog(
+                context: context,
+                builder: (context) => WidgetDialog(
+                  title: AppText(context, isFunction: true).warning,
+                  desc: errorMessage,
+                  isError: true,
+                ),
+              );
+            }
+          }
+        } else {
+          if (mounted) {
+            // Get localized error message from backend response or use default
+            final lang = Localizations.localeOf(context).languageCode;
+            String errorMessage = (lang == 'ar' && checkOtpResult['messageAr'] != null)
+                ? checkOtpResult['messageAr']
+                : (checkOtpResult['message'] ?? AppLocalizations.of(context)!.invalidCredentials);
+            
+            // Check if this is a rate limit error (wait/seconds/rate)
+            if (errorMessage.toLowerCase().contains('wait') || 
+                errorMessage.toLowerCase().contains('rate') ||
+                errorMessage.toLowerCase().contains('60 seconds') ||
+                errorMessage.toLowerCase().contains('seconds before')) {
+              // Extract seconds from message if available
+              final secondsMatch = RegExp(r'(\d+)\s*seconds?').firstMatch(errorMessage);
+              final seconds = secondsMatch?.group(1) ?? '60';
+              
+              // Use localized message with seconds
+              if (lang == 'ar') {
+                errorMessage = 'يرجى الانتظار $seconds ثانية قبل طلب رمز جديد';
+              } else {
+                errorMessage = 'Please wait $seconds seconds before requesting a new OTP';
+              }
+            }
+            
             showDialog(
               context: context,
               builder: (context) => WidgetDialog(
                 title: AppText(context, isFunction: true).warning,
-                desc: AppText(context, isFunction: true).otpWrong,
+                desc: errorMessage,
                 isError: true,
               ),
             );
           }
-          setState(() => loading = false);
-        });
+        }
+        setState(() => loading = false);
       }
     } catch (e) {
       log('checkOtpFun() [ ERROR ] -> $e');

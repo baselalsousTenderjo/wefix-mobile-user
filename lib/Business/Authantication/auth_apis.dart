@@ -129,7 +129,7 @@ class Authantication {
 
   static UserModel? usermodel;
   // * OTP
-  static Future<UserModel?> checkOtp({required String otp, required String phone, required String fcmToken}) async {
+  static Future<Map<String, dynamic>> checkOtp({required String otp, required String phone, required String fcmToken}) async {
     try {
       final response = await HttpHelper.postData(
         query: EndPoints.checkOtp,
@@ -143,16 +143,30 @@ class Authantication {
       if (response.statusCode == 200) {
         usermodel = UserModel.fromJson(body);
         if (usermodel != null) {
-          return usermodel;
+          return {'success': true, 'data': usermodel};
         } else {
-          return null;
+          return {'success': false, 'data': null, 'message': 'Failed to parse user data'};
         }
       } else {
-        return usermodel;
+        String errorMessage = body['message'] ?? 
+                              body['error'] ?? 
+                              'Invalid OTP';
+        String? errorMessageAr = body['messageAr'];
+        return {
+          'success': false, 
+          'data': null, 
+          'message': errorMessage,
+          if (errorMessageAr != null) 'messageAr': errorMessageAr,
+        };
       }
     } catch (e) {
       log('checkOtp() [ ERROR ] -> $e');
-      return null;
+      return {
+        'success': false, 
+        'data': null, 
+        'message': 'Service is currently unavailable', 
+        'messageAr': 'الخدمة غير متوفرة حاليا'
+      };
     }
   }
 
