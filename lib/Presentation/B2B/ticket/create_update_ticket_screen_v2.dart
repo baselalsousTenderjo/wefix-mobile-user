@@ -76,7 +76,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   // Validation state
   Map<String, String?> fieldErrors = {}; // Field name -> error message
   bool isTeamLeaderVisible = true; // Show/hide Team Leader DDL based on role
-  bool isDelegatedToWeFix = false; // Track if ticket is delegated to WeFix (White Label + Managed By WeFix Team)
+  bool isDelegatedToWeFix = false; // Track if ticket is delegated to WeFix (B2B business model)
 
   // Lists (these should be fetched from APIs)
   List<DropdownCardItem> contracts = [];
@@ -277,8 +277,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       if (contractsData != null) {
         contracts = contractsData
             .map((item) {
-              // Log contract data to verify businessModelLookupId and managedByLookupId are present
-              log('📋 Contract data: ${item['id']} - businessModelLookupId: ${item['businessModelLookupId']}, managedByLookupId: ${item['managedByLookupId']}');
+              // Log contract data to verify businessModelLookupId is present
+              log('📋 Contract data: ${item['id']} - businessModelLookupId: ${item['businessModelLookupId']}');
               return DropdownCardItem(
                 id: item['id'] as int,
                 title: item['title'] as String? ?? item['contractReference'] as String? ?? '',
@@ -413,20 +413,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       if (contracts.isNotEmpty) {
         selectedContract = contracts.first;
         
-        // Check if auto-selected contract is Managed By WeFix Team
-        // Hide Team Leader and Technician when managedByLookupId = 27 (WeFix Team)
+        // Check if auto-selected contract is B2B (delegated to WeFix Team)
+        // Hide Team Leader and Technician for B2B business model
         final contractData = selectedContract?.data;
         final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
-        final managedByLookupId = contractData?['managedByLookupId'] as int?;
         
-        log('🔍 Auto-selected contract - businessModelLookupId: $businessModelLookupId, managedByLookupId: $managedByLookupId');
+        log('🔍 Auto-selected contract - businessModelLookupId: $businessModelLookupId');
         
-        const WEFIX_TEAM_MANAGED_BY_ID = 27;
+        const B2B_BUSINESS_MODEL_ID = 24;
+        const WHITE_LABEL_BUSINESS_MODEL_ID = 25;
         
-        // Hide fields when managed by WeFix Team (regardless of business model)
-        isDelegatedToWeFix = (managedByLookupId == WEFIX_TEAM_MANAGED_BY_ID);
+        // B2B (24) -> delegated to WeFix Team, White Label (25) -> Client Team
+        isDelegatedToWeFix = (businessModelLookupId == B2B_BUSINESS_MODEL_ID);
         
-        log('🔍 Auto-selected contract isDelegatedToWeFix: $isDelegatedToWeFix');
+        log('🔍 Auto-selected contract isDelegatedToWeFix: $isDelegatedToWeFix (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
         
         // If delegated, clear Team Leader and Technician selections
         if (isDelegatedToWeFix) {
@@ -577,21 +577,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               (contract) => contract.id == contractId,
             );
             
-            // Check if contract is Managed By WeFix Team
-            // Hide Team Leader and Technician when managedByLookupId = 27 (WeFix Team)
-            // Works for both B2B (24) and White Label (25) business models
+            // Check if contract is B2B (delegated to WeFix Team)
+            // Hide Team Leader and Technician for B2B business model
             final contractData = selectedContract?.data;
             final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
-            final managedByLookupId = contractData?['managedByLookupId'] as int?;
             
-            log('🔍 Contract loaded from ticket data - businessModelLookupId: $businessModelLookupId, managedByLookupId: $managedByLookupId');
+            log('🔍 Contract loaded from ticket data - businessModelLookupId: $businessModelLookupId');
             
-            const WEFIX_TEAM_MANAGED_BY_ID = 27;
+            const B2B_BUSINESS_MODEL_ID = 24;
+            const WHITE_LABEL_BUSINESS_MODEL_ID = 25;
             
-            // Hide fields when managed by WeFix Team (regardless of business model)
-            isDelegatedToWeFix = (managedByLookupId == WEFIX_TEAM_MANAGED_BY_ID);
+            // B2B (24) -> delegated to WeFix Team, White Label (25) -> Client Team
+            isDelegatedToWeFix = (businessModelLookupId == B2B_BUSINESS_MODEL_ID);
             
-            log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix');
+            log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
             
             // If delegated, clear Team Leader and Technician selections
             if (isDelegatedToWeFix) {
@@ -1970,21 +1969,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                   selectedContract = item;
                   fieldErrors.remove('contract');
                   
-                  // Check if contract is Managed By WeFix Team
-                  // Hide Team Leader and Technician when managedByLookupId = 27 (WeFix Team)
-                  // Works for both B2B (24) and White Label (25) business models
+                  // Check if contract is B2B (delegated to WeFix Team)
+                  // Hide Team Leader and Technician for B2B business model
                   final contractData = item.data;
                   final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
-                  final managedByLookupId = contractData?['managedByLookupId'] as int?;
                   
-                  log('🔍 Contract selected - businessModelLookupId: $businessModelLookupId, managedByLookupId: $managedByLookupId');
+                  log('🔍 Contract selected - businessModelLookupId: $businessModelLookupId');
                   
-                  const WEFIX_TEAM_MANAGED_BY_ID = 27;
+                  const B2B_BUSINESS_MODEL_ID = 24;
+                  const WHITE_LABEL_BUSINESS_MODEL_ID = 25;
                   
-                  // Hide fields when managed by WeFix Team (regardless of business model)
-                  isDelegatedToWeFix = (managedByLookupId == WEFIX_TEAM_MANAGED_BY_ID);
+                  // B2B (24) -> delegated to WeFix Team, White Label (25) -> Client Team
+                  isDelegatedToWeFix = (businessModelLookupId == B2B_BUSINESS_MODEL_ID);
                   
-                  log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix');
+                  log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
                   
                   // If delegated, clear Team Leader and Technician selections
                   if (isDelegatedToWeFix) {
