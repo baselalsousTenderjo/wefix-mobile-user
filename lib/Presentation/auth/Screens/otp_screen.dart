@@ -433,10 +433,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> with CodeAutoFill {
 
           final mmsUser = loginResult['data'] as MmsUserModel?;
           if (mmsUser != null && mmsUser.success && mmsUser.user != null) {
-            // Technician check is now done at OTP request stage, not here
-            // If we reach here, the user is allowed to login
-            
-            final userRoleId = mmsUser.user!.userRoleId;
+            // Role validation is handled by the backend - if we reach here, the user is authorized
             final userModel = UserModel(
               status: true,
               token: mmsUser.token?.accessToken ?? '',
@@ -445,7 +442,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> with CodeAutoFill {
               wallet: 0,
               customer: Customer(
                 id: mmsUser.user!.id,
-                roleId: userRoleId,
+                roleId: mmsUser.user!.userRoleId,
                 name: mmsUser.user!.fullName,
                 mobile: mmsUser.user!.mobileNumber ?? '',
                 email: mmsUser.user!.email ?? '',
