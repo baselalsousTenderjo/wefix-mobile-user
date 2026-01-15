@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 
 import '../../services/hive_services/box_kes.dart';
 import '../../services/token_management/token_refresh.dart';
+import '../../services/token_management/force_logout.dart';
 import '../../../injection_container.dart';
 
 /// Dio interceptor to handle token refresh and 401/403 responses
@@ -52,6 +53,14 @@ class AuthInterceptor extends Interceptor {
             err.requestOptions.path.contains('request-otp') || 
             err.requestOptions.path.contains('verify-otp') ||
             err.requestOptions.path.contains('refresh-token')) {
+          return handler.next(err);
+        }
+
+        // Check if user account is deactivated - force logout immediately without refresh attempt
+        final responseData = err.response?.data;
+        if (responseData is Map && responseData['message'] == 'User account is deactivated') {
+          log('User account is deactivated - forcing logout');
+          await forceLogout();
           return handler.next(err);
         }
 
