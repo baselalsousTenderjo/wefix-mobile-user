@@ -75,8 +75,14 @@ class AuthHelper {
   }
 
   /// Check response status and handle auth errors if needed
-  static Future<void> checkResponseStatus(int statusCode, String query, BuildContext? context, {bool isMMS = false}) async {
+  static Future<void> checkResponseStatus(int statusCode, String query, BuildContext? context, {bool isMMS = false, String? responseMessage}) async {
     if (statusCode == 401 || statusCode == 403) {
+      // Check if user account is deactivated - force logout immediately
+      if (responseMessage == 'User account is deactivated') {
+        await _forceLogoutImmediate(context);
+        return;
+      }
+      
       if (isMMS) {
         // For MMS endpoints, handle auth error
         if (query.contains('login') || query.contains('refresh-token')) {
@@ -88,6 +94,19 @@ class AuthHelper {
         // For OMS endpoints
         await handleAuthError(context, isMMS: false);
       }
+    }
+  }
+
+  /// Force logout immediately without refresh attempt (for deactivated accounts)
+  static Future<void> _forceLogoutImmediate(BuildContext? context) async {
+    try {
+      BuildContext? ctx = context ?? navigatorKey.currentContext;
+      if (ctx != null) {
+        final appProvider = Provider.of<AppProvider>(ctx, listen: false);
+        await _forceLogoutDirect(appProvider, ctx);
+      }
+    } catch (e) {
+      // Silent fail
     }
   }
 
