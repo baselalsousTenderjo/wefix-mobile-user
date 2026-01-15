@@ -448,44 +448,47 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
 
-                      const Divider(
-                        color: AppColors.greyColorback,
-                      ),
+                      // Only show Guest login and Create Account for regular users (My Services)
+                      if (!isCompanyPersonnel) ...[
+                        const Divider(
+                          color: AppColors.greyColorback,
+                        ),
 
-                      Center(
-                          child: TextButton(
-                              onPressed: () {
-                                navigateToAndRemoveUntil(
-                                    context, const HomeLayout());
+                        Center(
+                            child: TextButton(
+                                onPressed: () {
+                                  navigateToAndRemoveUntil(
+                                      context, const HomeLayout());
+                                },
+                                child: Text(
+                                  AppText(context).loginAsG,
+                                  style: TextStyle(
+                                    color: AppColors(context).primaryColor,
+                                  ),
+                                ))),
+                        SizedBox(height: AppSize(context).height * .02),
+
+                        // * Create Acounts
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context, rightToLeft(const SignUpScreen()));
                               },
-                              child: Text(
-                                AppText(context).loginAsG,
-                                style: TextStyle(
-                                  color: AppColors(context).primaryColor,
-                                ),
-                              ))),
-                      SizedBox(height: AppSize(context).height * .02),
-
-                      // * Create Acounts
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                  context, rightToLeft(const SignUpScreen()));
-                            },
-                            child: Text.rich(TextSpan(
-                                text: "${AppText(context).dontHavAccount} ? ",
-                                children: [
-                                  TextSpan(
-                                      text: " ${AppText(context).createOne}",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold))
-                                ])),
-                          )
-                        ],
-                      ),
+                              child: Text.rich(TextSpan(
+                                  text: "${AppText(context).dontHavAccount} ? ",
+                                  children: [
+                                    TextSpan(
+                                        text: " ${AppText(context).createOne}",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold))
+                                  ])),
+                            )
+                          ],
+                        ),
+                      ],
                       SizedBox(height: AppSize(context).height * .04),
                     ],
                   ),

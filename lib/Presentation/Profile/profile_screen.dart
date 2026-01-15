@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wefix/Business/AppProvider/app_provider.dart';
@@ -205,17 +207,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ? AppText(context).login
                     : AppText(context).logout,
                 onTap: () async {
-                  // Check if user has a mobile token in database
-                  // If user is company personnel (roleId == 2) and has accessToken, 
-                  // assume it's a mobile login and token in DB starts with "mobile-access-token:"
-                  if (appProvider.userModel?.customer.roleId == 2 && appProvider.accessToken != null) {
-                    // This is a mobile login - token in DB should start with "mobile-access-token:"
-                    // Call backend logout to remove from DB (backend will verify token prefix)
-                    await Authantication.mmsLogout(token: appProvider.accessToken!);
+                  // Check if user is logged in and has accessToken
+                  // Call backend logout to remove token from DB
+                  
+                  if (appProvider.accessToken != null && appProvider.accessToken!.isNotEmpty) {
+                    // Check if user is B2B (company personnel: Admin 18, Team Leader 20, Technician 21, Sub-Technician 22)
+                    final currentUserRoleId = appProvider.userModel?.customer.roleId;
+                    int? roleIdInt;
+                    if (currentUserRoleId is int) {
+                      roleIdInt = currentUserRoleId;
+                    } else if (currentUserRoleId is String) {
+                      roleIdInt = int.tryParse(currentUserRoleId);
+                    } else if (currentUserRoleId != null) {
+                      roleIdInt = int.tryParse(currentUserRoleId.toString());
+                    }
+                    final isB2BUser = roleIdInt != null && (roleIdInt == 18 || roleIdInt == 20 || roleIdInt == 21 || roleIdInt == 22);
+                    
+                    if (isB2BUser) {
+                      // B2B user - call backend-mms logout to remove token from DB
+                      await Authantication.mmsLogout(token: appProvider.accessToken!);
+                    }
                   }
                   // Clear from provider (local storage and memory) regardless
                   setState(() {
                     appProvider.clearUser();
+                    appProvider.clearTokens();
                   });
                   Navigator.pushAndRemoveUntil(context,
                       rightToLeft(const LoginScreen()), (route) => true);

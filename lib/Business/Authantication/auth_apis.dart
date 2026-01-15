@@ -362,7 +362,6 @@ class Authantication {
         data: {},
         headers: {'x-client-type': 'mobile'}, // Indicate this is from mobile client
       );
-
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
         return body['success'] == true;
