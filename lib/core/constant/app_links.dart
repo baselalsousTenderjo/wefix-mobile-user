@@ -97,6 +97,7 @@ class AppLinks {
   // User Routes
   static final String b2bUserProfile = dotenv.env['B2B_USER_PROFILE'] ?? 'user/profile';
   static final String b2bUserMe = dotenv.env['B2B_USER_ME'] ?? 'user/me';
+  static final String b2bLogout = dotenv.env['B2B_LOGOUT'] ?? 'user/logout';
   
   // Ticket Routes
   static final String b2bTicketsHome = dotenv.env['B2B_TICKETS_HOME'] ?? 'tickets/home';

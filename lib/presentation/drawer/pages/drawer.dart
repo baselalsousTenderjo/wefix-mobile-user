@@ -1,9 +1,13 @@
+import 'dart:developer';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constant/app_image.dart';
+import '../../../core/constant/app_links.dart';
 import '../../../core/extension/gap.dart';
 import '../../../core/providers/app_text.dart';
 import '../../../core/providers/language_provider/l10n_provider.dart';
@@ -78,9 +82,41 @@ class DrawerWidget extends StatelessWidget {
     );
   }
 
-  void _logout(BuildContext context) {
-    sl<Box>(instanceName: BoxKeys.appBox).delete(BoxKeys.enableAuth);
-    context.go(RouterKey.login);
+  Future<void> _logout(BuildContext context) async {
+    final box = sl<Box>(instanceName: BoxKeys.appBox);
+    final token = box.get(BoxKeys.usertoken);
+    final userTeam = box.get(BoxKeys.userTeam);
+    
+    // Call logout API to clear token from database
+    if (token != null && token.toString().isNotEmpty) {
+      try {
+        final serverUrl = (userTeam == 'B2B Team') ? AppLinks.serverTMMS : AppLinks.server;
+        final dio = Dio();
+        await dio.post(
+          '$serverUrl${AppLinks.b2bLogout}',
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+              'x-client-type': 'mobile',
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+        log('Logout API called successfully');
+      } catch (e) {
+        log('Error calling logout API: $e');
+        // Continue with local logout even if API call fails
+      }
+    }
+    
+    // Clear local storage
+    box.delete(BoxKeys.enableAuth);
+    box.delete(BoxKeys.usertoken);
+    box.delete(BoxKeys.userTeam);
+    
+    if (context.mounted) {
+      context.go(RouterKey.login);
+    }
   }
 
   String _getLanguage(BuildContext context) {
