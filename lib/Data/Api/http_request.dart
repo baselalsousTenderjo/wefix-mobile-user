@@ -27,7 +27,12 @@ class HttpHelper {
     );
     
     // Check for 401/403 responses and handle auth errors
-    await AuthHelper.checkResponseStatus(response.statusCode, query, null, isMMS: false);
+    String? responseMessage;
+    try {
+      final body = json.decode(response.body);
+      responseMessage = body['message'];
+    } catch (_) {}
+    await AuthHelper.checkResponseStatus(response.statusCode, query, null, isMMS: false, responseMessage: responseMessage);
     
     return response;
   }
@@ -56,7 +61,12 @@ class HttpHelper {
     );
     
     // Check for 401/403 responses and handle auth errors
-    await AuthHelper.checkResponseStatus(response.statusCode, query, context, isMMS: query.contains(EndPoints.mmsBaseUrl));
+    String? responseMessage;
+    try {
+      final body = json.decode(response.body);
+      responseMessage = body['message'];
+    } catch (_) {}
+    await AuthHelper.checkResponseStatus(response.statusCode, query, context, isMMS: query.contains(EndPoints.mmsBaseUrl), responseMessage: responseMessage);
     
     return response;
   }
@@ -78,7 +88,12 @@ class HttpHelper {
     );
     
     // Check for 401/403 responses and handle auth errors
-    await AuthHelper.checkResponseStatus(response.statusCode, query, null, isMMS: false);
+    String? responseMessage;
+    try {
+      final body = json.decode(response.body);
+      responseMessage = body['message'];
+    } catch (_) {}
+    await AuthHelper.checkResponseStatus(response.statusCode, query, null, isMMS: false, responseMessage: responseMessage);
     
     return response;
   }
@@ -118,7 +133,12 @@ class HttpHelper {
     );
     
     // Check for 401/403 responses and handle auth errors
-    await AuthHelper.checkResponseStatus(response.statusCode, query, context, isMMS: query.contains(EndPoints.mmsBaseUrl));
+    String? responseMessage;
+    try {
+      final body = json.decode(response.body);
+      responseMessage = body['message'];
+    } catch (_) {}
+    await AuthHelper.checkResponseStatus(response.statusCode, query, context, isMMS: query.contains(EndPoints.mmsBaseUrl), responseMessage: responseMessage);
     
     return response;
   }
