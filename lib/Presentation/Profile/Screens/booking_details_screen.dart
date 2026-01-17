@@ -28,6 +28,8 @@ import 'package:wefix/Presentation/Profile/Components/rating_widget.dart';
 import 'package:wefix/Presentation/Profile/Screens/Chat/messages_screen.dart';
 import '../../appointment/Components/attachments_widget.dart';
 import '../../B2B/ticket/create_update_ticket_screen_v2.dart';
+import 'package:wefix/l10n/app_localizations.dart';
+import '../../../layout_screen.dart';
 
 class TicketDetailsScreen extends StatefulWidget {
   final String id;
@@ -281,106 +283,32 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                                   },
                                 )),
                   _buildSection(
-                      '📝 ${AppText(context).issueDescription}',
+                      '📝 ${languageProvider.lang == "ar" ? "وصف المشكلة" : "Problem Description"}',
                       Text(bookingDetailsModel?.objTickets.description ?? "",
                           style: const TextStyle(color: Colors.grey))),
-                  _buildSection(
-                      '🛠️ ${AppText(context).serviceProviderActions}',
-                      Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("🕑 ${AppText(context).estimatedTime} : ",
-                                  style: TextStyle(
-                                      color: AppColors.blackColor1,
-                                      fontSize: AppSize(context).smallText2)),
-                              Text(
-                                  _calculateEstimatedTime(),
-                                  style: TextStyle(
-                                      color: AppColors.blackColor1,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: AppSize(context).smallText2)),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          bookingDetailsModel?.objTickets.type.toLowerCase() ==
-                                  "preventive"
-                              ? const SizedBox()
-                              : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                        "🔩 ${AppText(context).partsrequired} : ",
-                                        style: TextStyle(
-                                            color: AppColors.blackColor1,
-                                            fontSize:
-                                                AppSize(context).smallText2)),
-                                    Text(
-                                        _getPartsRequired(),
-                                        style: TextStyle(
-                                            color: AppColors.blackColor1,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize:
-                                                AppSize(context).smallText2)),
-                                  ],
-                                ),
-                          const SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("👷‍♀️ ${AppText(context).isWithFemale} : ",
-                                  style: TextStyle(
-                                      color: AppColors.blackColor1,
-                                      fontSize: AppSize(context).smallText2)),
-                              Text(
-                                  _getHavingFemaleEngineer(),
-                                  style: TextStyle(
-                                      color: AppColors.blackColor1,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: AppSize(context).smallText2)),
-                            ],
-                          ),
-                        ],
-                      )),
                   // Additional B2B Ticket Information (if available)
                   if (fullTicketData != null) ...[
-                  const Divider(
-                    color: AppColors.backgroundColor,
-                  ),
+         
                   const SizedBox(height: 8),
-                    // Ticket Code & Basic Info
-                    _buildSection(
-                      '🎫 ${languageProvider.lang == "ar" ? "معلومات التذكرة" : "Ticket Information"}',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                          if (fullTicketData!['ticketCodeId'] != null)
-                            _buildInfoRow(
-                              '${languageProvider.lang == "ar" ? "رمز التذكرة" : "Ticket Code"}:',
-                              fullTicketData!['ticketCodeId'],
-                            ),
-                          if (fullTicketData!['ticketDate'] != null)
-                            _buildInfoRow(
-                              '${languageProvider.lang == "ar" ? "تاريخ التذكرة" : "Ticket Date"}:',
-                              _formatDate(fullTicketData!['ticketDate']),
-                            ),
-                          if (fullTicketData!['ticketTimeFrom'] != null && fullTicketData!['ticketTimeTo'] != null)
-                            _buildInfoRow(
-                              '${languageProvider.lang == "ar" ? "وقت التذكرة" : "Time Slot"}:',
-                              '${_formatTime(fullTicketData!['ticketTimeFrom'])} - ${_formatTime(fullTicketData!['ticketTimeTo'])}',
-                            ),
-                          if (fullTicketData!['source'] != null)
-                            _buildInfoRow(
-                              '${languageProvider.lang == "ar" ? "المصدر" : "Source"}:',
-                              fullTicketData!['source'] == 'Web' 
-                                ? (languageProvider.lang == "ar" ? "نظام الويب" : "Web Admin")
-                                : (languageProvider.lang == "ar" ? "التطبيق المحمول" : "Mobile App"),
+                    // Service Description
+                    if (fullTicketData!['serviceDescription'] != null) ...[
+                      Builder(
+                        builder: (context) {
+                          final serviceDesc = fullTicketData!['serviceDescription'];
+                          final serviceDescStr = serviceDesc?.toString().trim() ?? '';
+                          if (serviceDescStr.isNotEmpty) {
+                            return _buildSection(
+                              '📋 ${languageProvider.lang == "ar" ? "وصف الخدمة" : "Service Description"}',
+                              Text(
+                                serviceDescStr,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
                       ),
                     ],
-                  ),
-                    ),
                     // Contract, Branch, Zone Information
                     if (fullTicketData!['contract'] != null || fullTicketData!['branch'] != null || fullTicketData!['zone'] != null)
                       _buildSection(
@@ -416,74 +344,136 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                             if (fullTicketData!['teamLeader'] != null)
                               _buildInfoRow(
                                 '${languageProvider.lang == "ar" ? "قائد الفريق" : "Team Leader"}:',
-                                '${fullTicketData!['teamLeader']['name'] ?? ''} (${fullTicketData!['teamLeader']['userNumber'] ?? ''})',
+                                fullTicketData!['teamLeader']['name'] ?? '',
                               ),
                             if (fullTicketData!['technician'] != null)
                               _buildInfoRow(
                                 '${languageProvider.lang == "ar" ? "الفني" : "Technician"}:',
-                                '${fullTicketData!['technician']['name'] ?? ''} (${fullTicketData!['technician']['userNumber'] ?? ''})',
+                                fullTicketData!['technician']['name'] ?? '',
                               ),
                           ],
                         ),
                       ),
-                    // Service Description
-                    if (fullTicketData!['serviceDescription'] != null && fullTicketData!['serviceDescription'].toString().isNotEmpty)
-                      _buildSection(
-                        '📋 ${languageProvider.lang == "ar" ? "وصف الخدمة" : "Service Description"}',
-                        Text(
-                          fullTicketData!['serviceDescription'],
-                          style: const TextStyle(color: Colors.grey),
-                        ),
+                    // Ticket Code & Basic Info
+                    _buildSection(
+                      '🎫 ${languageProvider.lang == "ar" ? "معلومات التذكرة" : "Ticket Information"}',
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                          if (fullTicketData!['ticketCodeId'] != null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "رمز التذكرة" : "Ticket Code"}:',
+                              fullTicketData!['ticketCodeId'],
+                            ),
+                          if (fullTicketData!['ticketDate'] != null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "تاريخ التذكرة" : "Ticket Date"}:',
+                              _formatDate(fullTicketData!['ticketDate']),
+                            ),
+                          if (fullTicketData!['ticketTimeFrom'] != null && fullTicketData!['ticketTimeTo'] != null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "وقت التذكرة" : "Time Slot"}:',
+                              '${_formatTime(fullTicketData!['ticketTimeFrom'])} - ${_formatTime(fullTicketData!['ticketTimeTo'])}',
+                            ),
+                          // Hide source field for mobile-tmms and mobile-mms users
+                          // Show source only for regular mobile-user (non-MMS) users
+                          if (fullTicketData!['source'] != null && appProvider.accessToken == null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "المصدر" : "Source"}:',
+                              fullTicketData!['source'] == 'Web' 
+                                ? (languageProvider.lang == "ar" ? "نظام الويب" : "Web Admin")
+                                : (languageProvider.lang == "ar" ? "التطبيق المحمول" : "Mobile App"),
                       ),
-                    // Technician Attachments (for completed tickets)
+                    ],
+                  ),
+                    ),
+                    // Attachments (for completed tickets)
                     if (fullTicketData!['technicianAttachments'] != null && 
-                        (fullTicketData!['technicianAttachments'] as List).isNotEmpty)
-                      _buildSection(
-                        '📎 ${languageProvider.lang == "ar" ? "مرفقات الفني" : "Technician Attachments"}',
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: (fullTicketData!['technicianAttachments'] as List).map<Widget>((attachment) {
-                            final filePath = attachment is Map 
-                                ? (attachment['filePath'] ?? attachment['file_path'] ?? '').toString()
-                                : attachment.toString();
-                            final fileName = attachment is Map
-                                ? (attachment['fileName'] ?? attachment['file_name'] ?? attachment['filename'] ?? '').toString()
-                                : filePath.split('/').last;
-                            
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: InkWell(
-                                onTap: () => _launchUrl(filePath),
+                        (fullTicketData!['technicianAttachments'] as List).isNotEmpty) ...[
+                      Builder(
+                        builder: (context) {
+                          final attachments = fullTicketData!['technicianAttachments'] as List;
+                          final attachmentCount = attachments.length;
+                          final localizations = AppLocalizations.of(context)!;
+                          
+                          return Column(
+                            children: [
+                              const Divider(
+                                color: AppColors.backgroundColor,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.attach_file,
+                                        color: AppColors(context).primaryColor,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '📎 ${languageProvider.lang == "ar" ? "مرفقات الفني" : "Technician Attachments"}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: AppSize(context).smallText1,
+                                          color: AppColors(context).primaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  InkWell(
+                                    onTap: () => _showTechnicianAttachmentsBottomSheet(context),
+                                    child: Text(
+                                      localizations.viewAll,
+                                      style: TextStyle(
+                                        color: AppColors.secoundryColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: AppSize(context).smallText2,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              InkWell(
+                                onTap: () => _showTechnicianAttachmentsBottomSheet(context),
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                                    color: Colors.grey[50],
                                     borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey[200]!),
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.attach_file, color: AppColors(context).primaryColor),
-                                      const SizedBox(width: 10),
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green[600],
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          fileName.isNotEmpty ? fileName : 'Attachment',
+                                          languageProvider.lang == "ar"
+                                            ? '$attachmentCount ${attachmentCount == 1 ? 'ملف' : 'ملفات'} مرفق'
+                                            : '$attachmentCount ${attachmentCount == 1 ? 'file' : 'files'} attached',
                                           style: TextStyle(
-                                            fontSize: AppSize(context).smallText2,
+                                            fontSize: 14,
                                             color: Colors.grey[700],
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      Icon(Icons.visibility, color: AppColors(context).primaryColor, size: 20),
                                     ],
                                   ),
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ],
+                          );
+                        },
                       ),
+                    ],
                     // Signature (for completed tickets)
                     if (fullTicketData!['signature'] != null && 
                         fullTicketData!['signature'].toString().isNotEmpty)
@@ -583,36 +573,67 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                           ),
                         ),
                       ),
-                    // Audit Information
-                    if (fullTicketData!['createdAt'] != null || fullTicketData!['updatedAt'] != null || fullTicketData!['creator'] != null || fullTicketData!['updater'] != null)
-                      _buildSection(
-                        '📊 ${languageProvider.lang == "ar" ? "معلومات السجل" : "Audit Information"}',
+                    // Service Provider Actions
+                    _buildSection(
+                        '🛠️ ${AppText(context).serviceProviderActions}',
                         Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (fullTicketData!['createdAt'] != null)
-                              _buildInfoRow(
-                                '${languageProvider.lang == "ar" ? "تاريخ الإنشاء" : "Created At"}:',
-                                _formatDateTime(fullTicketData!['createdAt']),
-                              ),
-                            if (fullTicketData!['creator'] != null)
-                              _buildInfoRow(
-                                '${languageProvider.lang == "ar" ? "أنشأ بواسطة" : "Created By"}:',
-                                '${fullTicketData!['creator']['name'] ?? ''}',
-                              ),
-                            if (fullTicketData!['updatedAt'] != null)
-                              _buildInfoRow(
-                                '${languageProvider.lang == "ar" ? "تاريخ التحديث" : "Updated At"}:',
-                                _formatDateTime(fullTicketData!['updatedAt']),
-                              ),
-                            if (fullTicketData!['updater'] != null)
-                              _buildInfoRow(
-                                '${languageProvider.lang == "ar" ? "حدث بواسطة" : "Updated By"}:',
-                                '${fullTicketData!['updater']['name'] ?? ''}',
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("🕑 ${AppText(context).estimatedTime} : ",
+                                    style: TextStyle(
+                                        color: AppColors.blackColor1,
+                                        fontSize: AppSize(context).smallText2)),
+                                Text(
+                                    _calculateEstimatedTime(),
+                                    style: TextStyle(
+                                        color: AppColors.blackColor1,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: AppSize(context).smallText2)),
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            bookingDetailsModel?.objTickets.type.toLowerCase() ==
+                                    "preventive"
+                                ? const SizedBox()
+                                : Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                          "🔩 ${AppText(context).partsrequired} : ",
+                                          style: TextStyle(
+                                              color: AppColors.blackColor1,
+                                              fontSize:
+                                                  AppSize(context).smallText2)),
+                                      Text(
+                                          _getPartsRequired(),
+                                          style: TextStyle(
+                                              color: AppColors.blackColor1,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize:
+                                                  AppSize(context).smallText2)),
+                                    ],
+                                  ),
+                            const SizedBox(height: 5),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("👷‍♀️ ${AppText(context).isWithFemale} : ",
+                                    style: TextStyle(
+                                        color: AppColors.blackColor1,
+                                        fontSize: AppSize(context).smallText2)),
+                                Text(
+                                    _getHavingFemaleEngineer(),
+                                    style: TextStyle(
+                                        color: AppColors.blackColor1,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: AppSize(context).smallText2)),
+                              ],
+                            ),
                           ],
-                        ),
-                      ),
+                        )),
                   ],
                   bookingDetailsModel?.objTickets.ticketTools.isEmpty == true
                       ? const SizedBox()
@@ -697,7 +718,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    "📎 ${AppText(context).attachments}",
+                                    "📎 ${languageProvider.lang == "ar" ? "مرفقات التذكرة" : "Ticket Attachments"}",
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: AppSize(context).smallText1,
@@ -728,31 +749,36 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                           if (hasAttachments) ...[
                             const SizedBox(height: 8),
                             // Show preview of first few attachments
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[200]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Colors.green[600],
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      '${_getAttachmentsCount()} ${_getAttachmentsCount() == 1 ? 'file' : 'files'} attached',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[700],
+                            InkWell(
+                              onTap: () => showAttachmentBottomSheet(context),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey[200]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green[600],
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        languageProvider.lang == "ar"
+                                          ? '${_getAttachmentsCount()} ${_getAttachmentsCount() == 1 ? 'ملف' : 'ملفات'} مرفق'
+                                          : '${_getAttachmentsCount()} ${_getAttachmentsCount() == 1 ? 'file' : 'files'} attached',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[700],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -817,6 +843,36 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                         );
                       },
                     ),
+                  // Audit Information (moved to the end)
+                  if (fullTicketData != null && (fullTicketData!['createdAt'] != null || fullTicketData!['updatedAt'] != null || fullTicketData!['creator'] != null || fullTicketData!['updater'] != null))
+                    _buildSection(
+                      '📊 ${languageProvider.lang == "ar" ? "معلومات السجل" : "Audit Information"}',
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (fullTicketData!['createdAt'] != null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "تاريخ الإنشاء" : "Created At"}:',
+                              _formatDateTime(fullTicketData!['createdAt']),
+                            ),
+                          if (fullTicketData!['creator'] != null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "أنشأ بواسطة" : "Created By"}:',
+                              _formatUserName(fullTicketData!['creator']),
+                            ),
+                          if (fullTicketData!['updatedAt'] != null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "تاريخ التحديث" : "Updated At"}:',
+                              _formatDateTime(fullTicketData!['updatedAt']),
+                            ),
+                          if (fullTicketData!['updater'] != null)
+                            _buildInfoRow(
+                              '${languageProvider.lang == "ar" ? "حدث بواسطة" : "Updated By"}:',
+                              _formatUserName(fullTicketData!['updater']),
+                            ),
+                        ],
+                      ),
+                    ),
                   // Add space at the end to prevent content from being hidden by floating action button
                   const SizedBox(height: 100),
                 ],
@@ -859,14 +915,16 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(AppText(context, isFunction: true).attachmentPreview,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                languageProvider.lang == "ar" ? "مرفقات التذكرة" : "Ticket Attachments",
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
@@ -887,6 +945,77 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                       // Handle nested map format
                       filePath = file['filePath']?.toString() ?? '';
                       fileName = file['fileName']?.toString() ?? filePath.split("/").last.split("-").last;
+                    }
+                    
+                    // Build full URL from relative path
+                    final fullUrl = _buildFullUrl(filePath);
+                    
+                    return AttachmentsWidget(
+                      image: fileName.isNotEmpty ? fileName : filePath.split("/").last.split("-").last,
+                      url: fullUrl,
+                    );
+                  },
+                  itemCount: attachments.length,
+                  shrinkWrap: true),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTechnicianAttachmentsBottomSheet(BuildContext context) {
+    if (fullTicketData == null || 
+        fullTicketData!['technicianAttachments'] == null ||
+        (fullTicketData!['technicianAttachments'] as List).isEmpty) {
+      final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(languageProvider.lang == "ar" ? "لا توجد مرفقات متاحة" : "No attachments available"),
+          backgroundColor: Colors.blue,
+        ),
+      );
+      return;
+    }
+    
+    final attachments = fullTicketData!['technicianAttachments'] as List;
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                languageProvider.lang == "ar" ? "مرفقات الفني" : "Technician Attachments",
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    final attachment = attachments[index];
+                    String filePath = '';
+                    String fileName = '';
+                    
+                    if (attachment is Map) {
+                      // Handle fullTicketData format
+                      filePath = (attachment['filePath'] ?? attachment['file_path'] ?? '').toString();
+                      fileName = (attachment['fileName'] ?? attachment['file_name'] ?? attachment['filename'] ?? '').toString();
+                      if (fileName.isEmpty) {
+                        fileName = filePath.split("/").last.split("-").last;
+                      }
+                    } else if (attachment is String) {
+                      // Handle string format
+                      filePath = attachment;
+                      fileName = filePath.split("/").last.split("-").last;
                     }
                     
                     // Build full URL from relative path
@@ -1488,9 +1617,15 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
             ),
           );
           
-          // Refresh ticket details if update was successful
+          // If update was successful, navigate back to home B2B and refresh
           if (result == true) {
-            getBookingDetails();
+            // Refresh home B2B tickets list before navigating back
+            _refreshHomeB2BTickets();
+            
+            // Navigate back to home B2B screen
+            if (mounted) {
+              Navigator.pop(context);
+            }
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1520,6 +1655,38 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
           ),
         );
       }
+    }
+  }
+
+  /// Refresh home B2B tickets after successful ticket update
+  void _refreshHomeB2BTickets() {
+    try {
+      // Try to find HomeLayout widget in the widget tree
+      final homeLayout = context.findAncestorWidgetOfExactType<HomeLayout>();
+      if (homeLayout != null) {
+        // Found HomeLayout, try to access its state
+        final homeLayoutState = context.findAncestorStateOfType<State<HomeLayout>>();
+        if (homeLayoutState != null) {
+          try {
+            // Access the _homeScreenKey through dynamic access (it's private)
+            final homeScreenKey = (homeLayoutState as dynamic)._homeScreenKey;
+            if (homeScreenKey != null && homeScreenKey.currentState != null) {
+              final homeScreenState = homeScreenKey.currentState;
+              if (homeScreenState != null && homeScreenState.mounted) {
+                (homeScreenState as dynamic).refreshB2BHomeTickets();
+                log('✅ Successfully refreshed B2BHome tickets');
+                return;
+              }
+            }
+          } catch (e) {
+            log('⚠️ Error accessing homeScreenKey: $e');
+          }
+        }
+      }
+      
+      log('⚠️ Could not find HomeLayout to refresh B2BHome tickets - will refresh on next navigation');
+    } catch (e) {
+      log('❌ Error refreshing B2BHome tickets: $e');
     }
   }
 
@@ -1568,6 +1735,35 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
     } catch (e) {
       return date.toString();
     }
+  }
+
+  String _formatUserName(dynamic user) {
+    if (user == null) return '';
+    
+    final userMap = user is Map ? user : {};
+    final name = userMap['name']?.toString() ?? ''; // Arabic name from backend
+    final nameEnglish = userMap['nameEnglish']?.toString() ?? ''; // English name from backend
+    
+    // Get current language from provider
+    final currentLang = Provider.of<LanguageProvider>(context, listen: false).lang;
+    
+    // If both Arabic and English names are available, show both
+    if (name.isNotEmpty && nameEnglish.isNotEmpty) {
+      return currentLang == "ar" 
+        ? '$name ($nameEnglish)'
+        : '$nameEnglish ($name)';
+    }
+    
+    // If only one language is available, use it
+    if (name.isNotEmpty) {
+      return name;
+    }
+    
+    if (nameEnglish.isNotEmpty) {
+      return nameEnglish;
+    }
+    
+    return '';
   }
 
   String _formatDateTime(dynamic dateTime) {
@@ -1998,4 +2194,5 @@ class _TicketLocationMapState extends State<_TicketLocationMap> {
       }
     }
   }
+
 }

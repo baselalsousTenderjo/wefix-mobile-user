@@ -1189,4 +1189,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get couldNotOpenStore =>
       'Could not open store. Please update manually.';
+
+  @override
+  String get delegated => 'Delegated';
+
+  @override
+  String get delegatedBy => 'Delegated by';
+
+  @override
+  String get delegatedToWefix => 'Delegated to Wefix';
+
+  @override
+  String get delegatedToWefixBy => 'Delegated to Wefix by';
+
+  @override
+  String get notAssigned => 'Not Assigned';
 }

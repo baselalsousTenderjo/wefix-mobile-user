@@ -1183,4 +1183,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get couldNotOpenStore => 'تعذر فتح المتجر. يرجى التحديث يدوياً.';
+
+  @override
+  String get delegated => 'مفوض';
+
+  @override
+  String get delegatedBy => 'مفوض من قبل';
+
+  @override
+  String get delegatedToWefix => 'مفوض إلى Wefix';
+
+  @override
+  String get delegatedToWefixBy => 'مفوض إلى Wefix من قبل';
+
+  @override
+  String get notAssigned => 'غير معين';
 }

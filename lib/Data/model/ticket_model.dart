@@ -56,8 +56,13 @@ class Ticket {
   String? descriptionAr;
   String? icon;
   String? mainServiceTitle;
+  String? ticketTitle;
   bool? cancelButton;
   String? ticketCodeId;
+  int? delegatedToCompanyId;
+  String? delegatedToCompanyTitle;
+  int? companyId; // Original company that created the ticket
+  String? companyTitle; // Original company name that delegated the ticket
 
   Ticket({
     required this.id,
@@ -67,11 +72,16 @@ class Ticket {
     this.rating,
     this.icon,
     this.mainServiceTitle,
+    this.ticketTitle,
     this.cancelButton,
     this.isRated,
     this.type,
     this.serviceprovideImage,
     this.ticketCodeId,
+    this.delegatedToCompanyId,
+    this.delegatedToCompanyTitle,
+    this.companyId,
+    this.companyTitle,
     required this.promoCode,
     required this.requestedDate,
     required this.selectedDate,
@@ -107,7 +117,12 @@ class Ticket {
         rating: json["rating"],
         icon: json["icon"],
         mainServiceTitle: json["mainServiceTitle"],
+        ticketTitle: json["ticketTitle"],
         ticketCodeId: json["ticketCodeId"],
+        delegatedToCompanyId: json["delegatedToCompanyId"],
+        delegatedToCompanyTitle: json["delegatedToCompanyTitle"],
+        companyId: json["companyId"],
+        companyTitle: json["company"]?["title"] ?? null,
         requestedDate: DateTime.parse(json["requestedDate"]),
         selectedDate: DateTime.parse(json["selectedDate"]),
         selectedDateTime: json["selectedDateTime"],
@@ -143,7 +158,12 @@ class Ticket {
         "type": type,
         "icon": icon,
         "mainServiceTitle": mainServiceTitle,
+        "ticketTitle": ticketTitle,
         "ticketCodeId": ticketCodeId,
+        "delegatedToCompanyId": delegatedToCompanyId,
+        "delegatedToCompanyTitle": delegatedToCompanyTitle,
+        "companyId": companyId,
+        "companyTitle": companyTitle,
         "teamNo": teamNo,
         "isRated": isRated,
         "cancelButton": cancelButton,

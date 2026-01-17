@@ -63,12 +63,13 @@ class _HomeScreenState extends State<HomeScreen>
   // Public method to refresh B2BHome tickets (called from layout_screen)
   void refreshB2BHomeTickets() {
     final state = _b2BHomeKey.currentState;
-    // Use dynamic to call refreshTickets method if it exists
     if (state != null && state.mounted) {
       try {
+        // Call refreshTickets method using dynamic to access private _B2BHomeState
         (state as dynamic).refreshTickets();
       } catch (e) {
-        // Method doesn't exist, ignore
+        // Method doesn't exist or state is not B2BHome, ignore
+        debugPrint('Error refreshing B2BHome tickets: $e');
       }
     }
   }

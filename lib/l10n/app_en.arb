@@ -380,5 +380,10 @@
   "updateRequiredDescription": "A new version of the app is available. Please update to continue using the app.",
   "updateNow": "Update Now",
   "later": "Later",
-  "couldNotOpenStore": "Could not open store. Please update manually."
+  "couldNotOpenStore": "Could not open store. Please update manually.",
+  "delegated": "Delegated",
+  "delegatedBy": "Delegated by",
+  "delegatedToWefix": "Delegated to Wefix",
+  "delegatedToWefixBy": "Delegated to Wefix by",
+  "notAssigned": "Not Assigned"
 }

@@ -769,11 +769,19 @@ class BookingApi {
     required String token,
     BuildContext? context,
     int? contractId,
+    int? ticketId,
   }) async {
     try {
       String query = EndPoints.mmsBaseUrl + EndPoints.mmsMainServices;
+      List<String> queryParams = [];
       if (contractId != null) {
-        query += '?contractId=$contractId';
+        queryParams.add('contractId=$contractId');
+      }
+      if (ticketId != null) {
+        queryParams.add('ticketId=$ticketId');
+      }
+      if (queryParams.isNotEmpty) {
+        query += '?${queryParams.join('&')}';
       }
 
       final response = await HttpHelper.getData2(

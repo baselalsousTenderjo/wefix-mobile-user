@@ -2389,6 +2389,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open store. Please update manually.'**
   String get couldNotOpenStore;
+
+  /// No description provided for @delegated.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegated'**
+  String get delegated;
+
+  /// No description provided for @delegatedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegated by'**
+  String get delegatedBy;
+
+  /// No description provided for @delegatedToWefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegated to Wefix'**
+  String get delegatedToWefix;
+
+  /// No description provided for @delegatedToWefixBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegated to Wefix by'**
+  String get delegatedToWefixBy;
+
+  /// No description provided for @notAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Assigned'**
+  String get notAssigned;
 }
 
 class _AppLocalizationsDelegate

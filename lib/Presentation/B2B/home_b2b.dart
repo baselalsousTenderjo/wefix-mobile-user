@@ -126,7 +126,7 @@ class _B2BHomeState extends State<B2BHome> {
             statusAr: ticket['ticketStatus']?['nameArabic'] ?? 'قيد الانتظار',
             ticketTypeId: ticket['ticketType']?['id'] ?? 0,
             rating: null,
-            icon: ticket['mainService']?['image'] ?? ticket['mainService']?['icon'] ?? null, // Main service image
+            icon: ticket['mainService']?['image'] ?? ticket['mainService']?['icon'] ?? null, // Main service image/icon
             mainServiceTitle: ticket['mainService']?['name'] ?? ticket['mainService']?['nameArabic'] ?? null, // Main service name
             cancelButton: null,
             isRated: null,
@@ -153,6 +153,10 @@ class _B2BHomeState extends State<B2BHome> {
             serviceprovideImage: ticket['technician']?['profileImage'] ?? null,
             description: ticket['ticketDescription'] ?? '',
             descriptionAr: ticket['ticketDescription'] ?? '',
+            delegatedToCompanyId: ticket['delegatedToCompanyId'],
+            delegatedToCompanyTitle: ticket['delegatedToCompany']?['title'] ?? null,
+            companyId: ticket['companyId'],
+            companyTitle: ticket['company']?['title'] ?? null,
           );
         }).toList();
 
@@ -616,6 +620,16 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
     return name[0].toUpperCase();
   }
 
+  String _capitalizeCompanyName(String companyName) {
+    if (companyName.isEmpty) return companyName;
+    return companyName
+        .split(' ')
+        .map((word) => word.isEmpty 
+            ? word 
+            : word[0].toUpperCase() + (word.length > 1 ? word.substring(1).toLowerCase() : ''))
+        .join(' ');
+  }
+
   // Helper function to convert numbers to Arabic numerals
   String _convertToArabicNumerals(String text, String locale) {
     if (locale != 'ar') return text;
@@ -693,8 +707,13 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
       String cleanPath = imagePath.startsWith('/') ? imagePath : '/$imagePath';
       
       // If path already starts with /WeFixFiles, use it as is
+      // URL encode the path to handle spaces and special characters
       if (cleanPath.startsWith('/WeFixFiles')) {
-        return '$baseUrl$cleanPath';
+        // Use Uri to properly encode the path (handles spaces and special characters)
+        // Split the path and encode each segment, then join with slashes
+        final pathSegments = cleanPath.split('/').where((s) => s.isNotEmpty).toList();
+        final encodedSegments = pathSegments.map((segment) => Uri.encodeComponent(segment)).join('/');
+        return '$baseUrl/$encodedSegments';
       }
       
       // For backward compatibility: if path is /uploads/filename, convert to /WeFixFiles/Images/filename
@@ -890,7 +909,7 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 15,
+                                      fontSize: 13,
                                     ),
                                   ),
                                   const SizedBox(height: 6),
@@ -913,41 +932,36 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                       }
                                       
                                       if (timeStr.isNotEmpty) {
-                                        return Row(
+                                        return Wrap(
+                                          spacing: 4,
+                                          crossAxisAlignment: WrapCrossAlignment.center,
                                           children: [
-                                            Flexible(
-                                              child: Text(
-                                                dateStr,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                                  fontWeight: FontWeight.bold,
-                                  ),
-                                                overflow: TextOverflow.ellipsis,
+                                            Text(
+                                              dateStr,
+                                              style: const TextStyle(
+                                                fontSize: 9,
+                                                color: Colors.grey,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            Flexible(
-                                              child: Text(
-                                                timeStr,
-                                            style: const TextStyle(
-                                                  fontSize: 12,
-                                              color: Colors.grey,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
+                                            Text(
+                                              timeStr,
+                                              style: const TextStyle(
+                                                fontSize: 9,
+                                                color: Colors.grey,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
                                           ],
                                         );
                                       } else {
                                         return Text(
                                           dateStr,
-                                        style: const TextStyle(
-                                            fontSize: 12,
-                                          color: Colors.grey,
+                                          style: const TextStyle(
+                                            fontSize: 9,
+                                            color: Colors.grey,
                                             fontWeight: FontWeight.bold,
-                                        ),
+                                          ),
                                           overflow: TextOverflow.ellipsis,
                                         );
                                       }
@@ -965,6 +979,40 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                       ),
                                     ),
                                   ],
+                                  // Not Assigned label (red) - show if ticket is not assigned to anyone
+                                  Builder(
+                                    builder: (context) {
+                                      final serviceProvide = widget.ticketModel?.tickets[ticketIndex].serviceprovide;
+                                      final isNotAssigned = serviceProvide == null || 
+                                          serviceProvide.toString().trim().isEmpty ||
+                                          serviceProvide.toString().toLowerCase() == 'null';
+                                      if (isNotAssigned) {
+                                        return Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(height: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red.withOpacity(.15),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                AppLocalizations.of(context)!.notAssigned,
+                                                style: TextStyle(
+                                                  color: Colors.red.shade700,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 10,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -987,8 +1035,13 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    widget.ticketModel?.tickets[ticketIndex].statusAr ?? 
-                                    widget.ticketModel?.tickets[ticketIndex].status ?? "",
+                                    () {
+                                      final locale = Localizations.localeOf(context);
+                                      final isArabic = locale.languageCode == 'ar';
+                                      return isArabic 
+                                          ? (widget.ticketModel?.tickets[ticketIndex].statusAr ?? widget.ticketModel?.tickets[ticketIndex].status ?? "")
+                                          : (widget.ticketModel?.tickets[ticketIndex].status ?? widget.ticketModel?.tickets[ticketIndex].statusAr ?? "");
+                                    }(),
                                     style: TextStyle(
                                       color: widget.ticketModel?.tickets[ticketIndex].status == "Pending"
                                           ? Colors.orange.shade700
@@ -1002,19 +1055,20 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                     ),
                                   ),
                                 ),
-                                // Main Service with Icon below status
+                                // Main Service with Icon on the same line
                                 if (widget.ticketModel?.tickets[ticketIndex].icon != null || 
                                     widget.ticketModel?.tickets[ticketIndex].mainServiceTitle != null) ...[
                                   const SizedBox(height: 6),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      // Main Service Title
-                                      if (widget.ticketModel?.tickets[ticketIndex].mainServiceTitle != null)
-                                        Text(
-                                          widget.ticketModel!.tickets[ticketIndex].mainServiceTitle!,
-                                          maxLines: 1,
+                                      // Main Service Title - can wrap to 2 lines
+                                      Flexible(
+                                        child: Text(
+                                          widget.ticketModel?.tickets[ticketIndex].mainServiceTitle ?? '',
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                           textAlign: TextAlign.end,
                                           style: TextStyle(
@@ -1023,8 +1077,9 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                             color: Colors.grey[700],
                                           ),
                                         ),
-                                      // Icon below title - always show if mainServiceTitle exists
-                                      const SizedBox(height: 4),
+                                      ),
+                                      // Icon next to title
+                                      const SizedBox(width: 4),
                                       Builder(
                                         builder: (context) {
                                           final iconUrl = widget.ticketModel?.tickets[ticketIndex].icon;
@@ -1035,12 +1090,12 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                             final fullUrl = _buildImageUrl(iconUrl.toString());
                                             if (fullUrl.isNotEmpty) {
                                               return SizedBox(
-                                                width: 20,
-                                                height: 20,
+                                                width: 32,
+                                                height: 32,
                                                 child: WidgetCachNetworkImage(
                                                   image: fullUrl,
-                                                  width: 20,
-                                                  height: 20,
+                                                  width: 32,
+                                                  height: 32,
                                                   boxFit: BoxFit.contain,
                                     ),
                                               );
@@ -1048,18 +1103,59 @@ class _LastTicketsSectionState extends State<_LastTicketsSection> {
                                           }
                                           // Fallback icon if no icon URL available
                                           return Container(
-                                            width: 20,
-                                            height: 20,
+                                            width: 32,
+                                            height: 32,
                                             decoration: BoxDecoration(
                                               color: Colors.grey[200],
                                               borderRadius: BorderRadius.circular(6),
                                             ),
-                                            child: Icon(Icons.build, size: 12, color: Colors.grey[600]),
+                                            child: Icon(Icons.build, size: 18, color: Colors.grey[600]),
                                           );
                                         },
                             ),
-                          ],
-                        ),
+                                    ],
+                                  ),
+                                  // Delegated label (green) - show if ticket is delegated, below main service icon
+                                  if (widget.ticketModel?.tickets[ticketIndex].delegatedToCompanyId != null) ...[
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      constraints: const BoxConstraints(maxWidth: 100),
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.withOpacity(.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 1),
+                                            child: Icon(
+                                              Icons.arrow_forward,
+                                              size: 8,
+                                              color: Colors.green.shade700,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Flexible(
+                                            child: Text(
+                                              widget.ticketModel?.tickets[ticketIndex].companyTitle != null
+                                                  ? '${AppLocalizations.of(context)!.delegatedToWefixBy} ${_capitalizeCompanyName(widget.ticketModel!.tickets[ticketIndex].companyTitle!)}'
+                                                  : AppLocalizations.of(context)!.delegatedToWefix,
+                                              style: TextStyle(
+                                                color: Colors.green.shade700,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 7,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ],
                             ),

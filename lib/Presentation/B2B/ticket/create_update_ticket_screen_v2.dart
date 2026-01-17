@@ -77,6 +77,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
   Map<String, String?> fieldErrors = {}; // Field name -> error message
   bool isTeamLeaderVisible = true; // Show/hide Team Leader DDL based on role
   bool isDelegatedToWeFix = false; // Track if ticket is delegated to WeFix (B2B business model)
+  bool isWeFixUser = false; // Track if current user is from WeFix company (ID: 39)
+  bool shouldHideAssignmentFields = false; // Single flag for hiding team leader/technician (following frontend-OMS pattern)
 
   // Lists (these should be fetched from APIs)
   List<DropdownCardItem> contracts = [];
@@ -246,13 +248,48 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       return;
     }
 
+    // Get user's company ID directly from user model/profile (following frontend-OMS pattern)
+    const WEFIX_COMPANY_ID = 39;
+    int? userCompanyId;
+    
+    // Try to get companyId from profile first (if available)
+    // This will be populated after profile is loaded with the new companyId field
+    // For now, we'll fetch it or infer it from the data
+    
+    // Check if ticket is delegated to WeFix - if so, use ticket's contract for services
+    int? contractIdForServices;
+    bool isDelegatedTicket = false;
+    bool isDelegatedToWeFixTicket = false;
+    
+    if (widget.ticketData != null) {
+      final delegatedToCompanyId = widget.ticketData!['delegatedToCompanyId'] as int?;
+      if (delegatedToCompanyId != null) {
+        // Ticket is delegated - use the ticket's contract to get services from original company
+        isDelegatedTicket = true;
+        isDelegatedToWeFixTicket = (delegatedToCompanyId == WEFIX_COMPANY_ID);
+        final ticketContract = widget.ticketData!['contract'];
+        if (ticketContract != null && ticketContract['id'] != null) {
+          contractIdForServices = ticketContract['id'] as int?;
+          log('🔍 Delegated ticket detected (delegatedToCompanyId: $delegatedToCompanyId) - using contract ID ${contractIdForServices} from original company for services');
+        }
+        log('🔍 Ticket delegated - isDelegatedToWeFix: $isDelegatedToWeFixTicket');
+      }
+    }
+
     // Load contracts first, then load services based on selected contract
     final contractsData = await BookingApi.getCompanyContracts(token: token, context: context);
     
-    // Get contract ID for filtering services (use first contract if available)
-    int? contractIdForServices;
-    if (contractsData != null && contractsData.isNotEmpty) {
-      contractIdForServices = contractsData.first['id'] as int?;
+    // Get contract ID for filtering services (use ticket's contract if delegated, otherwise use first contract)
+    if (!isDelegatedTicket) {
+      if (contractsData != null && contractsData.isNotEmpty) {
+        contractIdForServices = contractsData.first['id'] as int?;
+      }
+    }
+
+    // Get ticketId if editing
+    int? ticketIdForServices;
+    if (widget.ticketData != null && widget.ticketData!['id'] != null) {
+      ticketIdForServices = widget.ticketData!['id'] as int?;
     }
 
     // Load all data in parallel (zones will be loaded when branch is selected)
@@ -261,7 +298,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       BookingApi.getCompanyBranches(token: token, context: context),
       // Zones will be loaded when branch is selected, so we don't load them here
       Future.value(null), // Placeholder for zones
-      BookingApi.getMainServices(token: token, context: context, contractId: contractIdForServices),
+      BookingApi.getMainServices(token: token, context: context, contractId: contractIdForServices, ticketId: ticketIdForServices),
       Future.value(null), // Sub services will be loaded when main service is selected
       BookingApi.getCompanyTeamLeaders(token: token, context: context),
       BookingApi.getCompanyTechnicians(token: token, context: context),
@@ -363,6 +400,112 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             .toList();
       }
 
+      // Determine if user is from WeFix
+      // Priority 1: Check profile (if available)
+      // Priority 2: Check team leaders' companyId
+      // Priority 3: Check technicians' companyId
+      const WEFIX_COMPANY_ID_FILTER = 39;
+      bool userIsFromWeFix = false;
+      
+      // Try to get companyId from profile first (if profile was loaded)
+      // Note: This requires profile to be fetched separately, which we'll add later
+      // For now, we'll detect from the data we have
+      
+      // Check team leaders first
+      if (teamLeaders.isNotEmpty) {
+        for (var leader in teamLeaders) {
+          final leaderData = leader.data;
+          if (leaderData is Map<String, dynamic>) {
+            final leaderCompanyId = leaderData['companyId'] as int?;
+            if (leaderCompanyId == WEFIX_COMPANY_ID_FILTER) {
+              userIsFromWeFix = true;
+              userCompanyId = WEFIX_COMPANY_ID_FILTER;
+              log('✅ User is from WeFix (detected from team leaders list, companyId: $leaderCompanyId)');
+              break;
+            } else if (leaderCompanyId != null && userCompanyId == null) {
+              // Store the first non-null companyId we find
+              userCompanyId = leaderCompanyId;
+              log('📋 Detected user companyId from team leader: $leaderCompanyId');
+            }
+          }
+        }
+      }
+      
+      // If not detected from team leaders, check technicians
+      if (!userIsFromWeFix && technicians.isNotEmpty) {
+        for (var technician in technicians) {
+          final technicianData = technician.data;
+          if (technicianData is Map<String, dynamic>) {
+            final technicianCompanyId = technicianData['companyId'] as int?;
+            if (technicianCompanyId == WEFIX_COMPANY_ID_FILTER) {
+              userIsFromWeFix = true;
+              userCompanyId = WEFIX_COMPANY_ID_FILTER;
+              log('✅ User is from WeFix (detected from technicians list, companyId: $technicianCompanyId)');
+              break;
+            } else if (technicianCompanyId != null && userCompanyId == null) {
+              // Store the first non-null companyId we find
+              userCompanyId = technicianCompanyId;
+              log('📋 Detected user companyId from technician: $technicianCompanyId');
+            }
+          }
+        }
+      }
+      
+      // Log detection result
+      if (!userIsFromWeFix) {
+        log('⚠️ Could not detect if user is from WeFix. userCompanyId: $userCompanyId, teamLeaders count: ${teamLeaders.length}, technicians count: ${technicians.length}');
+        // If we have a delegated ticket to WeFix and we couldn't detect, assume user is NOT from WeFix
+        // This is safer - we'll hide the fields rather than show them incorrectly
+      }
+      
+      // Set isWeFixUser flag based on detection
+      isWeFixUser = userIsFromWeFix;
+      
+      // Filter team leaders and technicians based on delegation
+      // Following frontend-OMS pattern: If ticket is delegated to WeFix AND user is from WeFix,
+      // filter to only show WeFix team members
+      if (widget.ticketData != null) {
+        final delegatedToCompanyId = widget.ticketData!['delegatedToCompanyId'] as int?;
+        if (delegatedToCompanyId == WEFIX_COMPANY_ID_FILTER) {
+          if (userIsFromWeFix) {
+            // Ticket is delegated to WeFix AND user is from WeFix - filter to only show WeFix team members
+            final beforeFilterCountTL = teamLeaders.length;
+            final beforeFilterCountTech = technicians.length;
+            
+            teamLeaders = teamLeaders.where((leader) {
+              final leaderData = leader.data;
+              if (leaderData is Map<String, dynamic>) {
+                final leaderCompanyId = leaderData['companyId'] as int?;
+                return leaderCompanyId == WEFIX_COMPANY_ID_FILTER;
+              }
+              return false;
+            }).toList();
+            
+            technicians = technicians.where((technician) {
+              final technicianData = technician.data;
+              if (technicianData is Map<String, dynamic>) {
+                final technicianCompanyId = technicianData['companyId'] as int?;
+                return technicianCompanyId == WEFIX_COMPANY_ID_FILTER;
+              }
+              return false;
+            }).toList();
+            
+            log('✅ WeFix user editing delegated ticket - filtered team leaders and technicians to only show WeFix team members');
+            log('📊 Team Leaders: $beforeFilterCountTL → ${teamLeaders.length}, Technicians: $beforeFilterCountTech → ${technicians.length}');
+          } else {
+            log('⚠️ Ticket delegated to WeFix but user detection failed - userIsFromWeFix: $userIsFromWeFix, userCompanyId: $userCompanyId');
+            log('📊 Team Leaders count: ${teamLeaders.length}, Technicians count: ${technicians.length}');
+            // Log first team leader's companyId for debugging
+            if (teamLeaders.isNotEmpty) {
+              final firstLeaderData = teamLeaders.first.data;
+              if (firstLeaderData is Map<String, dynamic>) {
+                log('🔍 First team leader companyId: ${firstLeaderData['companyId']}');
+              }
+            }
+          }
+        }
+      }
+
       // Ticket Types
       final ticketTypesData = results[7];
       if (ticketTypesData != null) {
@@ -424,15 +567,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         const WHITE_LABEL_BUSINESS_MODEL_ID = 25;
         
         // B2B (24) -> delegated to WeFix Team, White Label (25) -> Client Team
-        isDelegatedToWeFix = (businessModelLookupId == B2B_BUSINESS_MODEL_ID);
+        final isContractB2B = (businessModelLookupId == B2B_BUSINESS_MODEL_ID);
+        isDelegatedToWeFix = isContractB2B;
         
-        log('🔍 Auto-selected contract isDelegatedToWeFix: $isDelegatedToWeFix (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
-        
-        // If delegated, clear Team Leader and Technician selections
-        if (isDelegatedToWeFix) {
-          selectedTeamLeader = null;
-          selectedTechnician = null;
-        }
+        log('🔍 Auto-selected contract isDelegatedToWeFix: $isContractB2B (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
       }
       if (branches.isNotEmpty) {
         selectedBranch = branches.first;
@@ -508,36 +646,114 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         }
       }
 
-      // If user is Team Leader (found in list OR roleId == 20), hide Team Leader dropdown and auto-select themselves
-      // Team Leaders CANNOT create tickets for another Team Leader - they can only assign to themselves
-      if ((isCurrentUserTeamLeader || roleIdInt == 20) && teamLeaders.isNotEmpty) {
-        // Team Leader: Hide dropdown, auto-select themselves
+      // Compute single visibility flag following frontend-OMS pattern
+      // Rule: 
+      // 1. B2B contracts: Hide fields for ALL users (including admins) UNLESS user is from WeFix AND ticket is delegated to WeFix
+      // 2. Non-B2B contracts: Admins can always assign team leaders/technicians
+      // 3. Non-B2B delegated tickets: Hide if user is NOT from WeFix (unless admin)
+      // 4. Non-B2B non-delegated tickets: Show based on role (Admin/Team Leader can assign)
+      bool computedShouldHide = false;
+      
+      // Check user role
+      const ADMIN_ROLE_ID = 18;
+      final isAdmin = (roleIdInt == ADMIN_ROLE_ID);
+      
+      // Check if contract is B2B
+      const B2B_BUSINESS_MODEL_ID = 24;
+      final contractData = selectedContract?.data;
+      final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
+      final isB2BContract = (businessModelLookupId == B2B_BUSINESS_MODEL_ID);
+      
+      // Check if ticket is delegated to WeFix
+      final delegatedToCompanyId = widget.ticketData?['delegatedToCompanyId'] as int?;
+      final isTicketDelegatedToWeFix = (delegatedToCompanyId == WEFIX_COMPANY_ID);
+      
+      if (isB2BContract) {
+        // B2B contract - hide fields for ALL users (including admins) UNLESS user is from WeFix AND ticket is delegated to WeFix
+        if (isTicketDelegatedToWeFix && isWeFixUser) {
+          // WeFix user editing delegated ticket - show fields
+          computedShouldHide = false;
+          log('✅ B2B contract with ticket delegated to WeFix - WeFix user can modify team leader/technician');
+        } else {
+          // B2B contract - hide for ALL users (including admins)
+          computedShouldHide = true;
+          log('🔒 B2B contract detected (businessModelLookupId: $businessModelLookupId) - hiding Team Leader and Technician fields for ALL users (including admins)');
+        }
+      } else if (isAdmin) {
+        // Non-B2B contract: Company Admin can always assign team leaders/technicians
+        computedShouldHide = false;
+        log('✅ Company Admin detected - can always assign team leader/technician for non-B2B contracts');
+      } else if (widget.ticketData != null && delegatedToCompanyId != null) {
+        // Not a B2B contract but ticket is delegated
+        if (isTicketDelegatedToWeFix) {
+          // Delegated to WeFix - hide fields only if user is NOT from WeFix
+          computedShouldHide = !isWeFixUser;
+          log('🔍 Delegation check - delegatedToCompanyId: $delegatedToCompanyId, isWeFixUser: $isWeFixUser, shouldHideAssignmentFields: $computedShouldHide');
+          if (computedShouldHide) {
+            log('🔒 Ticket delegated to WeFix but user is from B2B company - hiding assignment fields');
+          } else {
+            log('✅ Ticket delegated to WeFix and user is from WeFix - showing assignment fields');
+          }
+        } else {
+          // Delegated to another company - always hide for non-admin users
+          computedShouldHide = true;
+          log('🔒 Ticket delegated to company $delegatedToCompanyId - hiding assignment fields');
+        }
+      }
+      
+      // Store shouldHideAssignmentFields in state for UI rendering
+      setState(() {
+        shouldHideAssignmentFields = computedShouldHide;
+      });
+
+      // Determine team leader visibility (delegation restriction takes precedence)
+      // Following frontend-OMS pattern: combine delegation and role-based logic
+      if (shouldHideAssignmentFields) {
+        // Hide due to delegation restriction
         setState(() {
           isTeamLeaderVisible = false;
         });
-        // Find current user in team leaders list
-        try {
-          selectedTeamLeader = teamLeaders.firstWhere(
-            (leader) => leader.id == currentUserId,
-          );
-        } catch (e) {
-          // If current user not found in team leaders list, use first one
+        selectedTeamLeader = null;
+        selectedTechnician = null;
+        log('🔒 Assignment fields hidden due to delegation restriction');
+      } else {
+        // No delegation restriction - apply role-based logic
+        if ((isCurrentUserTeamLeader || roleIdInt == 20) && teamLeaders.isNotEmpty) {
+          // Team Leader: Hide dropdown, auto-select themselves
+          setState(() {
+            isTeamLeaderVisible = false;
+          });
+          // Find current user in team leaders list
+          try {
+            selectedTeamLeader = teamLeaders.firstWhere(
+              (leader) => leader.id == currentUserId,
+            );
+          } catch (e) {
+            // If current user not found in team leaders list, use first one
+            if (teamLeaders.isNotEmpty) {
+              selectedTeamLeader = teamLeaders.first;
+            }
+          }
+        } else {
+          // Admin or other role: Show dropdown if team leaders are available
           if (teamLeaders.isNotEmpty) {
+            setState(() {
+              isTeamLeaderVisible = true;
+            });
             selectedTeamLeader = teamLeaders.first;
+          } else {
+            // No team leaders available - hide dropdown
+            setState(() {
+              isTeamLeaderVisible = false;
+            });
+            log('⚠️ No team leaders available - hiding team leader dropdown');
           }
         }
-      } else if (teamLeaders.isNotEmpty) {
-        // Admin or other role: Show dropdown, auto-select first
-        // Admins CAN create tickets for any Team Leader
-        setState(() {
-          isTeamLeaderVisible = true;
-        });
-        selectedTeamLeader = teamLeaders.first;
-      }
 
-      // Auto-select first technician
-      if (technicians.isNotEmpty) {
-        selectedTechnician = technicians.first;
+        // Auto-select first technician
+        if (technicians.isNotEmpty) {
+          selectedTechnician = technicians.first;
+        }
       }
 
       // Set default date
@@ -592,8 +808,25 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             
             log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
             
-            // If delegated, clear Team Leader and Technician selections
-            if (isDelegatedToWeFix) {
+            // Check if ticket is delegated (has delegatedToCompanyId)
+            const WEFIX_COMPANY_ID = 39;
+            final delegatedToCompanyId = data['delegatedToCompanyId'] as int?;
+            
+            // If ticket is delegated and user is NOT from WeFix, clear Team Leader and Technician selections
+            // If user IS from WeFix, they can assign WeFix team members
+            if (delegatedToCompanyId != null) {
+              if (delegatedToCompanyId == WEFIX_COMPANY_ID) {
+                // Ticket delegated to WeFix - only WeFix users can assign
+                // isWeFixUser will be determined when team leaders are loaded
+                log('🔍 Ticket is delegated to WeFix - team leader assignment will be restricted based on user company');
+              } else {
+                // Ticket delegated to another company - B2B users cannot assign
+                selectedTeamLeader = null;
+                selectedTechnician = null;
+                log('🔍 Ticket is delegated to company $delegatedToCompanyId - clearing team leader/technician selections');
+              }
+            } else if (isDelegatedToWeFix && !isWeFixUser) {
+              // Contract is B2B but ticket not yet delegated - clear selections
               selectedTeamLeader = null;
               selectedTechnician = null;
             }
@@ -667,9 +900,22 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     }
 
     // Get contract ID for filtering sub services
+    // When editing a ticket, always use ticket's contract (from original company)
     int? contractId;
-    if (selectedContract != null) {
+    
+    if (widget.ticketData != null) {
+      // When editing a ticket, always use the ticket's original contract for services
+      final ticketContract = widget.ticketData!['contract'];
+      if (ticketContract != null && ticketContract['id'] != null) {
+        contractId = ticketContract['id'] as int?;
+        log('🔍 Loading sub-services for ticket - using contract ID ${contractId} from ticket data');
+      }
+    }
+    
+    // If not editing a ticket or contract not found in ticket, use selected contract
+    if (contractId == null && selectedContract != null) {
       contractId = selectedContract!.id;
+      log('🔍 Loading sub-services - using selected contract ID ${contractId}');
     }
 
     final subServicesData = await BookingApi.getSubServices(
@@ -889,8 +1135,9 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       }
       // Note: Emergency tickets will have time auto-generated in _submit() if not selected
       // Note: Corrective and Preventive tickets can select any available time slot (no 120-minute restriction)
-      // Team Leader and Technician are only required if ticket is NOT delegated to WeFix
-      if (!isDelegatedToWeFix) {
+      // Team Leader and Technician validation (following frontend-OMS pattern)
+      // Only validate if fields are visible (not hidden due to delegation)
+      if (!shouldHideAssignmentFields) {
         if (isTeamLeaderVisible && selectedTeamLeader == null) {
           fieldErrors['teamLeader'] = '${localizations.teamLeaderId} ${localizations.required}';
           isValid = false;
@@ -1272,7 +1519,9 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         if (timeFromStr == null || timeToStr == null) {
           missingFields.add(localizations.timeLabel);
         }
-        if (!isDelegatedToWeFix) {
+        // Team Leader and Technician validation (following frontend-OMS pattern)
+        // Only validate if fields are visible (not hidden due to delegation)
+        if (!shouldHideAssignmentFields) {
           if (isTeamLeaderVisible && selectedTeamLeader == null) {
             missingFields.add(localizations.teamLeaderId);
           }
@@ -1296,8 +1545,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         final currentUserId = currentAppProvider.userModel?.customer.id;
 
         int? teamLeaderId;
-        if (!isDelegatedToWeFix) {
-          // Only validate and assign Team Leader if NOT delegated to WeFix
+        // Team Leader assignment logic (following frontend-OMS pattern)
+        // Only include if fields are visible (not hidden due to delegation)
+        if (!shouldHideAssignmentFields) {
+          // Validate and assign Team Leader
           if (roleIdInt == 20) {
             // Team Leader: Must assign to themselves
             if (selectedTeamLeader == null || selectedTeamLeader!.id != currentUserId) {
@@ -1318,9 +1569,9 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             teamLeaderId = selectedTeamLeader!.id;
           }
         } else {
-          // When delegated to WeFix, Team Leader ID should be null
+          // When delegated to WeFix and user is NOT from WeFix, Team Leader ID should be null
           teamLeaderId = null;
-          log('Ticket delegated to WeFix: Team Leader ID set to null');
+          log('Ticket delegated to WeFix (user not from WeFix): Team Leader ID set to null');
         }
         // Admin/Team Leader can update all fields
         // Remove subServiceId if it's null (backend doesn't accept undefined fields)
@@ -1344,11 +1595,20 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           // Note: customerName, tools can be added later
         });
         
-        // Only include Team Leader and Technician if ticket is NOT delegated to WeFix
-        if (!isDelegatedToWeFix && teamLeaderId != null) {
-          ticketData['assignToTeamLeaderId'] = teamLeaderId;
-          ticketData['assignToTechnicianId'] = selectedTechnician!.id;
+        // Include Team Leader and Technician (following frontend-OMS pattern)
+        // Only include if fields are visible (not hidden due to delegation)
+        // IMPORTANT: Do NOT send these fields at all (not even as null) when hidden
+        // Sending null triggers backend validation which blocks B2B admins from editing delegated tickets
+        if (!shouldHideAssignmentFields) {
+          if (teamLeaderId != null) {
+            ticketData['assignToTeamLeaderId'] = teamLeaderId;
+          }
+          if (selectedTechnician != null) {
+            ticketData['assignToTechnicianId'] = selectedTechnician!.id;
+          }
         }
+        // When fields are hidden, simply don't include them in the request
+        // This allows B2B admins to update other ticket fields without triggering validation errors
 
         // Add ticket status if editing
         if (widget.ticketData != null && selectedTicketStatus != null) {
@@ -1903,8 +2163,13 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ),
           const SizedBox(height: 16),
 
-          // 5. Team Leader Dropdown (hidden for Team Leaders, visible for Admins, and hidden when delegated to WeFix)
-          if (isTeamLeaderVisible && !isDelegatedToWeFix) ...[
+          // 5. Team Leader Dropdown 
+          // - Hidden for Team Leaders (they assign to themselves)
+          // - Visible for Admins
+          // - Hidden for B2B users when ticket is delegated (unless user is from WeFix)
+          // - Visible for WeFix users when ticket is delegated to WeFix
+          // Following frontend-OMS pattern: check both role-based visibility AND delegation restriction
+          if (isTeamLeaderVisible && !shouldHideAssignmentFields) ...[
             Container(
               key: _teamLeaderKey,
               child: _buildDropdownCard(
@@ -1928,8 +2193,11 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             const SizedBox(height: 16),
           ],
 
-          // 6. Technician Dropdown (hidden when ticket is delegated to WeFix)
-          if (!isDelegatedToWeFix) ...[
+          // 6. Technician Dropdown 
+          // - Hidden when shouldHideAssignmentFields is true (delegation restriction)
+          // - Visible otherwise
+          // Following frontend-OMS pattern: use same visibility logic as team leader
+          if (!shouldHideAssignmentFields) ...[
             Container(
               key: _technicianKey,
               child: _buildDropdownCard(
@@ -1970,7 +2238,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                   fieldErrors.remove('contract');
                   
                   // Check if contract is B2B (delegated to WeFix Team)
-                  // Hide Team Leader and Technician for B2B business model
+                  // Hide Team Leader and Technician for B2B business model (for ALL users)
                   final contractData = item.data;
                   final businessModelLookupId = contractData?['businessModelLookupId'] as int?;
                   
@@ -1984,10 +2252,62 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                   
                   log('🔍 isDelegatedToWeFix: $isDelegatedToWeFix (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
                   
-                  // If delegated, clear Team Leader and Technician selections
+                  // Check user role - Admins can always assign
+                  final appProvider = Provider.of<AppProvider>(context, listen: false);
+                  final currentUserRoleId = appProvider.userModel?.customer.roleId;
+                  int? roleIdInt;
+                  if (currentUserRoleId is int) {
+                    roleIdInt = currentUserRoleId;
+                  } else if (currentUserRoleId is String) {
+                    roleIdInt = int.tryParse(currentUserRoleId);
+                  }
+                  const ADMIN_ROLE_ID = 18;
+                  final isAdmin = (roleIdInt == ADMIN_ROLE_ID);
+                  
+                  // B2B contract: Hide fields for ALL users (including admins) UNLESS user is from WeFix AND ticket is delegated to WeFix
+                  const WEFIX_COMPANY_ID = 39;
+                  final delegatedToCompanyId = widget.ticketData?['delegatedToCompanyId'] as int?;
+                  final isTicketDelegatedToWeFix = (delegatedToCompanyId == WEFIX_COMPANY_ID);
+                  
                   if (isDelegatedToWeFix) {
-                    selectedTeamLeader = null;
-                    selectedTechnician = null;
+                    // B2B contract - hide for ALL users (including admins) UNLESS user is from WeFix AND ticket is delegated to WeFix
+                    if (isTicketDelegatedToWeFix && isWeFixUser) {
+                      // WeFix user editing delegated ticket - can modify team leader/technician
+                      setState(() {
+                        shouldHideAssignmentFields = false;
+                        isTeamLeaderVisible = (roleIdInt != 20); // Show for Team Leader role, hide for others
+                      });
+                      log('✅ B2B contract with ticket delegated to WeFix - WeFix user can modify team leader/technician');
+                    } else {
+                      // B2B contract - hide for ALL users (including admins)
+                      selectedTeamLeader = null;
+                      selectedTechnician = null;
+                      setState(() {
+                        shouldHideAssignmentFields = true;
+                        isTeamLeaderVisible = false;
+                      });
+                      log('🔒 B2B contract selected - hiding Team Leader and Technician fields for ALL users (including admins)');
+                    }
+                  } else {
+                    // Not B2B contract - check delegation logic for existing tickets
+                    if (isAdmin) {
+                      // Admin can always assign for non-B2B contracts
+                      setState(() {
+                        shouldHideAssignmentFields = false;
+                        isTeamLeaderVisible = true;
+                      });
+                      log('✅ Non-B2B contract - Admin can assign team leader/technician');
+                    } else if (widget.ticketData != null && isTicketDelegatedToWeFix) {
+                      // Ticket is delegated to WeFix - hide only if user is NOT from WeFix
+                      setState(() {
+                        shouldHideAssignmentFields = !isWeFixUser;
+                      });
+                    } else {
+                      // Not delegated or delegated to other company - show fields
+                      setState(() {
+                        shouldHideAssignmentFields = false;
+                      });
+                    }
                   }
                   
                   // Clear main service and sub service selections when contract changes
@@ -1996,15 +2316,39 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                 });
                 
                 // Reload main services and sub services filtered by contract
+                // If ticket is delegated to WeFix, use ticket's contract instead of selected contract
                 final appProvider = Provider.of<AppProvider>(context, listen: false);
                 final token = appProvider.accessToken ?? appProvider.userModel?.token ?? '';
                 
                 if (token.isNotEmpty) {
-                  // Reload main services for the selected contract
+                  // Determine which contract to use for services
+                  int? contractIdForServices = item.id;
+                  const WEFIX_COMPANY_ID = 39;
+                  
+                  if (widget.ticketData != null) {
+                    final delegatedToCompanyId = widget.ticketData!['delegatedToCompanyId'] as int?;
+                    if (delegatedToCompanyId == WEFIX_COMPANY_ID) {
+                      // Ticket is delegated to WeFix - use ticket's contract (from original company)
+                      final ticketContract = widget.ticketData!['contract'];
+                      if (ticketContract != null && ticketContract['id'] != null) {
+                        contractIdForServices = ticketContract['id'] as int?;
+                        log('🔍 Contract changed but ticket is delegated - using ticket contract ID ${contractIdForServices} for services');
+                      }
+                    }
+                  }
+                  
+                  // Get ticketId if editing
+                  int? ticketIdForServices;
+                  if (widget.ticketData != null && widget.ticketData!['id'] != null) {
+                    ticketIdForServices = widget.ticketData!['id'] as int?;
+                  }
+                  
+                  // Reload main services for the contract (ticket's contract if delegated, otherwise selected contract)
                   final mainServicesData = await BookingApi.getMainServices(
                     token: token,
                     context: context,
-                    contractId: item.id,
+                    contractId: contractIdForServices,
+                    ticketId: ticketIdForServices,
                   );
                   
                   if (mounted && mainServicesData != null) {
@@ -2305,8 +2649,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
           ],
 
 
-          // 8. Team Leader (only show if not delegated to WeFix)
-          if (!isDelegatedToWeFix && selectedTeamLeader != null && selectedTeamLeader!.title.isNotEmpty) ...[
+          // 8. Team Leader (show if not delegated to WeFix, or if delegated and user is from WeFix)
+          if ((!isDelegatedToWeFix || (isDelegatedToWeFix && isWeFixUser)) && selectedTeamLeader != null && selectedTeamLeader!.title.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.teamLeaderId,
               value: selectedTeamLeader!.title,
@@ -2315,8 +2659,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             const SizedBox(height: 16),
           ],
 
-          // 9. Technician (only show if not delegated to WeFix)
-          if (!isDelegatedToWeFix && selectedTechnician != null && selectedTechnician!.title.isNotEmpty) ...[
+          // 9. Technician (show if not delegated to WeFix, or if delegated and user is from WeFix)
+          if ((!isDelegatedToWeFix || (isDelegatedToWeFix && isWeFixUser)) && selectedTechnician != null && selectedTechnician!.title.isNotEmpty) ...[
             _buildSummaryRow(
               label: localizations.technicianId,
               value: selectedTechnician!.title,

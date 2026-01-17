@@ -83,6 +83,12 @@ class AuthHelper {
         return;
       }
       
+      // Check if token is invalid for this service - force logout immediately
+      if (responseMessage == 'Invalid token for this service') {
+        await _forceLogoutImmediate(context);
+        return;
+      }
+      
       if (isMMS) {
         // For MMS endpoints, handle auth error
         if (query.contains('login') || query.contains('refresh-token')) {

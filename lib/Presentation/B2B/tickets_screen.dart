@@ -17,6 +17,7 @@ import 'package:wefix/Presentation/Profile/Screens/booking_details_screen.dart';
 import 'package:wefix/Business/end_points.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 
 class TicketsScreen extends StatefulWidget {
   @override
@@ -133,6 +134,10 @@ class _TicketsScreenState extends State<TicketsScreen> {
             serviceprovideImage: ticket['technician']?['profileImage'] ?? null,
             description: ticket['ticketDescription'] ?? '',
             descriptionAr: ticket['ticketDescription'] ?? '',
+            delegatedToCompanyId: ticket['delegatedToCompanyId'],
+            delegatedToCompanyTitle: ticket['delegatedToCompany']?['title'] ?? null,
+            companyId: ticket['companyId'],
+            companyTitle: ticket['company']?['title'] ?? null,
           );
         }).toList();
 
@@ -227,6 +232,10 @@ class _TicketsScreenState extends State<TicketsScreen> {
             serviceprovideImage: ticket['technician']?['profileImage'] ?? null,
             description: ticket['ticketDescription'] ?? '',
             descriptionAr: ticket['ticketDescription'] ?? '',
+            delegatedToCompanyId: ticket['delegatedToCompanyId'],
+            delegatedToCompanyTitle: ticket['delegatedToCompany']?['title'] ?? null,
+            companyId: ticket['companyId'],
+            companyTitle: ticket['company']?['title'] ?? null,
           );
         }).toList();
 
@@ -807,6 +816,16 @@ class _TicketCardState extends State<TicketCard> {
     return time;
   }
 
+  String _capitalizeCompanyName(String companyName) {
+    if (companyName.isEmpty) return companyName;
+    return companyName
+        .split(' ')
+        .map((word) => word.isEmpty 
+            ? word 
+            : word[0].toUpperCase() + (word.length > 1 ? word.substring(1).toLowerCase() : ''))
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     LanguageProvider languageProvider =
@@ -834,36 +853,79 @@ class _TicketCardState extends State<TicketCard> {
                         color: AppColors.blueColor,
                         fontWeight: FontWeight.bold),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: widget.status == "Completed"
-                          ? AppColors.greenColor.withOpacity(.2)
-                          : widget.status == "Canceled"
-                              ? AppColors.redColor.withOpacity(.2)
-                              : widget.status == "Pending"
-                                  ? AppColors(context)
-                                      .primaryColor
-                                      .withOpacity(.2)
-                                  : AppColors.blueColor.withOpacity(.2),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      languageProvider.lang == "ar"
-                          ? widget.ticket?.statusAr ?? ""
-                          : widget.ticket?.status ?? "",
-                      style: TextStyle(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Delegated label (green) - show if ticket is delegated
+                      if (widget.ticket?.delegatedToCompanyId != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_forward,
+                                size: 10,
+                                color: Colors.green.shade700,
+                              ),
+                              const SizedBox(width: 2),
+                              Flexible(
+                                child: Text(
+                                  widget.ticket?.companyTitle != null
+                                      ? '${AppLocalizations.of(context)!.delegatedToWefixBy} ${_capitalizeCompanyName(widget.ticket!.companyTitle!)}'
+                                      : AppLocalizations.of(context)!.delegatedToWefix,
+                                  style: TextStyle(
+                                    color: Colors.green.shade700,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 9,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      // Status badge
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
                           color: widget.status == "Completed"
-                              ? AppColors.greenColor
+                              ? AppColors.greenColor.withOpacity(.2)
                               : widget.status == "Canceled"
-                                  ? AppColors.redColor
+                                  ? AppColors.redColor.withOpacity(.2)
                                   : widget.status == "Pending"
-                                      ? AppColors(context).primaryColor
-                                      : AppColors.blueColor,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  )
+                                      ? AppColors(context)
+                                          .primaryColor
+                                          .withOpacity(.2)
+                                      : AppColors.blueColor.withOpacity(.2),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          languageProvider.lang == "ar"
+                              ? widget.ticket?.statusAr ?? ""
+                              : widget.ticket?.status ?? "",
+                          style: TextStyle(
+                              color: widget.status == "Completed"
+                                  ? AppColors.greenColor
+                                  : widget.status == "Canceled"
+                                      ? AppColors.redColor
+                                      : widget.status == "Pending"
+                                          ? AppColors(context).primaryColor
+                                          : AppColors.blueColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 8),

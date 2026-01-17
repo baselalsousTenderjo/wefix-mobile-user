@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wefix/Business/end_points.dart';
 import 'package:wefix/Data/Api/auth_helper.dart';
@@ -11,20 +13,80 @@ class HttpHelper {
         "Connection": "keep-alive",
       };
 
+  // Pretty logger for HTTP requests (similar to PrettyDioLogger)
+  static void _logRequest(String method, String url, Map<String, String>? headers, dynamic body) {
+    if (!kDebugMode) return;
+    
+    log('╔══════════════════════════════════════════════════════════════════════════════════════════╗', name: 'HTTP');
+    log('║  $method: $url', name: 'HTTP');
+    if (headers != null && headers.isNotEmpty) {
+      log('║  Headers:', name: 'HTTP');
+      headers.forEach((key, value) {
+        if (key == 'Authorization') {
+          log('║    $key: Bearer ${value.substring(7).substring(0, value.length > 30 ? 20 : value.length - 7)}...', name: 'HTTP');
+        } else {
+          log('║    $key: $value', name: 'HTTP');
+        }
+      });
+    }
+    if (body != null) {
+      log('║  Body: ${body is String ? body : jsonEncode(body)}', name: 'HTTP');
+    }
+    log('╚══════════════════════════════════════════════════════════════════════════════════════════╝', name: 'HTTP');
+  }
+
+  static void _logResponse(int? statusCode, String? body, Map<String, String>? headers) {
+    if (!kDebugMode) return;
+    
+    log('╔══════════════════════════════════════════════════════════════════════════════════════════╗', name: 'HTTP');
+    log('║  Response Status: $statusCode', name: 'HTTP');
+    if (headers != null && headers.isNotEmpty) {
+      log('║  Response Headers:', name: 'HTTP');
+      headers.forEach((key, value) {
+        log('║    $key: $value', name: 'HTTP');
+      });
+    }
+    if (body != null && body.isNotEmpty) {
+      try {
+        // Try to parse and beautify JSON
+        final decoded = json.decode(body);
+        const encoder = JsonEncoder.withIndent('  ');
+        final beautified = encoder.convert(decoded);
+        
+        log('║  Response Body:', name: 'HTTP');
+        // Split into lines and add prefix to each line
+        beautified.split('\n').forEach((line) {
+          log('║  $line', name: 'HTTP');
+        });
+      } catch (e) {
+        // If not JSON, log as plain text
+        final truncatedBody = body.length > 500 ? '${body.substring(0, 500)}...' : body;
+        log('║  Response Body: $truncatedBody', name: 'HTTP');
+      }
+    }
+    log('╚══════════════════════════════════════════════════════════════════════════════════════════╝', name: 'HTTP');
+  }
+
 
 // Todo :-  Get Data
   static Future<http.Response> getData({
     required String query,
     dynamic token,
   }) async {
+    final url = EndPoints.baseUrl + query;
     var headers = _setHeaders();
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
+    
+    _logRequest('GET', url, headers, null);
+    
     final response = await http.get(
-      Uri.parse(EndPoints.baseUrl + query),
+      Uri.parse(url),
       headers: headers,
     );
+    
+    _logResponse(response.statusCode, response.body, response.headers);
     
     // Check for 401/403 responses and handle auth errors
     String? responseMessage;
@@ -55,10 +117,15 @@ class HttpHelper {
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
+    
+    _logRequest('GET', query, headers, null);
+    
     final response = await http.get(
       Uri.parse(query),
       headers: headers,
     );
+    
+    _logResponse(response.statusCode, response.body, response.headers);
     
     // Check for 401/403 responses and handle auth errors
     String? responseMessage;
@@ -77,15 +144,21 @@ class HttpHelper {
     String? token,
     Map<String, dynamic>? data,
   }) async {
+    final url = EndPoints.baseUrl + query;
     var headers = _setHeaders();
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
+    
+    _logRequest('POST', url, headers, data);
+    
     final response = await http.post(
-      Uri.parse(EndPoints.baseUrl + query),
+      Uri.parse(url),
       body: jsonEncode(data),
       headers: headers,
     );
+    
+    _logResponse(response.statusCode, response.body, response.headers);
     
     // Check for 401/403 responses and handle auth errors
     String? responseMessage;
@@ -126,11 +199,16 @@ class HttpHelper {
     if (headers != null) {
       requestHeaders.addAll(headers);
     }
+    
+    _logRequest('POST', query, requestHeaders, data);
+    
     final response = await http.post(
       Uri.parse(query),
       body: jsonEncode(data),
       headers: requestHeaders,
     );
+    
+    _logResponse(response.statusCode, response.body, response.headers);
     
     // Check for 401/403 responses and handle auth errors
     String? responseMessage;
@@ -149,15 +227,23 @@ class HttpHelper {
     Map<String, dynamic>? data,
     dynamic token,
   }) async {
+    final url = EndPoints.baseUrl + query;
     var headers = _setHeaders();
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
-    return await http.put(
-      Uri.parse(EndPoints.baseUrl + query),
+    
+    _logRequest('PUT', url, headers, data);
+    
+    final response = await http.put(
+      Uri.parse(url),
       body: jsonEncode(data),
       headers: headers,
     );
+    
+    _logResponse(response.statusCode, response.body, response.headers);
+    
+    return response;
   }
 
   // Todo :- Remove Data
@@ -166,14 +252,22 @@ class HttpHelper {
     Map<String, dynamic>? data,
     dynamic token,
   }) async {
+    final url = EndPoints.baseUrl + query;
     var headers = _setHeaders();
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
-    return await http.delete(
-      Uri.parse(EndPoints.baseUrl + query),
+    
+    _logRequest('DELETE', url, headers, data);
+    
+    final response = await http.delete(
+      Uri.parse(url),
       body: jsonEncode(data),
       headers: headers,
     );
+    
+    _logResponse(response.statusCode, response.body, response.headers);
+    
+    return response;
   }
 }
