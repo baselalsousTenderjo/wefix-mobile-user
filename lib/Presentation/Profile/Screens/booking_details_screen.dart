@@ -1142,13 +1142,19 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
     
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
         return Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1157,37 +1163,38 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                 style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
-              ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final file = attachments[index];
-                    String filePath = '';
-                    String fileName = '';
-                    
-                    if (file is Map) {
-                      // Handle fullTicketData format
-                      filePath = file['filePath']?.toString() ?? '';
-                      fileName = file['fileName']?.toString() ?? filePath.split("/").last.split("-").last;
-                    } else if (file is String) {
-                      // Handle bookingDetailsModel format
-                      filePath = file;
-                      fileName = filePath.split("/").last.split("-").last;
-                    } else if (file is Map && file.containsKey('filePath')) {
-                      // Handle nested map format
-                      filePath = file['filePath']?.toString() ?? '';
-                      fileName = file['fileName']?.toString() ?? filePath.split("/").last.split("-").last;
-                    }
-                    
-                    // Build full URL from relative path
-                    final fullUrl = _buildFullUrl(filePath);
-                    
-                    return AttachmentsWidget(
-                      image: fileName.isNotEmpty ? fileName : filePath.split("/").last.split("-").last,
-                      url: fullUrl,
-                    );
-                  },
-                  itemCount: attachments.length,
-                  shrinkWrap: true),
+              Flexible(
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final file = attachments[index];
+                      String filePath = '';
+                      
+                      if (file is Map) {
+                        // Handle fullTicketData format
+                        filePath = file['filePath']?.toString() ?? '';
+                      } else if (file is String) {
+                        // Handle bookingDetailsModel format
+                        filePath = file;
+                      } else if (file is Map && file.containsKey('filePath')) {
+                        // Handle nested map format
+                        filePath = file['filePath']?.toString() ?? '';
+                      }
+                      
+                      // Build full URL from relative path
+                      final fullUrl = _buildFullUrl(filePath);
+                      
+                      // Alias filename as file-01, file-02, etc.
+                      final aliasedFileName = 'file-${(index + 1).toString().padLeft(2, '0')}';
+                      
+                      return AttachmentsWidget(
+                        image: aliasedFileName,
+                        url: fullUrl,
+                      );
+                    },
+                    itemCount: attachments.length),
+              ),
               const SizedBox(height: 10),
             ],
           ),
@@ -1252,8 +1259,11 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                     // Build full URL from relative path
                     final fullUrl = _buildFullUrl(filePath);
                     
+                    // Alias filename as file-01, file-02, etc.
+                    final aliasedFileName = 'file-${(index + 1).toString().padLeft(2, '0')}';
+                    
                     return AttachmentsWidget(
-                      image: fileName.isNotEmpty ? fileName : filePath.split("/").last.split("-").last,
+                      image: aliasedFileName,
                       url: fullUrl,
                     );
                   },
