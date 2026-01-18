@@ -689,6 +689,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                       _buildSection(
                         '✍️ ${languageProvider.lang == "ar" ? "التوقيع" : "Signature"}',
                         Container(
+                          width: double.infinity,
                           height: 150,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.withOpacity(0.3)),
@@ -697,10 +698,11 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: InkWell(
-                              onTap: () => _launchUrl(fullTicketData!['signature'].toString()),
+                              onTap: () => _launchUrl(_buildImageUrl(fullTicketData!['signature'].toString())),
                               child: Image.network(
-                                fullTicketData!['signature'].toString(),
-                                fit: BoxFit.contain,
+                                _buildImageUrl(fullTicketData!['signature'].toString()),
+                                width: double.infinity,
+                                fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Center(
                                     child: Column(
@@ -740,6 +742,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                       _buildSection(
                         '✍️ ${languageProvider.lang == "ar" ? "التوقيع" : "Signature"}',
                         Container(
+                          width: double.infinity,
                           height: 150,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.withOpacity(0.3)),
@@ -751,7 +754,8 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                               onTap: () => _launchUrl(bookingDetailsModel?.objTickets.reportLink ?? ''),
                               child: Image.network(
                                 bookingDetailsModel?.objTickets.reportLink ?? '',
-                                fit: BoxFit.contain,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Center(
                                     child: Column(
