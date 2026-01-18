@@ -35,6 +35,7 @@ class ContainerCancelledStatus extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 20.gap,
+                Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                 Row(
                   children: [
                     Icon(Icons.cancel, size: 18, color: AppColor.red),
@@ -45,7 +46,6 @@ class ContainerCancelledStatus extends StatelessWidget {
                     ),
                   ],
                 ),
-                Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                 10.gap,
                 Container(
                   width: double.infinity,

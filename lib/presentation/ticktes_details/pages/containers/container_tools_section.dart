@@ -20,6 +20,7 @@ class ContainerToolsSection extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -44,7 +45,7 @@ class ContainerToolsSection extends StatelessWidget {
             const SizedBox.shrink(),
           ],
         ),
-        Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
+        10.gap,
         Consumer<TicktesDetailsController>(
           builder:
               (context, controller, child) => ValueListenableBuilder(

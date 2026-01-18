@@ -99,6 +99,7 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Ticket Attachments Section
+                Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -111,7 +112,6 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                     ),
                   ],
                 ),
-                Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                 10.gap,
                 if (!hasRegularAttachments)
                   Text(
@@ -122,10 +122,13 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ...regularAttachments.map((url) {
+                      ...regularAttachments.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final url = entry.value;
+                        final aliasName = 'file-${(index + 1).toString().padLeft(2, '0')}';
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: WidgetAttachmants(url: url),
+                          child: WidgetAttachmants(url: url, aliasName: aliasName),
                         );
                       }).toList(),
                     ],
@@ -133,6 +136,7 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                 20.gap,
                 
                 // Technician Attachments Section
+                Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -145,7 +149,6 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                     ),
                   ],
                 ),
-                Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                 10.gap,
                 if (!hasTechnicianAttachments)
                   Text(
@@ -158,14 +161,20 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                     separatorBuilder: (context, index) => 10.gap,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) => WidgetAttachmants(
-                      url: technicianAttachments[index].filePath ?? '',
-                    ),
+                    itemBuilder: (context, index) {
+                      final attachment = technicianAttachments[index];
+                      final aliasName = 'file-${(index + 1).toString().padLeft(2, '0')}';
+                      return WidgetAttachmants(
+                        url: attachment.filePath ?? '',
+                        aliasName: aliasName,
+                      );
+                    },
                   ),
                 20.gap,
                 
                 // Signature Section (reportLink) - Only show when ticket is completed
                 if (isCompleted) ...[
+                  Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                   Row(
                     children: [
                       Icon(Icons.draw, size: 18, color: AppColor.primaryColor),
@@ -173,7 +182,6 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                       Text('${AppText(context).signature}', style: AppTextStyle.style14B),
                     ],
                   ),
-                  Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                   10.gap,
                   if (!hasSignature)
                     Text(
@@ -204,6 +212,7 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                 
                 // Completion Note Section - Written by technician when completing ticket, only show when completed
                 if (isCompleted && hasCompletionNote) ...[
+                  Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                   Row(
                     children: [
                       Icon(Icons.note, size: 18, color: AppColor.primaryColor),
@@ -211,7 +220,6 @@ class ContainerCompletedTicketInfoB2B extends StatelessWidget {
                       Text('${AppText(context).completionNote}', style: AppTextStyle.style14B),
                     ],
                   ),
-                  Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
                   10.gap,
                   Container(
                     width: double.infinity,

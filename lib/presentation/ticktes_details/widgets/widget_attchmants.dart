@@ -10,10 +10,12 @@ import '../controller/ticktes_details_controller.dart';
 
 class WidgetAttachmants extends StatelessWidget {
   final String url;
-  const WidgetAttachmants({super.key, required this.url});
+  final String? aliasName;
+  const WidgetAttachmants({super.key, required this.url, this.aliasName});
 
   @override
   Widget build(BuildContext context) {
+    final displayName = aliasName ?? url.split('/').last;
     return Consumer<TicktesDetailsController>(
       builder:
           (context, controller, child) => InkWell(
@@ -30,7 +32,7 @@ class WidgetAttachmants extends StatelessWidget {
                       : Assets.iconImage,
                 ),
                 10.gap,
-                Expanded(child: Text(url.split('/').last, overflow: TextOverflow.ellipsis, style: AppTextStyle.style10.copyWith(color: AppColor.grey))),
+                Expanded(child: Text(displayName, overflow: TextOverflow.ellipsis, style: AppTextStyle.style10.copyWith(color: AppColor.grey))),
                 10.gap,
                 const Icon(Icons.visibility, size: 20, color: AppColor.grey),
               ],

@@ -199,10 +199,14 @@ mixin _$TicketsDetails {
   int? get userId => throw _privateConstructorUsedError;
   @JsonKey(name: "date")
   DateTime? get date => throw _privateConstructorUsedError;
+  @JsonKey(name: "timeTo")
+  String? get timeTo => throw _privateConstructorUsedError;
   @JsonKey(name: "reportLink")
   String? get reportLink => throw _privateConstructorUsedError;
   @JsonKey(name: "status")
   String? get status => throw _privateConstructorUsedError;
+  @JsonKey(name: "statusAr")
+  String? get statusAr => throw _privateConstructorUsedError;
   @JsonKey(name: "customerName")
   String? get customerName => throw _privateConstructorUsedError;
   @JsonKey(name: "customerImage")
@@ -246,10 +250,24 @@ mixin _$TicketsDetails {
   @JsonKey(name: "advantageTickets")
   List<AdvantageTickets>? get advantageTickets =>
       throw _privateConstructorUsedError;
+  @JsonKey(name: "mainService")
+  MainServiceInfo? get mainService => throw _privateConstructorUsedError;
+  @JsonKey(name: "subService")
+  SubServiceInfo? get subService => throw _privateConstructorUsedError;
   @JsonKey(name: "createdBy")
   int? get createdBy => throw _privateConstructorUsedError;
   @JsonKey(name: "creator")
   CreatorInfo? get creator => throw _privateConstructorUsedError;
+  @JsonKey(name: "company")
+  Map<String, dynamic>? get company => throw _privateConstructorUsedError;
+  @JsonKey(name: "branch")
+  Map<String, dynamic>? get branch => throw _privateConstructorUsedError;
+  @JsonKey(name: "zone")
+  Map<String, dynamic>? get zone => throw _privateConstructorUsedError;
+  @JsonKey(name: "teamLeader")
+  Map<String, dynamic>? get teamLeader => throw _privateConstructorUsedError;
+  @JsonKey(name: "technician")
+  Map<String, dynamic>? get technician => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -273,8 +291,10 @@ abstract class $TicketsDetailsCopyWith<$Res> {
       @JsonKey(name: "typeAr") String? typeAr,
       @JsonKey(name: "userId") int? userId,
       @JsonKey(name: "date") DateTime? date,
+      @JsonKey(name: "timeTo") String? timeTo,
       @JsonKey(name: "reportLink") String? reportLink,
       @JsonKey(name: "status") String? status,
+      @JsonKey(name: "statusAr") String? statusAr,
       @JsonKey(name: "customerName") String? customerName,
       @JsonKey(name: "customerImage") String? customerImage,
       @JsonKey(name: "customerAddress") String? customerAddress,
@@ -298,9 +318,18 @@ abstract class $TicketsDetailsCopyWith<$Res> {
       @JsonKey(name: "servcieTickets") List<ServiceTicket>? serviceTickets,
       @JsonKey(name: "advantageTickets")
       List<AdvantageTickets>? advantageTickets,
+      @JsonKey(name: "mainService") MainServiceInfo? mainService,
+      @JsonKey(name: "subService") SubServiceInfo? subService,
       @JsonKey(name: "createdBy") int? createdBy,
-      @JsonKey(name: "creator") CreatorInfo? creator});
+      @JsonKey(name: "creator") CreatorInfo? creator,
+      @JsonKey(name: "company") Map<String, dynamic>? company,
+      @JsonKey(name: "branch") Map<String, dynamic>? branch,
+      @JsonKey(name: "zone") Map<String, dynamic>? zone,
+      @JsonKey(name: "teamLeader") Map<String, dynamic>? teamLeader,
+      @JsonKey(name: "technician") Map<String, dynamic>? technician});
 
+  $MainServiceInfoCopyWith<$Res>? get mainService;
+  $SubServiceInfoCopyWith<$Res>? get subService;
   $CreatorInfoCopyWith<$Res>? get creator;
 }
 
@@ -326,8 +355,10 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
     Object? typeAr = freezed,
     Object? userId = freezed,
     Object? date = freezed,
+    Object? timeTo = freezed,
     Object? reportLink = freezed,
     Object? status = freezed,
+    Object? statusAr = freezed,
     Object? customerName = freezed,
     Object? customerImage = freezed,
     Object? customerAddress = freezed,
@@ -347,8 +378,15 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
     Object? maintenanceTickets = freezed,
     Object? serviceTickets = freezed,
     Object? advantageTickets = freezed,
+    Object? mainService = freezed,
+    Object? subService = freezed,
     Object? createdBy = freezed,
     Object? creator = freezed,
+    Object? company = freezed,
+    Object? branch = freezed,
+    Object? zone = freezed,
+    Object? teamLeader = freezed,
+    Object? technician = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -387,6 +425,10 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
           ? _value.date
           : date // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      timeTo: freezed == timeTo
+          ? _value.timeTo
+          : timeTo // ignore: cast_nullable_to_non_nullable
+              as String?,
       reportLink: freezed == reportLink
           ? _value.reportLink
           : reportLink // ignore: cast_nullable_to_non_nullable
@@ -394,6 +436,10 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
       status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      statusAr: freezed == statusAr
+          ? _value.statusAr
+          : statusAr // ignore: cast_nullable_to_non_nullable
               as String?,
       customerName: freezed == customerName
           ? _value.customerName
@@ -471,6 +517,14 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
           ? _value.advantageTickets
           : advantageTickets // ignore: cast_nullable_to_non_nullable
               as List<AdvantageTickets>?,
+      mainService: freezed == mainService
+          ? _value.mainService
+          : mainService // ignore: cast_nullable_to_non_nullable
+              as MainServiceInfo?,
+      subService: freezed == subService
+          ? _value.subService
+          : subService // ignore: cast_nullable_to_non_nullable
+              as SubServiceInfo?,
       createdBy: freezed == createdBy
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
@@ -479,7 +533,51 @@ class _$TicketsDetailsCopyWithImpl<$Res, $Val extends TicketsDetails>
           ? _value.creator
           : creator // ignore: cast_nullable_to_non_nullable
               as CreatorInfo?,
+      company: freezed == company
+          ? _value.company
+          : company // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      branch: freezed == branch
+          ? _value.branch
+          : branch // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      zone: freezed == zone
+          ? _value.zone
+          : zone // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      teamLeader: freezed == teamLeader
+          ? _value.teamLeader
+          : teamLeader // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      technician: freezed == technician
+          ? _value.technician
+          : technician // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $MainServiceInfoCopyWith<$Res>? get mainService {
+    if (_value.mainService == null) {
+      return null;
+    }
+
+    return $MainServiceInfoCopyWith<$Res>(_value.mainService!, (value) {
+      return _then(_value.copyWith(mainService: value) as $Val);
+    });
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $SubServiceInfoCopyWith<$Res>? get subService {
+    if (_value.subService == null) {
+      return null;
+    }
+
+    return $SubServiceInfoCopyWith<$Res>(_value.subService!, (value) {
+      return _then(_value.copyWith(subService: value) as $Val);
+    });
   }
 
   @override
@@ -513,8 +611,10 @@ abstract class _$$TicketsDetailsImplCopyWith<$Res>
       @JsonKey(name: "typeAr") String? typeAr,
       @JsonKey(name: "userId") int? userId,
       @JsonKey(name: "date") DateTime? date,
+      @JsonKey(name: "timeTo") String? timeTo,
       @JsonKey(name: "reportLink") String? reportLink,
       @JsonKey(name: "status") String? status,
+      @JsonKey(name: "statusAr") String? statusAr,
       @JsonKey(name: "customerName") String? customerName,
       @JsonKey(name: "customerImage") String? customerImage,
       @JsonKey(name: "customerAddress") String? customerAddress,
@@ -538,9 +638,20 @@ abstract class _$$TicketsDetailsImplCopyWith<$Res>
       @JsonKey(name: "servcieTickets") List<ServiceTicket>? serviceTickets,
       @JsonKey(name: "advantageTickets")
       List<AdvantageTickets>? advantageTickets,
+      @JsonKey(name: "mainService") MainServiceInfo? mainService,
+      @JsonKey(name: "subService") SubServiceInfo? subService,
       @JsonKey(name: "createdBy") int? createdBy,
-      @JsonKey(name: "creator") CreatorInfo? creator});
+      @JsonKey(name: "creator") CreatorInfo? creator,
+      @JsonKey(name: "company") Map<String, dynamic>? company,
+      @JsonKey(name: "branch") Map<String, dynamic>? branch,
+      @JsonKey(name: "zone") Map<String, dynamic>? zone,
+      @JsonKey(name: "teamLeader") Map<String, dynamic>? teamLeader,
+      @JsonKey(name: "technician") Map<String, dynamic>? technician});
 
+  @override
+  $MainServiceInfoCopyWith<$Res>? get mainService;
+  @override
+  $SubServiceInfoCopyWith<$Res>? get subService;
   @override
   $CreatorInfoCopyWith<$Res>? get creator;
 }
@@ -565,8 +676,10 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
     Object? typeAr = freezed,
     Object? userId = freezed,
     Object? date = freezed,
+    Object? timeTo = freezed,
     Object? reportLink = freezed,
     Object? status = freezed,
+    Object? statusAr = freezed,
     Object? customerName = freezed,
     Object? customerImage = freezed,
     Object? customerAddress = freezed,
@@ -586,8 +699,15 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
     Object? maintenanceTickets = freezed,
     Object? serviceTickets = freezed,
     Object? advantageTickets = freezed,
+    Object? mainService = freezed,
+    Object? subService = freezed,
     Object? createdBy = freezed,
     Object? creator = freezed,
+    Object? company = freezed,
+    Object? branch = freezed,
+    Object? zone = freezed,
+    Object? teamLeader = freezed,
+    Object? technician = freezed,
   }) {
     return _then(_$TicketsDetailsImpl(
       id: freezed == id
@@ -626,6 +746,10 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
           ? _value.date
           : date // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      timeTo: freezed == timeTo
+          ? _value.timeTo
+          : timeTo // ignore: cast_nullable_to_non_nullable
+              as String?,
       reportLink: freezed == reportLink
           ? _value.reportLink
           : reportLink // ignore: cast_nullable_to_non_nullable
@@ -633,6 +757,10 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
       status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      statusAr: freezed == statusAr
+          ? _value.statusAr
+          : statusAr // ignore: cast_nullable_to_non_nullable
               as String?,
       customerName: freezed == customerName
           ? _value.customerName
@@ -710,6 +838,14 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
           ? _value._advantageTickets
           : advantageTickets // ignore: cast_nullable_to_non_nullable
               as List<AdvantageTickets>?,
+      mainService: freezed == mainService
+          ? _value.mainService
+          : mainService // ignore: cast_nullable_to_non_nullable
+              as MainServiceInfo?,
+      subService: freezed == subService
+          ? _value.subService
+          : subService // ignore: cast_nullable_to_non_nullable
+              as SubServiceInfo?,
       createdBy: freezed == createdBy
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
@@ -718,6 +854,26 @@ class __$$TicketsDetailsImplCopyWithImpl<$Res>
           ? _value.creator
           : creator // ignore: cast_nullable_to_non_nullable
               as CreatorInfo?,
+      company: freezed == company
+          ? _value._company
+          : company // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      branch: freezed == branch
+          ? _value._branch
+          : branch // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      zone: freezed == zone
+          ? _value._zone
+          : zone // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      teamLeader: freezed == teamLeader
+          ? _value._teamLeader
+          : teamLeader // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      technician: freezed == technician
+          ? _value._technician
+          : technician // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -735,8 +891,10 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
       @JsonKey(name: "typeAr") this.typeAr,
       @JsonKey(name: "userId") this.userId,
       @JsonKey(name: "date") this.date,
+      @JsonKey(name: "timeTo") this.timeTo,
       @JsonKey(name: "reportLink") this.reportLink,
       @JsonKey(name: "status") this.status,
+      @JsonKey(name: "statusAr") this.statusAr,
       @JsonKey(name: "customerName") this.customerName,
       @JsonKey(name: "customerImage") this.customerImage,
       @JsonKey(name: "customerAddress") this.customerAddress,
@@ -762,8 +920,15 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
       final List<ServiceTicket>? serviceTickets,
       @JsonKey(name: "advantageTickets")
       final List<AdvantageTickets>? advantageTickets,
+      @JsonKey(name: "mainService") this.mainService,
+      @JsonKey(name: "subService") this.subService,
       @JsonKey(name: "createdBy") this.createdBy,
-      @JsonKey(name: "creator") this.creator})
+      @JsonKey(name: "creator") this.creator,
+      @JsonKey(name: "company") final Map<String, dynamic>? company,
+      @JsonKey(name: "branch") final Map<String, dynamic>? branch,
+      @JsonKey(name: "zone") final Map<String, dynamic>? zone,
+      @JsonKey(name: "teamLeader") final Map<String, dynamic>? teamLeader,
+      @JsonKey(name: "technician") final Map<String, dynamic>? technician})
       : _ticketAttatchments = ticketAttatchments,
         _technicianAttachments = technicianAttachments,
         _ticketTools = ticketTools,
@@ -771,7 +936,12 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
         _ticketMaterials = ticketMaterials,
         _maintenanceTickets = maintenanceTickets,
         _serviceTickets = serviceTickets,
-        _advantageTickets = advantageTickets;
+        _advantageTickets = advantageTickets,
+        _company = company,
+        _branch = branch,
+        _zone = zone,
+        _teamLeader = teamLeader,
+        _technician = technician;
 
   factory _$TicketsDetailsImpl.fromJson(Map<String, dynamic> json) =>
       _$$TicketsDetailsImplFromJson(json);
@@ -804,11 +974,17 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
   @JsonKey(name: "date")
   final DateTime? date;
   @override
+  @JsonKey(name: "timeTo")
+  final String? timeTo;
+  @override
   @JsonKey(name: "reportLink")
   final String? reportLink;
   @override
   @JsonKey(name: "status")
   final String? status;
+  @override
+  @JsonKey(name: "statusAr")
+  final String? statusAr;
   @override
   @JsonKey(name: "customerName")
   final String? customerName;
@@ -935,15 +1111,75 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
   }
 
   @override
+  @JsonKey(name: "mainService")
+  final MainServiceInfo? mainService;
+  @override
+  @JsonKey(name: "subService")
+  final SubServiceInfo? subService;
+  @override
   @JsonKey(name: "createdBy")
   final int? createdBy;
   @override
   @JsonKey(name: "creator")
   final CreatorInfo? creator;
+  final Map<String, dynamic>? _company;
+  @override
+  @JsonKey(name: "company")
+  Map<String, dynamic>? get company {
+    final value = _company;
+    if (value == null) return null;
+    if (_company is EqualUnmodifiableMapView) return _company;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _branch;
+  @override
+  @JsonKey(name: "branch")
+  Map<String, dynamic>? get branch {
+    final value = _branch;
+    if (value == null) return null;
+    if (_branch is EqualUnmodifiableMapView) return _branch;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _zone;
+  @override
+  @JsonKey(name: "zone")
+  Map<String, dynamic>? get zone {
+    final value = _zone;
+    if (value == null) return null;
+    if (_zone is EqualUnmodifiableMapView) return _zone;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _teamLeader;
+  @override
+  @JsonKey(name: "teamLeader")
+  Map<String, dynamic>? get teamLeader {
+    final value = _teamLeader;
+    if (value == null) return null;
+    if (_teamLeader is EqualUnmodifiableMapView) return _teamLeader;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _technician;
+  @override
+  @JsonKey(name: "technician")
+  Map<String, dynamic>? get technician {
+    final value = _technician;
+    if (value == null) return null;
+    if (_technician is EqualUnmodifiableMapView) return _technician;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'TicketsDetails(id: $id, ticketCodeId: $ticketCodeId, title: $title, time: $time, titleAr: $titleAr, type: $type, typeAr: $typeAr, userId: $userId, date: $date, reportLink: $reportLink, status: $status, customerName: $customerName, customerImage: $customerImage, customerAddress: $customerAddress, description: $description, serviceDescription: $serviceDescription, isWithMaterial: $isWithMaterial, isWithFemale: $isWithFemale, latitudel: $latitudel, longitude: $longitude, mobile: $mobile, esitmatedTime: $esitmatedTime, ticketAttatchments: $ticketAttatchments, technicianAttachments: $technicianAttachments, ticketTools: $ticketTools, ticketImages: $ticketImages, ticketMaterials: $ticketMaterials, maintenanceTickets: $maintenanceTickets, serviceTickets: $serviceTickets, advantageTickets: $advantageTickets, createdBy: $createdBy, creator: $creator)';
+    return 'TicketsDetails(id: $id, ticketCodeId: $ticketCodeId, title: $title, time: $time, titleAr: $titleAr, type: $type, typeAr: $typeAr, userId: $userId, date: $date, timeTo: $timeTo, reportLink: $reportLink, status: $status, statusAr: $statusAr, customerName: $customerName, customerImage: $customerImage, customerAddress: $customerAddress, description: $description, serviceDescription: $serviceDescription, isWithMaterial: $isWithMaterial, isWithFemale: $isWithFemale, latitudel: $latitudel, longitude: $longitude, mobile: $mobile, esitmatedTime: $esitmatedTime, ticketAttatchments: $ticketAttatchments, technicianAttachments: $technicianAttachments, ticketTools: $ticketTools, ticketImages: $ticketImages, ticketMaterials: $ticketMaterials, maintenanceTickets: $maintenanceTickets, serviceTickets: $serviceTickets, advantageTickets: $advantageTickets, mainService: $mainService, subService: $subService, createdBy: $createdBy, creator: $creator, company: $company, branch: $branch, zone: $zone, teamLeader: $teamLeader, technician: $technician)';
   }
 
   @override
@@ -961,9 +1197,12 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
             (identical(other.typeAr, typeAr) || other.typeAr == typeAr) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.date, date) || other.date == date) &&
+            (identical(other.timeTo, timeTo) || other.timeTo == timeTo) &&
             (identical(other.reportLink, reportLink) ||
                 other.reportLink == reportLink) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.statusAr, statusAr) ||
+                other.statusAr == statusAr) &&
             (identical(other.customerName, customerName) ||
                 other.customerName == customerName) &&
             (identical(other.customerImage, customerImage) ||
@@ -1001,9 +1240,20 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
                 .equals(other._serviceTickets, _serviceTickets) &&
             const DeepCollectionEquality()
                 .equals(other._advantageTickets, _advantageTickets) &&
+            (identical(other.mainService, mainService) ||
+                other.mainService == mainService) &&
+            (identical(other.subService, subService) ||
+                other.subService == subService) &&
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy) &&
-            (identical(other.creator, creator) || other.creator == creator));
+            (identical(other.creator, creator) || other.creator == creator) &&
+            const DeepCollectionEquality().equals(other._company, _company) &&
+            const DeepCollectionEquality().equals(other._branch, _branch) &&
+            const DeepCollectionEquality().equals(other._zone, _zone) &&
+            const DeepCollectionEquality()
+                .equals(other._teamLeader, _teamLeader) &&
+            const DeepCollectionEquality()
+                .equals(other._technician, _technician));
   }
 
   @JsonKey(ignore: true)
@@ -1019,8 +1269,10 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
         typeAr,
         userId,
         date,
+        timeTo,
         reportLink,
         status,
+        statusAr,
         customerName,
         customerImage,
         customerAddress,
@@ -1040,8 +1292,15 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
         const DeepCollectionEquality().hash(_maintenanceTickets),
         const DeepCollectionEquality().hash(_serviceTickets),
         const DeepCollectionEquality().hash(_advantageTickets),
+        mainService,
+        subService,
         createdBy,
-        creator
+        creator,
+        const DeepCollectionEquality().hash(_company),
+        const DeepCollectionEquality().hash(_branch),
+        const DeepCollectionEquality().hash(_zone),
+        const DeepCollectionEquality().hash(_teamLeader),
+        const DeepCollectionEquality().hash(_technician)
       ]);
 
   @JsonKey(ignore: true)
@@ -1061,45 +1320,54 @@ class _$TicketsDetailsImpl implements _TicketsDetails {
 
 abstract class _TicketsDetails implements TicketsDetails {
   const factory _TicketsDetails(
-          {@JsonKey(name: "id") final int? id,
-          @JsonKey(name: "ticketCodeId") final String? ticketCodeId,
-          @JsonKey(name: "title") final String? title,
-          @JsonKey(name: "time") final String? time,
-          @JsonKey(name: "titleAr") final String? titleAr,
-          @JsonKey(name: "type") final String? type,
-          @JsonKey(name: "typeAr") final String? typeAr,
-          @JsonKey(name: "userId") final int? userId,
-          @JsonKey(name: "date") final DateTime? date,
-          @JsonKey(name: "reportLink") final String? reportLink,
-          @JsonKey(name: "status") final String? status,
-          @JsonKey(name: "customerName") final String? customerName,
-          @JsonKey(name: "customerImage") final String? customerImage,
-          @JsonKey(name: "customerAddress") final String? customerAddress,
-          @JsonKey(name: "description") final String? description,
-          @JsonKey(name: "serviceDescription") final String? serviceDescription,
-          @JsonKey(name: "isWithMaterial") final bool? isWithMaterial,
-          @JsonKey(name: "isWithFemale") final bool? isWithFemale,
-          @JsonKey(name: "latitudel") final String? latitudel,
-          @JsonKey(name: "longitude") final String? longitude,
-          @JsonKey(name: "mobile") final String? mobile,
-          @JsonKey(name: "esitmatedTime") final String? esitmatedTime,
-          @JsonKey(name: "ticketAttatchments")
-          final List<TicketAttatchment>? ticketAttatchments,
-          @JsonKey(name: "technicianAttachments")
-          final List<TicketAttatchment>? technicianAttachments,
-          @JsonKey(name: "ticketTools") final List<TicketTool>? ticketTools,
-          @JsonKey(name: "ticketImages") final List<String>? ticketImages,
-          @JsonKey(name: "ticketMaterials")
-          final List<TicketMaterial>? ticketMaterials,
-          @JsonKey(name: "maintenanceTickets")
-          final List<MaintenanceTicket>? maintenanceTickets,
-          @JsonKey(name: "servcieTickets")
-          final List<ServiceTicket>? serviceTickets,
-          @JsonKey(name: "advantageTickets")
-          final List<AdvantageTickets>? advantageTickets,
-          @JsonKey(name: "createdBy") final int? createdBy,
-          @JsonKey(name: "creator") final CreatorInfo? creator}) =
-      _$TicketsDetailsImpl;
+      {@JsonKey(name: "id") final int? id,
+      @JsonKey(name: "ticketCodeId") final String? ticketCodeId,
+      @JsonKey(name: "title") final String? title,
+      @JsonKey(name: "time") final String? time,
+      @JsonKey(name: "titleAr") final String? titleAr,
+      @JsonKey(name: "type") final String? type,
+      @JsonKey(name: "typeAr") final String? typeAr,
+      @JsonKey(name: "userId") final int? userId,
+      @JsonKey(name: "date") final DateTime? date,
+      @JsonKey(name: "timeTo") final String? timeTo,
+      @JsonKey(name: "reportLink") final String? reportLink,
+      @JsonKey(name: "status") final String? status,
+      @JsonKey(name: "statusAr") final String? statusAr,
+      @JsonKey(name: "customerName") final String? customerName,
+      @JsonKey(name: "customerImage") final String? customerImage,
+      @JsonKey(name: "customerAddress") final String? customerAddress,
+      @JsonKey(name: "description") final String? description,
+      @JsonKey(name: "serviceDescription") final String? serviceDescription,
+      @JsonKey(name: "isWithMaterial") final bool? isWithMaterial,
+      @JsonKey(name: "isWithFemale") final bool? isWithFemale,
+      @JsonKey(name: "latitudel") final String? latitudel,
+      @JsonKey(name: "longitude") final String? longitude,
+      @JsonKey(name: "mobile") final String? mobile,
+      @JsonKey(name: "esitmatedTime") final String? esitmatedTime,
+      @JsonKey(name: "ticketAttatchments")
+      final List<TicketAttatchment>? ticketAttatchments,
+      @JsonKey(name: "technicianAttachments")
+      final List<TicketAttatchment>? technicianAttachments,
+      @JsonKey(name: "ticketTools") final List<TicketTool>? ticketTools,
+      @JsonKey(name: "ticketImages") final List<String>? ticketImages,
+      @JsonKey(name: "ticketMaterials")
+      final List<TicketMaterial>? ticketMaterials,
+      @JsonKey(name: "maintenanceTickets")
+      final List<MaintenanceTicket>? maintenanceTickets,
+      @JsonKey(name: "servcieTickets")
+      final List<ServiceTicket>? serviceTickets,
+      @JsonKey(name: "advantageTickets")
+      final List<AdvantageTickets>? advantageTickets,
+      @JsonKey(name: "mainService") final MainServiceInfo? mainService,
+      @JsonKey(name: "subService") final SubServiceInfo? subService,
+      @JsonKey(name: "createdBy") final int? createdBy,
+      @JsonKey(name: "creator") final CreatorInfo? creator,
+      @JsonKey(name: "company") final Map<String, dynamic>? company,
+      @JsonKey(name: "branch") final Map<String, dynamic>? branch,
+      @JsonKey(name: "zone") final Map<String, dynamic>? zone,
+      @JsonKey(name: "teamLeader") final Map<String, dynamic>? teamLeader,
+      @JsonKey(name: "technician")
+      final Map<String, dynamic>? technician}) = _$TicketsDetailsImpl;
 
   factory _TicketsDetails.fromJson(Map<String, dynamic> json) =
       _$TicketsDetailsImpl.fromJson;
@@ -1132,11 +1400,17 @@ abstract class _TicketsDetails implements TicketsDetails {
   @JsonKey(name: "date")
   DateTime? get date;
   @override
+  @JsonKey(name: "timeTo")
+  String? get timeTo;
+  @override
   @JsonKey(name: "reportLink")
   String? get reportLink;
   @override
   @JsonKey(name: "status")
   String? get status;
+  @override
+  @JsonKey(name: "statusAr")
+  String? get statusAr;
   @override
   @JsonKey(name: "customerName")
   String? get customerName;
@@ -1195,11 +1469,32 @@ abstract class _TicketsDetails implements TicketsDetails {
   @JsonKey(name: "advantageTickets")
   List<AdvantageTickets>? get advantageTickets;
   @override
+  @JsonKey(name: "mainService")
+  MainServiceInfo? get mainService;
+  @override
+  @JsonKey(name: "subService")
+  SubServiceInfo? get subService;
+  @override
   @JsonKey(name: "createdBy")
   int? get createdBy;
   @override
   @JsonKey(name: "creator")
   CreatorInfo? get creator;
+  @override
+  @JsonKey(name: "company")
+  Map<String, dynamic>? get company;
+  @override
+  @JsonKey(name: "branch")
+  Map<String, dynamic>? get branch;
+  @override
+  @JsonKey(name: "zone")
+  Map<String, dynamic>? get zone;
+  @override
+  @JsonKey(name: "teamLeader")
+  Map<String, dynamic>? get teamLeader;
+  @override
+  @JsonKey(name: "technician")
+  Map<String, dynamic>? get technician;
   @override
   @JsonKey(ignore: true)
   _$$TicketsDetailsImplCopyWith<_$TicketsDetailsImpl> get copyWith =>
@@ -2317,6 +2612,8 @@ mixin _$ServiceTicket {
   String? get name => throw _privateConstructorUsedError;
   @JsonKey(name: "nameAr")
   String? get nameAr => throw _privateConstructorUsedError;
+  @JsonKey(name: "image")
+  String? get image => throw _privateConstructorUsedError;
   @JsonKey(name: "price")
   int? get price => throw _privateConstructorUsedError;
   @JsonKey(name: "quantity")
@@ -2338,6 +2635,7 @@ abstract class $ServiceTicketCopyWith<$Res> {
       {@JsonKey(name: "id") int? id,
       @JsonKey(name: "name") String? name,
       @JsonKey(name: "nameAr") String? nameAr,
+      @JsonKey(name: "image") String? image,
       @JsonKey(name: "price") int? price,
       @JsonKey(name: "quantity") int? quantity});
 }
@@ -2358,6 +2656,7 @@ class _$ServiceTicketCopyWithImpl<$Res, $Val extends ServiceTicket>
     Object? id = freezed,
     Object? name = freezed,
     Object? nameAr = freezed,
+    Object? image = freezed,
     Object? price = freezed,
     Object? quantity = freezed,
   }) {
@@ -2373,6 +2672,10 @@ class _$ServiceTicketCopyWithImpl<$Res, $Val extends ServiceTicket>
       nameAr: freezed == nameAr
           ? _value.nameAr
           : nameAr // ignore: cast_nullable_to_non_nullable
+              as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
               as String?,
       price: freezed == price
           ? _value.price
@@ -2398,6 +2701,7 @@ abstract class _$$ServiceTicketImplCopyWith<$Res>
       {@JsonKey(name: "id") int? id,
       @JsonKey(name: "name") String? name,
       @JsonKey(name: "nameAr") String? nameAr,
+      @JsonKey(name: "image") String? image,
       @JsonKey(name: "price") int? price,
       @JsonKey(name: "quantity") int? quantity});
 }
@@ -2416,6 +2720,7 @@ class __$$ServiceTicketImplCopyWithImpl<$Res>
     Object? id = freezed,
     Object? name = freezed,
     Object? nameAr = freezed,
+    Object? image = freezed,
     Object? price = freezed,
     Object? quantity = freezed,
   }) {
@@ -2431,6 +2736,10 @@ class __$$ServiceTicketImplCopyWithImpl<$Res>
       nameAr: freezed == nameAr
           ? _value.nameAr
           : nameAr // ignore: cast_nullable_to_non_nullable
+              as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
               as String?,
       price: freezed == price
           ? _value.price
@@ -2451,6 +2760,7 @@ class _$ServiceTicketImpl implements _ServiceTicket {
       {@JsonKey(name: "id") this.id,
       @JsonKey(name: "name") this.name,
       @JsonKey(name: "nameAr") this.nameAr,
+      @JsonKey(name: "image") this.image,
       @JsonKey(name: "price") this.price,
       @JsonKey(name: "quantity") this.quantity});
 
@@ -2467,6 +2777,9 @@ class _$ServiceTicketImpl implements _ServiceTicket {
   @JsonKey(name: "nameAr")
   final String? nameAr;
   @override
+  @JsonKey(name: "image")
+  final String? image;
+  @override
   @JsonKey(name: "price")
   final int? price;
   @override
@@ -2475,7 +2788,7 @@ class _$ServiceTicketImpl implements _ServiceTicket {
 
   @override
   String toString() {
-    return 'ServiceTicket(id: $id, name: $name, nameAr: $nameAr, price: $price, quantity: $quantity)';
+    return 'ServiceTicket(id: $id, name: $name, nameAr: $nameAr, image: $image, price: $price, quantity: $quantity)';
   }
 
   @override
@@ -2486,6 +2799,7 @@ class _$ServiceTicketImpl implements _ServiceTicket {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.nameAr, nameAr) || other.nameAr == nameAr) &&
+            (identical(other.image, image) || other.image == image) &&
             (identical(other.price, price) || other.price == price) &&
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity));
@@ -2494,7 +2808,7 @@ class _$ServiceTicketImpl implements _ServiceTicket {
   @JsonKey(ignore: true)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, name, nameAr, price, quantity);
+      Object.hash(runtimeType, id, name, nameAr, image, price, quantity);
 
   @JsonKey(ignore: true)
   @override
@@ -2515,6 +2829,7 @@ abstract class _ServiceTicket implements ServiceTicket {
       {@JsonKey(name: "id") final int? id,
       @JsonKey(name: "name") final String? name,
       @JsonKey(name: "nameAr") final String? nameAr,
+      @JsonKey(name: "image") final String? image,
       @JsonKey(name: "price") final int? price,
       @JsonKey(name: "quantity") final int? quantity}) = _$ServiceTicketImpl;
 
@@ -2530,6 +2845,9 @@ abstract class _ServiceTicket implements ServiceTicket {
   @override
   @JsonKey(name: "nameAr")
   String? get nameAr;
+  @override
+  @JsonKey(name: "image")
+  String? get image;
   @override
   @JsonKey(name: "price")
   int? get price;

@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../presentation/home/domain/model/home_model.dart';
+
 part 'tickets_details_model.freezed.dart';
 part 'tickets_details_model.g.dart';
 
@@ -22,8 +24,10 @@ class TicketsDetails with _$TicketsDetails {
     @JsonKey(name: "typeAr") String? typeAr,
     @JsonKey(name: "userId") int? userId,
     @JsonKey(name: "date") DateTime? date,
+    @JsonKey(name: "timeTo") String? timeTo,
     @JsonKey(name: "reportLink") String? reportLink,
     @JsonKey(name: "status") String? status,
+    @JsonKey(name: "statusAr") String? statusAr,
     @JsonKey(name: "customerName") String? customerName,
     @JsonKey(name: "customerImage") String? customerImage,
     @JsonKey(name: "customerAddress") String? customerAddress,
@@ -43,8 +47,15 @@ class TicketsDetails with _$TicketsDetails {
     @JsonKey(name: "maintenanceTickets") List<MaintenanceTicket>? maintenanceTickets,
     @JsonKey(name: "servcieTickets") List<ServiceTicket>? serviceTickets,
     @JsonKey(name: "advantageTickets") List<AdvantageTickets>? advantageTickets,
+    @JsonKey(name: "mainService") MainServiceInfo? mainService,
+    @JsonKey(name: "subService") SubServiceInfo? subService,
     @JsonKey(name: "createdBy") int? createdBy,
     @JsonKey(name: "creator") CreatorInfo? creator,
+    @JsonKey(name: "company") Map<String, dynamic>? company,
+    @JsonKey(name: "branch") Map<String, dynamic>? branch,
+    @JsonKey(name: "zone") Map<String, dynamic>? zone,
+    @JsonKey(name: "teamLeader") Map<String, dynamic>? teamLeader,
+    @JsonKey(name: "technician") Map<String, dynamic>? technician,
   }) = _TicketsDetails;
 
   factory TicketsDetails.fromJson(Map<String, dynamic> json) => _$TicketsDetailsFromJson(json);
@@ -114,6 +125,7 @@ class ServiceTicket with _$ServiceTicket {
     @JsonKey(name: "id") int? id,
     @JsonKey(name: "name") String? name,
     @JsonKey(name: "nameAr") String? nameAr,
+    @JsonKey(name: "image") String? image,
     @JsonKey(name: "price") int? price,
     @JsonKey(name: "quantity") int? quantity,
   }) = _ServiceTicket;

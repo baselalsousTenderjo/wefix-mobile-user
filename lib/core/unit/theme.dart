@@ -119,6 +119,7 @@ class MaterialTheme {
     useMaterial3: true,
     brightness: colorScheme.brightness,
     colorScheme: colorScheme,
+    fontFamily: 'Poppins',
     textTheme: textTheme.apply(bodyColor: colorScheme.onSurface, displayColor: colorScheme.onSurface),
     scaffoldBackgroundColor: colorScheme.surface,
     canvasColor: colorScheme.surface,

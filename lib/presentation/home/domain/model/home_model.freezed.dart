@@ -790,6 +790,8 @@ mixin _$Tickets {
   DateTime? get date => throw _privateConstructorUsedError;
   @JsonKey(name: "status")
   String? get status => throw _privateConstructorUsedError;
+  @JsonKey(name: "statusAr")
+  String? get statusAr => throw _privateConstructorUsedError;
   @JsonKey(name: "time")
   String? get time => throw _privateConstructorUsedError;
   @JsonKey(name: "ticketType")
@@ -814,6 +816,8 @@ mixin _$Tickets {
   String? get ticketTimeTo => throw _privateConstructorUsedError;
   @JsonKey(name: "mainService")
   MainServiceInfo? get mainService => throw _privateConstructorUsedError;
+  @JsonKey(name: "subService")
+  SubServiceInfo? get subService => throw _privateConstructorUsedError;
   @JsonKey(name: "branch")
   BranchInfo? get branch => throw _privateConstructorUsedError;
   @JsonKey(name: "zone")
@@ -838,6 +842,7 @@ abstract class $TicketsCopyWith<$Res> {
       @JsonKey(name: "customer") String? customer,
       @JsonKey(name: "date") DateTime? date,
       @JsonKey(name: "status") String? status,
+      @JsonKey(name: "statusAr") String? statusAr,
       @JsonKey(name: "time") String? time,
       @JsonKey(name: "ticketType") String? ticketType,
       @JsonKey(name: "ticketTypeAr") String? ticketTypeAr,
@@ -850,11 +855,13 @@ abstract class $TicketsCopyWith<$Res> {
       @JsonKey(name: "tools") List<int>? tools,
       @JsonKey(name: "ticketTimeTo") String? ticketTimeTo,
       @JsonKey(name: "mainService") MainServiceInfo? mainService,
+      @JsonKey(name: "subService") SubServiceInfo? subService,
       @JsonKey(name: "branch") BranchInfo? branch,
       @JsonKey(name: "zone") ZoneInfo? zone,
       @JsonKey(name: "contract") ContractInfo? contract});
 
   $MainServiceInfoCopyWith<$Res>? get mainService;
+  $SubServiceInfoCopyWith<$Res>? get subService;
   $BranchInfoCopyWith<$Res>? get branch;
   $ZoneInfoCopyWith<$Res>? get zone;
   $ContractInfoCopyWith<$Res>? get contract;
@@ -879,6 +886,7 @@ class _$TicketsCopyWithImpl<$Res, $Val extends Tickets>
     Object? customer = freezed,
     Object? date = freezed,
     Object? status = freezed,
+    Object? statusAr = freezed,
     Object? time = freezed,
     Object? ticketType = freezed,
     Object? ticketTypeAr = freezed,
@@ -891,6 +899,7 @@ class _$TicketsCopyWithImpl<$Res, $Val extends Tickets>
     Object? tools = freezed,
     Object? ticketTimeTo = freezed,
     Object? mainService = freezed,
+    Object? subService = freezed,
     Object? branch = freezed,
     Object? zone = freezed,
     Object? contract = freezed,
@@ -919,6 +928,10 @@ class _$TicketsCopyWithImpl<$Res, $Val extends Tickets>
       status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      statusAr: freezed == statusAr
+          ? _value.statusAr
+          : statusAr // ignore: cast_nullable_to_non_nullable
               as String?,
       time: freezed == time
           ? _value.time
@@ -968,6 +981,10 @@ class _$TicketsCopyWithImpl<$Res, $Val extends Tickets>
           ? _value.mainService
           : mainService // ignore: cast_nullable_to_non_nullable
               as MainServiceInfo?,
+      subService: freezed == subService
+          ? _value.subService
+          : subService // ignore: cast_nullable_to_non_nullable
+              as SubServiceInfo?,
       branch: freezed == branch
           ? _value.branch
           : branch // ignore: cast_nullable_to_non_nullable
@@ -992,6 +1009,18 @@ class _$TicketsCopyWithImpl<$Res, $Val extends Tickets>
 
     return $MainServiceInfoCopyWith<$Res>(_value.mainService!, (value) {
       return _then(_value.copyWith(mainService: value) as $Val);
+    });
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $SubServiceInfoCopyWith<$Res>? get subService {
+    if (_value.subService == null) {
+      return null;
+    }
+
+    return $SubServiceInfoCopyWith<$Res>(_value.subService!, (value) {
+      return _then(_value.copyWith(subService: value) as $Val);
     });
   }
 
@@ -1046,6 +1075,7 @@ abstract class _$$TicketsImplCopyWith<$Res> implements $TicketsCopyWith<$Res> {
       @JsonKey(name: "customer") String? customer,
       @JsonKey(name: "date") DateTime? date,
       @JsonKey(name: "status") String? status,
+      @JsonKey(name: "statusAr") String? statusAr,
       @JsonKey(name: "time") String? time,
       @JsonKey(name: "ticketType") String? ticketType,
       @JsonKey(name: "ticketTypeAr") String? ticketTypeAr,
@@ -1058,12 +1088,15 @@ abstract class _$$TicketsImplCopyWith<$Res> implements $TicketsCopyWith<$Res> {
       @JsonKey(name: "tools") List<int>? tools,
       @JsonKey(name: "ticketTimeTo") String? ticketTimeTo,
       @JsonKey(name: "mainService") MainServiceInfo? mainService,
+      @JsonKey(name: "subService") SubServiceInfo? subService,
       @JsonKey(name: "branch") BranchInfo? branch,
       @JsonKey(name: "zone") ZoneInfo? zone,
       @JsonKey(name: "contract") ContractInfo? contract});
 
   @override
   $MainServiceInfoCopyWith<$Res>? get mainService;
+  @override
+  $SubServiceInfoCopyWith<$Res>? get subService;
   @override
   $BranchInfoCopyWith<$Res>? get branch;
   @override
@@ -1089,6 +1122,7 @@ class __$$TicketsImplCopyWithImpl<$Res>
     Object? customer = freezed,
     Object? date = freezed,
     Object? status = freezed,
+    Object? statusAr = freezed,
     Object? time = freezed,
     Object? ticketType = freezed,
     Object? ticketTypeAr = freezed,
@@ -1101,6 +1135,7 @@ class __$$TicketsImplCopyWithImpl<$Res>
     Object? tools = freezed,
     Object? ticketTimeTo = freezed,
     Object? mainService = freezed,
+    Object? subService = freezed,
     Object? branch = freezed,
     Object? zone = freezed,
     Object? contract = freezed,
@@ -1129,6 +1164,10 @@ class __$$TicketsImplCopyWithImpl<$Res>
       status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      statusAr: freezed == statusAr
+          ? _value.statusAr
+          : statusAr // ignore: cast_nullable_to_non_nullable
               as String?,
       time: freezed == time
           ? _value.time
@@ -1178,6 +1217,10 @@ class __$$TicketsImplCopyWithImpl<$Res>
           ? _value.mainService
           : mainService // ignore: cast_nullable_to_non_nullable
               as MainServiceInfo?,
+      subService: freezed == subService
+          ? _value.subService
+          : subService // ignore: cast_nullable_to_non_nullable
+              as SubServiceInfo?,
       branch: freezed == branch
           ? _value.branch
           : branch // ignore: cast_nullable_to_non_nullable
@@ -1204,6 +1247,7 @@ class _$TicketsImpl implements _Tickets {
       @JsonKey(name: "customer") this.customer,
       @JsonKey(name: "date") this.date,
       @JsonKey(name: "status") this.status,
+      @JsonKey(name: "statusAr") this.statusAr,
       @JsonKey(name: "time") this.time,
       @JsonKey(name: "ticketType") this.ticketType,
       @JsonKey(name: "ticketTypeAr") this.ticketTypeAr,
@@ -1216,6 +1260,7 @@ class _$TicketsImpl implements _Tickets {
       @JsonKey(name: "tools") final List<int>? tools,
       @JsonKey(name: "ticketTimeTo") this.ticketTimeTo,
       @JsonKey(name: "mainService") this.mainService,
+      @JsonKey(name: "subService") this.subService,
       @JsonKey(name: "branch") this.branch,
       @JsonKey(name: "zone") this.zone,
       @JsonKey(name: "contract") this.contract})
@@ -1242,6 +1287,9 @@ class _$TicketsImpl implements _Tickets {
   @override
   @JsonKey(name: "status")
   final String? status;
+  @override
+  @JsonKey(name: "statusAr")
+  final String? statusAr;
   @override
   @JsonKey(name: "time")
   final String? time;
@@ -1287,6 +1335,9 @@ class _$TicketsImpl implements _Tickets {
   @JsonKey(name: "mainService")
   final MainServiceInfo? mainService;
   @override
+  @JsonKey(name: "subService")
+  final SubServiceInfo? subService;
+  @override
   @JsonKey(name: "branch")
   final BranchInfo? branch;
   @override
@@ -1298,7 +1349,7 @@ class _$TicketsImpl implements _Tickets {
 
   @override
   String toString() {
-    return 'Tickets(id: $id, ticketCodeId: $ticketCodeId, image: $image, customer: $customer, date: $date, status: $status, time: $time, ticketType: $ticketType, ticketTypeAr: $ticketTypeAr, ticketTitle: $ticketTitle, ticketDescription: $ticketDescription, serviceDescription: $serviceDescription, locationMap: $locationMap, havingFemaleEngineer: $havingFemaleEngineer, withMaterial: $withMaterial, tools: $tools, ticketTimeTo: $ticketTimeTo, mainService: $mainService, branch: $branch, zone: $zone, contract: $contract)';
+    return 'Tickets(id: $id, ticketCodeId: $ticketCodeId, image: $image, customer: $customer, date: $date, status: $status, statusAr: $statusAr, time: $time, ticketType: $ticketType, ticketTypeAr: $ticketTypeAr, ticketTitle: $ticketTitle, ticketDescription: $ticketDescription, serviceDescription: $serviceDescription, locationMap: $locationMap, havingFemaleEngineer: $havingFemaleEngineer, withMaterial: $withMaterial, tools: $tools, ticketTimeTo: $ticketTimeTo, mainService: $mainService, subService: $subService, branch: $branch, zone: $zone, contract: $contract)';
   }
 
   @override
@@ -1314,6 +1365,8 @@ class _$TicketsImpl implements _Tickets {
                 other.customer == customer) &&
             (identical(other.date, date) || other.date == date) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.statusAr, statusAr) ||
+                other.statusAr == statusAr) &&
             (identical(other.time, time) || other.time == time) &&
             (identical(other.ticketType, ticketType) ||
                 other.ticketType == ticketType) &&
@@ -1336,6 +1389,8 @@ class _$TicketsImpl implements _Tickets {
                 other.ticketTimeTo == ticketTimeTo) &&
             (identical(other.mainService, mainService) ||
                 other.mainService == mainService) &&
+            (identical(other.subService, subService) ||
+                other.subService == subService) &&
             (identical(other.branch, branch) || other.branch == branch) &&
             (identical(other.zone, zone) || other.zone == zone) &&
             (identical(other.contract, contract) ||
@@ -1352,6 +1407,7 @@ class _$TicketsImpl implements _Tickets {
         customer,
         date,
         status,
+        statusAr,
         time,
         ticketType,
         ticketTypeAr,
@@ -1364,6 +1420,7 @@ class _$TicketsImpl implements _Tickets {
         const DeepCollectionEquality().hash(_tools),
         ticketTimeTo,
         mainService,
+        subService,
         branch,
         zone,
         contract
@@ -1391,6 +1448,7 @@ abstract class _Tickets implements Tickets {
       @JsonKey(name: "customer") final String? customer,
       @JsonKey(name: "date") final DateTime? date,
       @JsonKey(name: "status") final String? status,
+      @JsonKey(name: "statusAr") final String? statusAr,
       @JsonKey(name: "time") final String? time,
       @JsonKey(name: "ticketType") final String? ticketType,
       @JsonKey(name: "ticketTypeAr") final String? ticketTypeAr,
@@ -1403,6 +1461,7 @@ abstract class _Tickets implements Tickets {
       @JsonKey(name: "tools") final List<int>? tools,
       @JsonKey(name: "ticketTimeTo") final String? ticketTimeTo,
       @JsonKey(name: "mainService") final MainServiceInfo? mainService,
+      @JsonKey(name: "subService") final SubServiceInfo? subService,
       @JsonKey(name: "branch") final BranchInfo? branch,
       @JsonKey(name: "zone") final ZoneInfo? zone,
       @JsonKey(name: "contract") final ContractInfo? contract}) = _$TicketsImpl;
@@ -1427,6 +1486,9 @@ abstract class _Tickets implements Tickets {
   @override
   @JsonKey(name: "status")
   String? get status;
+  @override
+  @JsonKey(name: "statusAr")
+  String? get statusAr;
   @override
   @JsonKey(name: "time")
   String? get time;
@@ -1464,6 +1526,9 @@ abstract class _Tickets implements Tickets {
   @JsonKey(name: "mainService")
   MainServiceInfo? get mainService;
   @override
+  @JsonKey(name: "subService")
+  SubServiceInfo? get subService;
+  @override
   @JsonKey(name: "branch")
   BranchInfo? get branch;
   @override
@@ -1490,6 +1555,8 @@ mixin _$MainServiceInfo {
   String? get name => throw _privateConstructorUsedError;
   @JsonKey(name: "nameArabic")
   String? get nameArabic => throw _privateConstructorUsedError;
+  @JsonKey(name: "image")
+  String? get image => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -1506,7 +1573,8 @@ abstract class $MainServiceInfoCopyWith<$Res> {
   $Res call(
       {@JsonKey(name: "id") int? id,
       @JsonKey(name: "name") String? name,
-      @JsonKey(name: "nameArabic") String? nameArabic});
+      @JsonKey(name: "nameArabic") String? nameArabic,
+      @JsonKey(name: "image") String? image});
 }
 
 /// @nodoc
@@ -1525,6 +1593,7 @@ class _$MainServiceInfoCopyWithImpl<$Res, $Val extends MainServiceInfo>
     Object? id = freezed,
     Object? name = freezed,
     Object? nameArabic = freezed,
+    Object? image = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -1538,6 +1607,10 @@ class _$MainServiceInfoCopyWithImpl<$Res, $Val extends MainServiceInfo>
       nameArabic: freezed == nameArabic
           ? _value.nameArabic
           : nameArabic // ignore: cast_nullable_to_non_nullable
+              as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
               as String?,
     ) as $Val);
   }
@@ -1554,7 +1627,8 @@ abstract class _$$MainServiceInfoImplCopyWith<$Res>
   $Res call(
       {@JsonKey(name: "id") int? id,
       @JsonKey(name: "name") String? name,
-      @JsonKey(name: "nameArabic") String? nameArabic});
+      @JsonKey(name: "nameArabic") String? nameArabic,
+      @JsonKey(name: "image") String? image});
 }
 
 /// @nodoc
@@ -1571,6 +1645,7 @@ class __$$MainServiceInfoImplCopyWithImpl<$Res>
     Object? id = freezed,
     Object? name = freezed,
     Object? nameArabic = freezed,
+    Object? image = freezed,
   }) {
     return _then(_$MainServiceInfoImpl(
       id: freezed == id
@@ -1585,6 +1660,10 @@ class __$$MainServiceInfoImplCopyWithImpl<$Res>
           ? _value.nameArabic
           : nameArabic // ignore: cast_nullable_to_non_nullable
               as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1595,7 +1674,8 @@ class _$MainServiceInfoImpl implements _MainServiceInfo {
   const _$MainServiceInfoImpl(
       {@JsonKey(name: "id") this.id,
       @JsonKey(name: "name") this.name,
-      @JsonKey(name: "nameArabic") this.nameArabic});
+      @JsonKey(name: "nameArabic") this.nameArabic,
+      @JsonKey(name: "image") this.image});
 
   factory _$MainServiceInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$MainServiceInfoImplFromJson(json);
@@ -1609,10 +1689,13 @@ class _$MainServiceInfoImpl implements _MainServiceInfo {
   @override
   @JsonKey(name: "nameArabic")
   final String? nameArabic;
+  @override
+  @JsonKey(name: "image")
+  final String? image;
 
   @override
   String toString() {
-    return 'MainServiceInfo(id: $id, name: $name, nameArabic: $nameArabic)';
+    return 'MainServiceInfo(id: $id, name: $name, nameArabic: $nameArabic, image: $image)';
   }
 
   @override
@@ -1623,12 +1706,13 @@ class _$MainServiceInfoImpl implements _MainServiceInfo {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.nameArabic, nameArabic) ||
-                other.nameArabic == nameArabic));
+                other.nameArabic == nameArabic) &&
+            (identical(other.image, image) || other.image == image));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, nameArabic);
+  int get hashCode => Object.hash(runtimeType, id, name, nameArabic, image);
 
   @JsonKey(ignore: true)
   @override
@@ -1647,10 +1731,10 @@ class _$MainServiceInfoImpl implements _MainServiceInfo {
 
 abstract class _MainServiceInfo implements MainServiceInfo {
   const factory _MainServiceInfo(
-          {@JsonKey(name: "id") final int? id,
-          @JsonKey(name: "name") final String? name,
-          @JsonKey(name: "nameArabic") final String? nameArabic}) =
-      _$MainServiceInfoImpl;
+      {@JsonKey(name: "id") final int? id,
+      @JsonKey(name: "name") final String? name,
+      @JsonKey(name: "nameArabic") final String? nameArabic,
+      @JsonKey(name: "image") final String? image}) = _$MainServiceInfoImpl;
 
   factory _MainServiceInfo.fromJson(Map<String, dynamic> json) =
       _$MainServiceInfoImpl.fromJson;
@@ -1665,8 +1749,225 @@ abstract class _MainServiceInfo implements MainServiceInfo {
   @JsonKey(name: "nameArabic")
   String? get nameArabic;
   @override
+  @JsonKey(name: "image")
+  String? get image;
+  @override
   @JsonKey(ignore: true)
   _$$MainServiceInfoImplCopyWith<_$MainServiceInfoImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SubServiceInfo _$SubServiceInfoFromJson(Map<String, dynamic> json) {
+  return _SubServiceInfo.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SubServiceInfo {
+  @JsonKey(name: "id")
+  int? get id => throw _privateConstructorUsedError;
+  @JsonKey(name: "name")
+  String? get name => throw _privateConstructorUsedError;
+  @JsonKey(name: "nameArabic")
+  String? get nameArabic => throw _privateConstructorUsedError;
+  @JsonKey(name: "image")
+  String? get image => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $SubServiceInfoCopyWith<SubServiceInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SubServiceInfoCopyWith<$Res> {
+  factory $SubServiceInfoCopyWith(
+          SubServiceInfo value, $Res Function(SubServiceInfo) then) =
+      _$SubServiceInfoCopyWithImpl<$Res, SubServiceInfo>;
+  @useResult
+  $Res call(
+      {@JsonKey(name: "id") int? id,
+      @JsonKey(name: "name") String? name,
+      @JsonKey(name: "nameArabic") String? nameArabic,
+      @JsonKey(name: "image") String? image});
+}
+
+/// @nodoc
+class _$SubServiceInfoCopyWithImpl<$Res, $Val extends SubServiceInfo>
+    implements $SubServiceInfoCopyWith<$Res> {
+  _$SubServiceInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? name = freezed,
+    Object? nameArabic = freezed,
+    Object? image = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nameArabic: freezed == nameArabic
+          ? _value.nameArabic
+          : nameArabic // ignore: cast_nullable_to_non_nullable
+              as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SubServiceInfoImplCopyWith<$Res>
+    implements $SubServiceInfoCopyWith<$Res> {
+  factory _$$SubServiceInfoImplCopyWith(_$SubServiceInfoImpl value,
+          $Res Function(_$SubServiceInfoImpl) then) =
+      __$$SubServiceInfoImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: "id") int? id,
+      @JsonKey(name: "name") String? name,
+      @JsonKey(name: "nameArabic") String? nameArabic,
+      @JsonKey(name: "image") String? image});
+}
+
+/// @nodoc
+class __$$SubServiceInfoImplCopyWithImpl<$Res>
+    extends _$SubServiceInfoCopyWithImpl<$Res, _$SubServiceInfoImpl>
+    implements _$$SubServiceInfoImplCopyWith<$Res> {
+  __$$SubServiceInfoImplCopyWithImpl(
+      _$SubServiceInfoImpl _value, $Res Function(_$SubServiceInfoImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? name = freezed,
+    Object? nameArabic = freezed,
+    Object? image = freezed,
+  }) {
+    return _then(_$SubServiceInfoImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nameArabic: freezed == nameArabic
+          ? _value.nameArabic
+          : nameArabic // ignore: cast_nullable_to_non_nullable
+              as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SubServiceInfoImpl implements _SubServiceInfo {
+  const _$SubServiceInfoImpl(
+      {@JsonKey(name: "id") this.id,
+      @JsonKey(name: "name") this.name,
+      @JsonKey(name: "nameArabic") this.nameArabic,
+      @JsonKey(name: "image") this.image});
+
+  factory _$SubServiceInfoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SubServiceInfoImplFromJson(json);
+
+  @override
+  @JsonKey(name: "id")
+  final int? id;
+  @override
+  @JsonKey(name: "name")
+  final String? name;
+  @override
+  @JsonKey(name: "nameArabic")
+  final String? nameArabic;
+  @override
+  @JsonKey(name: "image")
+  final String? image;
+
+  @override
+  String toString() {
+    return 'SubServiceInfo(id: $id, name: $name, nameArabic: $nameArabic, image: $image)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SubServiceInfoImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.nameArabic, nameArabic) ||
+                other.nameArabic == nameArabic) &&
+            (identical(other.image, image) || other.image == image));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, nameArabic, image);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SubServiceInfoImplCopyWith<_$SubServiceInfoImpl> get copyWith =>
+      __$$SubServiceInfoImplCopyWithImpl<_$SubServiceInfoImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SubServiceInfoImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SubServiceInfo implements SubServiceInfo {
+  const factory _SubServiceInfo(
+      {@JsonKey(name: "id") final int? id,
+      @JsonKey(name: "name") final String? name,
+      @JsonKey(name: "nameArabic") final String? nameArabic,
+      @JsonKey(name: "image") final String? image}) = _$SubServiceInfoImpl;
+
+  factory _SubServiceInfo.fromJson(Map<String, dynamic> json) =
+      _$SubServiceInfoImpl.fromJson;
+
+  @override
+  @JsonKey(name: "id")
+  int? get id;
+  @override
+  @JsonKey(name: "name")
+  String? get name;
+  @override
+  @JsonKey(name: "nameArabic")
+  String? get nameArabic;
+  @override
+  @JsonKey(name: "image")
+  String? get image;
+  @override
+  @JsonKey(ignore: true)
+  _$$SubServiceInfoImplCopyWith<_$SubServiceInfoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

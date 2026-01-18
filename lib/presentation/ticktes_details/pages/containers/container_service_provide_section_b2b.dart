@@ -24,13 +24,14 @@ class ContainerServiceProvideSectionB2B extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('🛠 ${AppText(context).technicianActions}', style: AppTextStyle.style14B),
                     Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
+                    Text('🛠 ${AppText(context).technicianActions}', style: AppTextStyle.style14B),
+                    10.gap,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text('🕑 ${AppText(context).estimatedFixTime}', style: AppTextStyle.style12B),
+                        Text('🕑 ${AppText(context).estimatedFixTime}', style: AppTextStyle.style10B),
                         value == TicketStatus.loading
                             ? const WidgetLoading(width: 50)
                             : Expanded(
@@ -49,7 +50,7 @@ class ContainerServiceProvideSectionB2B extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('🔩 ${AppText(context).partsRequired}', style: AppTextStyle.style12B),
+                          Text('🔩 ${AppText(context).partsRequired}', style: AppTextStyle.style10B),
                           value == TicketStatus.loading
                               ? const WidgetLoading(width: 50)
                               : Expanded(
@@ -68,7 +69,7 @@ class ContainerServiceProvideSectionB2B extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text('👩‍⚕️ ${AppText(context).female}', style: AppTextStyle.style12B),
+                        Text('👩‍⚕️ ${AppText(context).female}', style: AppTextStyle.style10B),
                         value == TicketStatus.loading
                             ? const WidgetLoading(width: 50)
                             : Expanded(

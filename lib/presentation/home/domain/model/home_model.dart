@@ -50,6 +50,7 @@ class Tickets with _$Tickets {
     @JsonKey(name: "customer") String? customer,
     @JsonKey(name: "date") DateTime? date,
     @JsonKey(name: "status") String? status,
+    @JsonKey(name: "statusAr") String? statusAr,
     @JsonKey(name: "time") String? time,
     @JsonKey(name: "ticketType") String? ticketType,
     @JsonKey(name: "ticketTypeAr") String? ticketTypeAr,
@@ -62,6 +63,7 @@ class Tickets with _$Tickets {
     @JsonKey(name: "tools") List<int>? tools,
     @JsonKey(name: "ticketTimeTo") String? ticketTimeTo,
     @JsonKey(name: "mainService") MainServiceInfo? mainService,
+    @JsonKey(name: "subService") SubServiceInfo? subService,
     @JsonKey(name: "branch") BranchInfo? branch,
     @JsonKey(name: "zone") ZoneInfo? zone,
     @JsonKey(name: "contract") ContractInfo? contract,
@@ -76,9 +78,22 @@ class MainServiceInfo with _$MainServiceInfo {
     @JsonKey(name: "id") int? id,
     @JsonKey(name: "name") String? name,
     @JsonKey(name: "nameArabic") String? nameArabic,
+    @JsonKey(name: "image") String? image,
   }) = _MainServiceInfo;
 
   factory MainServiceInfo.fromJson(Map<String, dynamic> json) => _$MainServiceInfoFromJson(json);
+}
+
+@freezed
+class SubServiceInfo with _$SubServiceInfo {
+  const factory SubServiceInfo({
+    @JsonKey(name: "id") int? id,
+    @JsonKey(name: "name") String? name,
+    @JsonKey(name: "nameArabic") String? nameArabic,
+    @JsonKey(name: "image") String? image,
+  }) = _SubServiceInfo;
+
+  factory SubServiceInfo.fromJson(Map<String, dynamic> json) => _$SubServiceInfoFromJson(json);
 }
 
 @freezed

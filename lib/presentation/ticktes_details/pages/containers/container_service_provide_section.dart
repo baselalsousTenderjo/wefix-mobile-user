@@ -23,8 +23,8 @@ class ContainerServiceProvideSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('🛠 ${AppText(context).serviceProviderActions}', style: AppTextStyle.style14B),
                     Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
+                    Text('🛠 ${AppText(context).serviceProviderActions}', style: AppTextStyle.style14B),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,

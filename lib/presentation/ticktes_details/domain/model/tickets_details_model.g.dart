@@ -32,8 +32,10 @@ _$TicketsDetailsImpl _$$TicketsDetailsImplFromJson(Map<String, dynamic> json) =>
       userId: (json['userId'] as num?)?.toInt(),
       date:
           json['date'] == null ? null : DateTime.parse(json['date'] as String),
+      timeTo: json['timeTo'] as String?,
       reportLink: json['reportLink'] as String?,
       status: json['status'] as String?,
+      statusAr: json['statusAr'] as String?,
       customerName: json['customerName'] as String?,
       customerImage: json['customerImage'] as String?,
       customerAddress: json['customerAddress'] as String?,
@@ -69,10 +71,22 @@ _$TicketsDetailsImpl _$$TicketsDetailsImplFromJson(Map<String, dynamic> json) =>
       advantageTickets: (json['advantageTickets'] as List<dynamic>?)
           ?.map((e) => AdvantageTickets.fromJson(e as Map<String, dynamic>))
           .toList(),
+      mainService: json['mainService'] == null
+          ? null
+          : MainServiceInfo.fromJson(
+              json['mainService'] as Map<String, dynamic>),
+      subService: json['subService'] == null
+          ? null
+          : SubServiceInfo.fromJson(json['subService'] as Map<String, dynamic>),
       createdBy: (json['createdBy'] as num?)?.toInt(),
       creator: json['creator'] == null
           ? null
           : CreatorInfo.fromJson(json['creator'] as Map<String, dynamic>),
+      company: json['company'] as Map<String, dynamic>?,
+      branch: json['branch'] as Map<String, dynamic>?,
+      zone: json['zone'] as Map<String, dynamic>?,
+      teamLeader: json['teamLeader'] as Map<String, dynamic>?,
+      technician: json['technician'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$TicketsDetailsImplToJson(
@@ -87,8 +101,10 @@ Map<String, dynamic> _$$TicketsDetailsImplToJson(
       'typeAr': instance.typeAr,
       'userId': instance.userId,
       'date': instance.date?.toIso8601String(),
+      'timeTo': instance.timeTo,
       'reportLink': instance.reportLink,
       'status': instance.status,
+      'statusAr': instance.statusAr,
       'customerName': instance.customerName,
       'customerImage': instance.customerImage,
       'customerAddress': instance.customerAddress,
@@ -108,8 +124,15 @@ Map<String, dynamic> _$$TicketsDetailsImplToJson(
       'maintenanceTickets': instance.maintenanceTickets,
       'servcieTickets': instance.serviceTickets,
       'advantageTickets': instance.advantageTickets,
+      'mainService': instance.mainService,
+      'subService': instance.subService,
       'createdBy': instance.createdBy,
       'creator': instance.creator,
+      'company': instance.company,
+      'branch': instance.branch,
+      'zone': instance.zone,
+      'teamLeader': instance.teamLeader,
+      'technician': instance.technician,
     };
 
 _$TicketAttatchmentImpl _$$TicketAttatchmentImplFromJson(
@@ -208,6 +231,7 @@ _$ServiceTicketImpl _$$ServiceTicketImplFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String?,
       nameAr: json['nameAr'] as String?,
+      image: json['image'] as String?,
       price: (json['price'] as num?)?.toInt(),
       quantity: (json['quantity'] as num?)?.toInt(),
     );
@@ -217,6 +241,7 @@ Map<String, dynamic> _$$ServiceTicketImplToJson(_$ServiceTicketImpl instance) =>
       'id': instance.id,
       'name': instance.name,
       'nameAr': instance.nameAr,
+      'image': instance.image,
       'price': instance.price,
       'quantity': instance.quantity,
     };

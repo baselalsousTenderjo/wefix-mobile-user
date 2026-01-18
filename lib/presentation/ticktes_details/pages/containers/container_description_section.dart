@@ -29,8 +29,8 @@ class ContainnerDescriptionSection extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('📝 ${AppText(context).issueDescription}', style: AppTextStyle.style14B),
                                 Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
+                                Text('📝 ${AppText(context).issueDescription}', style: AppTextStyle.style14B),
                                 const WidgetLoading(width: double.infinity),
                                 const WidgetLoading(width: double.infinity, top: 5),
                                 const WidgetLoading(width: double.infinity, top: 5),
@@ -43,9 +43,9 @@ class ContainnerDescriptionSection extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('📝 ${AppText(context).issueDescription}', style: AppTextStyle.style14B),
                                 Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
-                                Text(controller.ticketsDetails?.description ?? '', style: AppTextStyle.style14.copyWith(height: 1.5, color: AppColor.black)),
+                                Text('📝 ${AppText(context).issueDescription}', style: AppTextStyle.style14B),
+                                Text(controller.ticketsDetails?.description ?? '', style: AppTextStyle.style14.copyWith(height: 1.5, color: AppColor.grey)),
                               ],
                             ),
               ),

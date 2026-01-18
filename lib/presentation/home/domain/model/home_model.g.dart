@@ -78,6 +78,7 @@ _$TicketsImpl _$$TicketsImplFromJson(Map<String, dynamic> json) =>
       date:
           json['date'] == null ? null : DateTime.parse(json['date'] as String),
       status: json['status'] as String?,
+      statusAr: json['statusAr'] as String?,
       time: json['time'] as String?,
       ticketType: json['ticketType'] as String?,
       ticketTypeAr: json['ticketTypeAr'] as String?,
@@ -95,6 +96,9 @@ _$TicketsImpl _$$TicketsImplFromJson(Map<String, dynamic> json) =>
           ? null
           : MainServiceInfo.fromJson(
               json['mainService'] as Map<String, dynamic>),
+      subService: json['subService'] == null
+          ? null
+          : SubServiceInfo.fromJson(json['subService'] as Map<String, dynamic>),
       branch: json['branch'] == null
           ? null
           : BranchInfo.fromJson(json['branch'] as Map<String, dynamic>),
@@ -114,6 +118,7 @@ Map<String, dynamic> _$$TicketsImplToJson(_$TicketsImpl instance) =>
       'customer': instance.customer,
       'date': instance.date?.toIso8601String(),
       'status': instance.status,
+      'statusAr': instance.statusAr,
       'time': instance.time,
       'ticketType': instance.ticketType,
       'ticketTypeAr': instance.ticketTypeAr,
@@ -126,6 +131,7 @@ Map<String, dynamic> _$$TicketsImplToJson(_$TicketsImpl instance) =>
       'tools': instance.tools,
       'ticketTimeTo': instance.ticketTimeTo,
       'mainService': instance.mainService,
+      'subService': instance.subService,
       'branch': instance.branch,
       'zone': instance.zone,
       'contract': instance.contract,
@@ -137,6 +143,7 @@ _$MainServiceInfoImpl _$$MainServiceInfoImplFromJson(
       id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String?,
       nameArabic: json['nameArabic'] as String?,
+      image: json['image'] as String?,
     );
 
 Map<String, dynamic> _$$MainServiceInfoImplToJson(
@@ -145,6 +152,24 @@ Map<String, dynamic> _$$MainServiceInfoImplToJson(
       'id': instance.id,
       'name': instance.name,
       'nameArabic': instance.nameArabic,
+      'image': instance.image,
+    };
+
+_$SubServiceInfoImpl _$$SubServiceInfoImplFromJson(Map<String, dynamic> json) =>
+    _$SubServiceInfoImpl(
+      id: (json['id'] as num?)?.toInt(),
+      name: json['name'] as String?,
+      nameArabic: json['nameArabic'] as String?,
+      image: json['image'] as String?,
+    );
+
+Map<String, dynamic> _$$SubServiceInfoImplToJson(
+        _$SubServiceInfoImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'nameArabic': instance.nameArabic,
+      'image': instance.image,
     };
 
 _$BranchInfoImpl _$$BranchInfoImplFromJson(Map<String, dynamic> json) =>

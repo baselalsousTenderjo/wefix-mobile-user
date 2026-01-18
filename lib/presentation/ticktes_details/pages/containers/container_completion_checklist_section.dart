@@ -19,6 +19,7 @@ class ContainerCompletionChecklist extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -45,7 +46,6 @@ class ContainerCompletionChecklist extends StatelessWidget {
             ),
           ],
         ),
-        Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),
       ],
     );
   }

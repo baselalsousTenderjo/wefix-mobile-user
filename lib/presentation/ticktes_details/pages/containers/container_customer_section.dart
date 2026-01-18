@@ -33,8 +33,9 @@ class ContainerCustomerSection extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('👤 ${AppText(context).createdBy}', style: AppTextStyle.style14B),
                   Divider(color: Colors.grey.withOpacity(.4), thickness: 1, height: 20),
+                  Text('👤 ${AppText(context).createdBy}', style: AppTextStyle.style14B),
+                  10.gap,
                   if (value == TicketStatus.loading) ...[
                     Row(
                       children: [
@@ -61,7 +62,7 @@ class ContainerCustomerSection extends StatelessWidget {
                               Text(
                                 _formatCreatorName(context, creator),
                                 overflow: TextOverflow.ellipsis, 
-                                style: AppTextStyle.style14B
+                                style: AppTextStyle.style10B
                               ),
                               if (creator.mobileNumber != null || creator.countryCode != null) ...[
                                 5.gap,
@@ -99,12 +100,13 @@ class ContainerCustomerSection extends StatelessWidget {
   }
   
   String _formatPhoneNumber(String? countryCode, String? mobileNumber) {
+    // \u200E is the Left-to-Right Mark (LRM) to prevent RTL reversal of phone numbers
     if (countryCode != null && mobileNumber != null) {
-      return '$countryCode $mobileNumber';
+      return '\u200E$countryCode $mobileNumber';
     } else if (mobileNumber != null) {
-      return mobileNumber;
+      return '\u200E$mobileNumber';
     } else if (countryCode != null) {
-      return countryCode;
+      return '\u200E$countryCode';
     }
     return '';
   }

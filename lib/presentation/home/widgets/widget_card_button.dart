@@ -16,12 +16,18 @@ class WidgetCardButton extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
         decoration: BoxDecoration(color: AppColor.white, borderRadius: BorderRadius.circular(5), border: Border.all(color: color ?? AppColor.primaryColor)),
         child:
             loading == true
                 ? const Row(children: [WidgetLoading(width: 50, top: 5, bottom: 5)])
-                : Text(title, style: AppTextStyle.style9.copyWith(color: color ?? AppColor.primaryColor)),
+                : Text(
+                    title,
+                    style: AppTextStyle.style8.copyWith(color: color ?? AppColor.primaryColor).copyWith(fontSize: 6),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
       ),
     );
   }

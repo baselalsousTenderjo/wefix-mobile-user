@@ -91,3 +91,8 @@ flutter:
     - assets/image/
     - assets/languages.json
     - assets/icon/
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/JANNALT-REGULAR (1).TTF
