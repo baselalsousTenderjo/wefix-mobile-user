@@ -208,6 +208,7 @@
       "fileNotFound":"File not found.",
       "ticketMustBeStartedFirst":"Ticket must be started first before completion.",
       "signatureRequired":"Signature is required to complete the ticket.",
+      "attachmentsRequired":"Adding attachments is required.",
       "completedTicketInfo":"Completed Ticket Information",
       "technicianAttachments":"Technician Attachments",
       "completionNote":"Completion Note",

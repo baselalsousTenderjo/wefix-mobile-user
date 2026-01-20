@@ -68,9 +68,26 @@ class TicketsDetailsReoistoryImpl implements TicketsDetailsReoistory {
       final ApiClient client = ApiClient(DioProvider().dio, baseUrl: AppLinks.getServerForTeam());
       final token = await sl<Box>(instanceName: BoxKeys.appBox).get(BoxKeys.usertoken);
       
+      final bool isB2B = await _isB2BTeam();
       // Use B2B route for B2B Team, B2C route for WeFix Team
-      final String endpoint = (await _isB2BTeam()) ? AppLinks.b2bTicketsStart : AppLinks.startTickets;
-      await client.postRequest(endpoint: endpoint, body: {'Id': ticketId}, authorization: 'Bearer $token');
+      final String endpoint = isB2B ? AppLinks.b2bTicketsStart : AppLinks.startTickets;
+      
+      // B2B: Send empty attachmentUrl to indicate no attachment (optional for B2B only)
+      // B2C: Keep original behavior (no attachmentUrl field)
+      final Map<String, dynamic> body = {
+        'Id': ticketId,
+      };
+      
+      if (isB2B) {
+        // Only add attachmentUrl for B2B (optional)
+        body['attachmentUrl'] = '';
+      }
+      
+      await client.postRequest(
+        endpoint: endpoint, 
+        body: body, 
+        authorization: 'Bearer $token'
+      );
       return Right(Result.success(unit));
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioError(e));

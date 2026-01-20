@@ -75,7 +75,7 @@ class ContainerCompanySection extends StatelessWidget {
                               if (company['logo'] != null && 
                                   company['logo'].toString().isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(right: 8),
+                                  padding: const EdgeInsets.only(right: 12),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: WidgetCachNetworkImage(

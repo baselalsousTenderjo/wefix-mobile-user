@@ -3597,13 +3597,19 @@
         {
           "id": 1214,
           "wordKey": "signature",
-          "value": "توقيع الفني",
+          "value": "توقيع المستلم",
+          "lang": "ar"
+        },
+        {
+          "id": 2407,
+          "wordKey": "receiverName",
+          "value": "اسم المستلم",
           "lang": "ar"
         },
         {
           "id": 2376,
           "wordKey": "completionNote",
-          "value": "ملاحظة الإكمال",
+          "value": "اسم المستلم وملاحظة الإكمال",
           "lang": "ar"
         },
         {
@@ -4204,6 +4210,12 @@
           "id": 2405,
           "wordKey": "accessDeniedServiceNotAvailable",
           "value": "تم رفض الوصول. هذه الخدمة غير متاحة.",
+          "lang": "ar"
+        },
+        {
+          "id": 2406,
+          "wordKey": "attachmentsRequired",
+          "value": "إضافة المرفقات مطلوبة.",
           "lang": "ar"
         }
       ],
@@ -7902,13 +7914,19 @@
         {
           "id": 1215,
           "wordKey": "signature",
-          "value": "Technician Signature",
+          "value": "Receiver Signature",
+          "lang": "en"
+        },
+        {
+          "id": 2406,
+          "wordKey": "receiverName",
+          "value": "Receiver Name",
           "lang": "en"
         },
         {
           "id": 2377,
           "wordKey": "completionNote",
-          "value": "Completion Note",
+          "value": "Receiver Name and Completion Note",
           "lang": "en"
         },
         {
@@ -8546,6 +8564,12 @@
           "id": 2404,
           "wordKey": "couldNotOpenStore",
           "value": "Could not open store. Please update manually.",
+          "lang": "en"
+        },
+        {
+          "id": 2405,
+          "wordKey": "attachmentsRequired",
+          "value": "Adding attachments is required.",
           "lang": "en"
         }
       ]

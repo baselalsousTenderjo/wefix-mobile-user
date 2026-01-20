@@ -272,6 +272,7 @@ class AppText {
   String get fileNotFound => getTranslation('fileNotFound');
   String get ticketMustBeStartedFirst => getTranslation('ticketMustBeStartedFirst');
   String get signatureRequired => getTranslation('signatureRequired');
+  String get attachmentsRequired => getTranslation('attachmentsRequired');
   String get completedTicketInfo => getTranslation('completedTicketInfo');
   String get technicianAttachments => getTranslation('technicianAttachments');
   String get completionNote => getTranslation('completionNote');

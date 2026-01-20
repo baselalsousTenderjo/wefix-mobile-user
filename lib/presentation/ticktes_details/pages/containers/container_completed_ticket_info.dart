@@ -147,12 +147,12 @@ class ContainerCompletedTicketInfo extends StatelessWidget {
                   ),
                 20.gap,
                 
-                // Completion Note Section (serviceDescription) - Always show label
+                // Completion Note Section (serviceDescription) - B2C uses "note" instead of "completionNote"
                 Row(
                   children: [
                     Icon(Icons.note, size: 18, color: AppColor.primaryColor),
                     5.gap,
-                    Text('${AppText(context).completionNote}', style: AppTextStyle.style14B),
+                    Text('${AppText(context).note}', style: AppTextStyle.style14B),
                   ],
                 ),
                 Divider(color: AppColor.grey.withOpacity(.4), thickness: 1, height: 20),

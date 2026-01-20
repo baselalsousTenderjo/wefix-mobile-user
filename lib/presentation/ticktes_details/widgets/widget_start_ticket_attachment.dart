@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 import '../../../core/extension/gap.dart';
 import '../../../core/providers/app_text.dart';
@@ -12,6 +13,7 @@ import '../../../core/unit/app_color.dart';
 import '../../../core/unit/app_text_style.dart';
 import '../../../core/widget/button/app_button.dart';
 import '../../../core/widget/language_button.dart';
+import '../../../core/widget/widget_daialog.dart';
 
 class AttachmentItem {
   final String filePath;
@@ -30,11 +32,13 @@ class AttachmentItem {
 class WidgetStartTicketAttachment extends StatefulWidget {
   final String ticketId;
   final Future<void> Function(String filePath, String fileType, bool isFirstFile) onAttachmentSelected;
+  final Future<void> Function()? onStartWithoutAttachment;
 
   const WidgetStartTicketAttachment({
     super.key,
     required this.ticketId,
     required this.onAttachmentSelected,
+    this.onStartWithoutAttachment,
   });
 
   @override
@@ -183,22 +187,23 @@ class _WidgetStartTicketAttachmentState extends State<WidgetStartTicketAttachmen
   }
 
   Future<void> _handleContinue() async {
-    if (attachments.isEmpty) {
-      // Show error - attachment required
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppText(context).required),
-          backgroundColor: AppColor.red,
-        ),
-      );
-      return;
-    }
-
     setState(() {
       loading = true;
     });
 
     try {
+      if (attachments.isEmpty) {
+        // Start ticket without attachments (optional)
+        if (widget.onStartWithoutAttachment != null) {
+          await widget.onStartWithoutAttachment!();
+        }
+        // Close the screen
+        if (mounted) {
+          Navigator.pop(context);
+        }
+        return;
+      }
+
       // Send all attachments one by one sequentially
       // Only the first file should start the ticket
       for (int i = 0; i < attachments.length; i++) {
@@ -211,12 +216,32 @@ class _WidgetStartTicketAttachmentState extends State<WidgetStartTicketAttachmen
         Navigator.pop(context);
       }
     } catch (e) {
-      // Handle error if needed
+      // Handle error with proper dialog
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error uploading files: $e'),
-            backgroundColor: AppColor.red,
+        setState(() {
+          loading = false;
+        });
+        String errorMessage;
+        // Check for specific error types for better user messages
+        if (e.toString().contains('DioException') || e.toString().contains('SocketException')) {
+          errorMessage = AppText(context).serviceUnavailable;
+        } else if (e.toString().contains('TimeoutException')) {
+          errorMessage = AppText(context).serviceUnavailable;
+        } else if (e.toString().contains('fileNotFound') || e.toString().contains('File not found')) {
+          errorMessage = AppText(context).fileNotFound;
+        } else {
+          // Use the error message if it's clear, otherwise show generic error
+          errorMessage = e.toString().isNotEmpty && !e.toString().contains('Exception:')
+              ? e.toString()
+              : AppText(context).anErrorOccurred;
+        }
+        SmartDialog.show(
+          builder: (context) => WidgetDilog(
+            isError: true,
+            title: AppText(context).warning,
+            message: errorMessage,
+            cancelText: AppText(context).back,
+            onCancel: () => SmartDialog.dismiss(),
           ),
         );
       }

@@ -203,10 +203,12 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
   // ! Function get start ticket
   Future<void> startTicket(String id) async {
     try {
+      SmartDialog.showLoading(msg: AppText(GlobalContext.context, isFunction: true).loading);
       final result = await ticketUsecase.startTickets(id);
       result.fold(
         (l) {
           startTicketStatue.value = StartTicketStatus.failure;
+          SmartDialog.dismiss();
           SmartDialog.show(
             builder:
                 (context) => WidgetDilog(
@@ -225,6 +227,7 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
         },
       );
     } catch (e) {
+      SmartDialog.dismiss();
       startTicketStatue.value = StartTicketStatus.failure;
       log('Server Error in section Get ticket details : $e');
     }
@@ -430,6 +433,10 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
             // Don't pop here - let the widget handle it after all files are uploaded
             await _handleStartTicketWithAttachment(id, filePath, fileType, isFirstFile: isFirstFile);
           },
+          onStartWithoutAttachment: () async {
+            // Start ticket without attachments
+            await startTicket(id);
+          },
         ),
       ),
     );
@@ -567,11 +574,20 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
       } catch (e, stackTrace) {
         SmartDialog.dismiss();
         log('Error uploading file: $e\n$stackTrace');
+        String errorMessage = e.toString();
+        // Check if it's a DioException for better error messages
+        if (e.toString().contains('DioException') || e.toString().contains('SocketException')) {
+          errorMessage = AppText(GlobalContext.context).serviceUnavailable;
+        } else if (e.toString().contains('TimeoutException')) {
+          errorMessage = AppText(GlobalContext.context).serviceUnavailable;
+        } else {
+          errorMessage = '${AppText(GlobalContext.context).anErrorOccurred}: ${e.toString()}';
+        }
         SmartDialog.show(
           builder: (context) => WidgetDilog(
             isError: true,
             title: AppText(context).warning,
-            message: 'Error uploading file: $e',
+            message: errorMessage,
             cancelText: AppText(context).back,
             onCancel: () => SmartDialog.dismiss(),
           ),
@@ -875,10 +891,35 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
               children: [
                 Text(AppText(context, isFunction: true).complete, style: AppTextStyle.style22B.copyWith(color: AppColor.black)),
                 20.gap,
-                Text(AppText(context, isFunction: true).note, style: AppTextStyle.style14B),
-                5.gap,
-                WidgetTextField(AppText(context, isFunction: true).enterYourNotes, maxLines: 3, controller: noteCompleted),
-                10.gap,
+                // B2B only: Show completion note field (receiver name and completion note)
+                FutureBuilder<bool>(
+                  future: _isB2BTeam(),
+                  builder: (context, snapshot) {
+                    final isB2B = snapshot.data ?? false;
+                    if (isB2B) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(AppText(context, isFunction: true).completionNote, style: AppTextStyle.style14B),
+                          5.gap,
+                          WidgetTextField(AppText(context, isFunction: true).enterYourNotes, maxLines: 3, controller: noteCompleted),
+                          10.gap,
+                        ],
+                      );
+                    } else {
+                      // B2C: Show original note field
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(AppText(context, isFunction: true).note, style: AppTextStyle.style14B),
+                          5.gap,
+                          WidgetTextField(AppText(context, isFunction: true).enterYourNotes, maxLines: 3, controller: noteCompleted),
+                          10.gap,
+                        ],
+                      );
+                    }
+                  },
+                ),
                 Row(
                   children: [
                     Text(AppText(context, isFunction: true).signature, style: AppTextStyle.style14B),
@@ -923,67 +964,75 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
 
   // Handle complete ticket with validation
   Future<void> _handleCompleteTicket(String id) async {
+    // Validate signature is required BEFORE showing loading
+    bool hasSignature = false;
+    
+    // First check if signatureImage is already uploaded
+    if (signatureImage != null && signatureImage!.isNotEmpty) {
+      hasSignature = true;
+    } else {
+      // Try to get signature from pad and check if it's not empty
+      try {
+        final signaturePadState = signatureGlobalKey.currentState;
+        if (signaturePadState != null) {
+          final data = await signaturePadState.toImage(pixelRatio: 3.0);
+          final bytes = await data.toByteData(format: ui.ImageByteFormat.png);
+          
+          // Check if signature pad has any drawing (not empty)
+          if (bytes != null && bytes.buffer.asUint8List().isNotEmpty) {
+            final imageBytes = bytes.buffer.asUint8List();
+            // Check if image has non-white pixels (signature was drawn)
+            // Sample pixels to check for non-white content (RGBA format)
+            bool hasNonWhitePixels = false;
+            // Check every 16th pixel (RGBA = 4 bytes per pixel) for efficiency
+            for (int i = 0; i < imageBytes.length - 3; i += 64) {
+              // RGBA format: check if R, G, or B is not 255 (white)
+              if (imageBytes[i] < 250 || imageBytes[i + 1] < 250 || imageBytes[i + 2] < 250) {
+                hasNonWhitePixels = true;
+                break;
+              }
+            }
+            
+            if (hasNonWhitePixels) {
+              // Convert signature to file and upload
+              Directory tempDir = await getTemporaryDirectory();
+              File tempFile = File('${tempDir.path}/temp_signature_${DateTime.now().millisecondsSinceEpoch}.png');
+              await tempFile.writeAsBytes(imageBytes);
+              await uploadSignature(tempFile, ticketId: id);
+              
+              // Wait a bit for upload to complete
+              await Future.delayed(const Duration(milliseconds: 500));
+              
+              // Check if signature was uploaded successfully
+              if (signatureImage != null && signatureImage!.isNotEmpty) {
+                hasSignature = true;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        log('Error checking signature: $e');
+      }
+    }
+    
+    // If no signature found, show error and return
+    if (!hasSignature) {
+      SmartDialog.show(
+        builder: (context) => WidgetDilog(
+          isError: true,
+          title: AppText(context).warning,
+          message: AppText(context).signatureRequired,
+          cancelText: AppText(context).back,
+          onCancel: () => SmartDialog.dismiss(),
+        ),
+      );
+      return;
+    }
+    
+    // Show loading only after signature is validated
     SmartDialog.showLoading(msg: AppText(GlobalContext.context, isFunction: true).loading);
     
     try {
-      // Validate signature is required
-      if (signatureImage == null || signatureImage!.isEmpty) {
-        // Try to get signature from pad
-        try {
-          final data = await signatureGlobalKey.currentState!.toImage(pixelRatio: 3.0);
-          final bytes = await data.toByteData(format: ui.ImageByteFormat.png);
-          
-          if (bytes == null || bytes.buffer.asUint8List().isEmpty) {
-            SmartDialog.dismiss();
-            SmartDialog.show(
-              builder: (context) => WidgetDilog(
-                isError: true,
-                title: AppText(context).warning,
-                message: AppText(context).signatureRequired,
-                cancelText: AppText(context).back,
-                onCancel: () => SmartDialog.dismiss(),
-              ),
-            );
-            return;
-          }
-          
-          // Convert signature to file and upload
-          Directory tempDir = await getTemporaryDirectory();
-          File tempFile = File('${tempDir.path}/temp_signature_${DateTime.now().millisecondsSinceEpoch}.png');
-          await tempFile.writeAsBytes(bytes.buffer.asUint8List());
-          await uploadSignature(tempFile, ticketId: id);
-          
-          // Wait a bit for upload to complete
-          await Future.delayed(const Duration(milliseconds: 500));
-          
-          // Check again if signature was uploaded
-          if (signatureImage == null || signatureImage!.isEmpty) {
-            SmartDialog.dismiss();
-            SmartDialog.show(
-              builder: (context) => WidgetDilog(
-                isError: true,
-                title: AppText(context).warning,
-                message: AppText(context).signatureRequired,
-                cancelText: AppText(context).back,
-                onCancel: () => SmartDialog.dismiss(),
-              ),
-            );
-            return;
-          }
-        } catch (e) {
-          SmartDialog.dismiss();
-          SmartDialog.show(
-            builder: (context) => WidgetDilog(
-              isError: true,
-              title: AppText(context).warning,
-              message: '${AppText(context).signatureRequired}\nError: $e',
-              cancelText: AppText(context).back,
-              onCancel: () => SmartDialog.dismiss(),
-            ),
-          );
-          return;
-        }
-      }
 
       // Stop recording if active (but don't auto-complete)
       if (recording) {
@@ -1175,14 +1224,27 @@ class TicktesDetailsController extends ChangeNotifier with WidgetsBindingObserve
       SmartDialog.dismiss();
 
       // Open the downloaded file with native apps (gallery, PDF reader, video player, etc.)
-      final result = await OpenFile.open(filePath);
-      
-      if (result.type != ResultType.done) {
+      try {
+        final result = await OpenFile.open(filePath);
+        
+        if (result.type != ResultType.done) {
+          SmartDialog.show(
+            builder: (context) => WidgetDilog(
+              isError: true,
+              title: AppText(context).warning,
+              message: 'Could not open file: ${result.message}',
+              cancelText: AppText(context).back,
+              onCancel: () => SmartDialog.dismiss(),
+            ),
+          );
+        }
+      } catch (e) {
+        // Handle MissingPluginException or other errors gracefully
         SmartDialog.show(
           builder: (context) => WidgetDilog(
             isError: true,
             title: AppText(context).warning,
-            message: 'Could not open file: ${result.message}',
+            message: 'Could not open file. Please install a file viewer app.',
             cancelText: AppText(context).back,
             onCancel: () => SmartDialog.dismiss(),
           ),

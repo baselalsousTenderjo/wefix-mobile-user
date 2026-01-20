@@ -587,6 +587,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signatureRequired => 'التوقيع مطلوب لإكمال التذكرة.';
+  String get attachmentsRequired => 'إضافة المرفقات مطلوبة.';
 
   @override
   String get completedTicketInfo => 'معلومات التذكرة المكتملة';

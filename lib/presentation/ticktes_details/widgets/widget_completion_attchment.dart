@@ -99,12 +99,24 @@ class WidgetCompletionAttchment extends StatelessWidget {
       
       if (isLocalFile) {
         // For local files, open directly with system default app
-        final result = await OpenFile.open(fullUrl);
-        if (result.type != ResultType.done) {
+        try {
+          final result = await OpenFile.open(fullUrl);
+          if (result.type != ResultType.done) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Could not open file: ${result.message}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        } catch (e) {
+          // Handle MissingPluginException or other errors gracefully
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Could not open file: ${result.message}'),
+                content: Text('Could not open file. Please install a file viewer app.'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -190,13 +202,25 @@ class WidgetCompletionAttchment extends StatelessWidget {
       }
 
       // Open the downloaded file with native apps (gallery, PDF reader, video player, etc.)
-      final result = await OpenFile.open(filePath);
-      
-      if (result.type != ResultType.done) {
+      try {
+        final result = await OpenFile.open(filePath);
+        
+        if (result.type != ResultType.done) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not open file: ${result.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        // Handle MissingPluginException or other errors gracefully
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Could not open file: ${result.message}'),
+              content: Text('Could not open file. Please install a file viewer app.'),
               backgroundColor: Colors.red,
             ),
           );

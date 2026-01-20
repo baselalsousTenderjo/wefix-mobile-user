@@ -18,7 +18,7 @@ import 'containers/container_description_section.dart';
 import 'containers/container_maintenance_section.dart';
 import 'containers/container_service_provide_section_b2b.dart';
 import 'containers/container_team_section.dart';
-import 'containers/container_tools_section.dart';
+import 'containers/container_tools_section_b2b.dart';
 import 'containers/container_completed_ticket_info_b2b.dart';
 import 'containers/container_cancelled_status.dart';
 import 'customer_services_b2b.dart';
@@ -80,7 +80,7 @@ class TicktesDetailsScreenB2B extends StatelessWidget {
                     const ContainerTeamSection(),
                     if (controller.ticketsDetails?.type != TicketDetailsType.preventive.name) const CustomerServicesB2B(),
                     const ContainerServiceProvideSectionB2B(),
-                    ContainerToolsSection(id: id),
+                    ContainerToolsSectionB2B(id: id),
                     // Hidden: Required material section
                     // if (controller.ticketsDetails?.type != TicketDetailsType.preventive.name) ContainerMaterialSection(id: id),
                     if (controller.ticketsDetails?.type == TicketDetailsType.preventive.name) ContainerCompletionChecklist(id: id),

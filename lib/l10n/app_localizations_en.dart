@@ -587,6 +587,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signatureRequired => 'Signature is required to complete the ticket.';
+  String get attachmentsRequired => 'Adding attachments is required.';
 
   @override
   String get completedTicketInfo => 'Completed Ticket Information';

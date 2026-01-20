@@ -207,6 +207,7 @@
       "fileNotFound":"الملف غير موجود.",
       "ticketMustBeStartedFirst":"يجب بدء التذكرة أولاً قبل الإكمال.",
       "signatureRequired":"التوقيع مطلوب لإكمال التذكرة.",
+      "attachmentsRequired":"إضافة المرفقات مطلوبة.",
       "completedTicketInfo":"معلومات التذكرة المكتملة",
       "technicianAttachments":"مرفقات الفني",
       "completionNote":"ملاحظة الإكمال",

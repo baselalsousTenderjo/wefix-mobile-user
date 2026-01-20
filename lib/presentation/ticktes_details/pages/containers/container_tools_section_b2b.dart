@@ -7,18 +7,21 @@ import '../../../../core/providers/language_provider/l10n_provider.dart';
 import '../../../../core/unit/app_color.dart';
 import '../../../../core/unit/app_text_style.dart';
 import '../../controller/ticktes_details_controller.dart';
-// import '../../domain/ticket_enum.dart'; // Not needed after hiding add button
 
-class ContainerToolsSection extends StatelessWidget {
+/// B2B-specific tools section - hides section if no tools from API
+class ContainerToolsSectionB2B extends StatelessWidget {
   final String id;
-  const ContainerToolsSection({super.key, required this.id});
+  const ContainerToolsSectionB2B({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
     String lang = context.read<LanguageProvider>().lang ?? 'en';
     return Consumer<TicktesDetailsController>(
       builder: (context, controller, child) {
-        // B2C: Always show tools section (original behavior)
+        // Hide section if no tools from API (B2B only)
+        if (controller.selecteddTool.value.isEmpty) {
+          return const SizedBox.shrink();
+        }
         
         return Column(
           mainAxisAlignment: MainAxisAlignment.start,

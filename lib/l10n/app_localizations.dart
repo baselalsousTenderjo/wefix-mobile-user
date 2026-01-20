@@ -1247,6 +1247,12 @@ abstract class AppLocalizations {
   /// **'Signature is required to complete the ticket.'**
   String get signatureRequired;
 
+  /// No description provided for @attachmentsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding attachments is required.'**
+  String get attachmentsRequired;
+
   /// No description provided for @completedTicketInfo.
   ///
   /// In en, this message translates to:
