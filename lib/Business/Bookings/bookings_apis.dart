@@ -34,7 +34,8 @@ class BookingApi {
               ticketTypeId: ticket['ticketType']?['id'] ?? 0,
               rating: ticket['rating'],
               icon: ticket['mainService']?['image'] ?? ticket['mainService']?['icon'] ?? null, // Main service image
-              mainServiceTitle: ticket['mainService']?['name'] ?? ticket['mainService']?['title'] ?? null,
+              mainServiceTitle: ticket['mainService']?['name'] ?? null, // Main service name (English)
+              mainServiceNameArabic: ticket['mainService']?['nameArabic'] ?? null, // Main service name (Arabic)
               ticketCodeId: ticket['ticketCodeId']?.toString() ?? null,
               cancelButton: ticket['canCancel'],
               isRated: ticket['isRated'],
@@ -57,9 +58,17 @@ class BookingApi {
               createdBy: 0,
               customerPackageId: null,
               totalPrice: (ticket['totalPrice'] as num?)?.toDouble() ?? 0.0,
-              serviceprovide: ticket['technician']?['name'] ?? null,
+              serviceprovide: ticket['technician']?['name'] ?? null, // Keep for backward compatibility
+              serviceprovideName: ticket['technician']?['name'] ?? null, // Technician name (Arabic)
+              serviceprovideNameEnglish: ticket['technician']?['nameEnglish'] ?? null, // Technician name (English)
               description: ticket['ticketDescription'] ?? '',
               descriptionAr: ticket['ticketDescription'] ?? '',
+              delegatedToCompanyId: ticket['delegatedToCompanyId'],
+              delegatedToCompanyTitle: ticket['delegatedToCompany']?['title'] ?? null,
+              companyId: ticket['companyId'],
+              companyTitle: ticket['company']?['title'] ?? null, // Keep for fallback
+              companyNameArabic: ticket['company']?['nameArabic'] ?? null, // Company name in Arabic
+              companyNameEnglish: ticket['company']?['nameEnglish'] ?? null, // Company name in English
             );
           }).toList();
 

@@ -227,7 +227,7 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                                 ? AppText(context).preventivemaintenancevisit
                                 : bookingDetailsModel?.objTickets.title),
                         _buildRow(
-                            AppText(context).type, AppText(context).createdDate,
+                            AppText(context).type, languageProvider.lang == "ar" ? "تاريخ التذكرة" : "Ticket Date",
                             leftValue: _getTicketTypeFromBookingModel(bookingDetailsModel, languageProvider.lang ?? "en"),
                             rightValue: bookingDetailsModel?.objTickets.date
                                 .toString()
@@ -1083,10 +1083,10 @@ class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (fullTicketData!['createdAt'] != null)
+                          if (fullTicketData!['ticketDate'] != null)
                             _buildInfoRow(
-                              '${languageProvider.lang == "ar" ? "تاريخ الإنشاء" : "Created At"}:',
-                              _formatDateTime(fullTicketData!['createdAt']),
+                              '${languageProvider.lang == "ar" ? "تاريخ التذكرة" : "Ticket Date"}:',
+                              _formatDateTime(fullTicketData!['ticketDate']),
                             ),
                           if (fullTicketData!['creator'] != null)
                             _buildInfoRow(

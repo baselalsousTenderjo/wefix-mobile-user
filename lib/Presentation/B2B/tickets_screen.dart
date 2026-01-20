@@ -137,7 +137,9 @@ class _TicketsScreenState extends State<TicketsScreen> {
             delegatedToCompanyId: ticket['delegatedToCompanyId'],
             delegatedToCompanyTitle: ticket['delegatedToCompany']?['title'] ?? null,
             companyId: ticket['companyId'],
-            companyTitle: ticket['company']?['title'] ?? null,
+            companyTitle: ticket['company']?['title'] ?? null, // Keep for fallback
+            companyNameArabic: ticket['company']?['nameArabic'] ?? null, // Company name in Arabic
+            companyNameEnglish: ticket['company']?['nameEnglish'] ?? null, // Company name in English
           );
         }).toList();
 
@@ -235,7 +237,9 @@ class _TicketsScreenState extends State<TicketsScreen> {
             delegatedToCompanyId: ticket['delegatedToCompanyId'],
             delegatedToCompanyTitle: ticket['delegatedToCompany']?['title'] ?? null,
             companyId: ticket['companyId'],
-            companyTitle: ticket['company']?['title'] ?? null,
+            companyTitle: ticket['company']?['title'] ?? null, // Keep for fallback
+            companyNameArabic: ticket['company']?['nameArabic'] ?? null, // Company name in Arabic
+            companyNameEnglish: ticket['company']?['nameEnglish'] ?? null, // Company name in English
           );
         }).toList();
 
@@ -875,17 +879,27 @@ class _TicketCardState extends State<TicketCard> {
                               ),
                               const SizedBox(width: 2),
                               Flexible(
-                                child: Text(
-                                  widget.ticket?.companyTitle != null
-                                      ? '${AppLocalizations.of(context)!.delegatedToWefixBy} ${_capitalizeCompanyName(widget.ticket!.companyTitle!)}'
-                                      : AppLocalizations.of(context)!.delegatedToWefix,
-                                  style: TextStyle(
-                                    color: Colors.green.shade700,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 9,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                                child: Builder(
+                                  builder: (context) {
+                                    final locale = Localizations.localeOf(context);
+                                    final isArabic = locale.languageCode == 'ar';
+                                    final companyName = isArabic
+                                        ? (widget.ticket?.companyNameArabic ?? widget.ticket?.companyNameEnglish ?? widget.ticket?.companyTitle ?? '')
+                                        : (widget.ticket?.companyNameEnglish ?? widget.ticket?.companyNameArabic ?? widget.ticket?.companyTitle ?? '');
+                                    final displayText = companyName.isNotEmpty
+                                        ? '${AppLocalizations.of(context)!.delegatedToWefixBy} ${_capitalizeCompanyName(companyName)}'
+                                        : AppLocalizations.of(context)!.delegatedToWefix;
+                                    return Text(
+                                      displayText,
+                                      style: TextStyle(
+                                        color: Colors.green.shade700,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 9,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  },
                                 ),
                               ),
                             ],
