@@ -3607,6 +3607,12 @@
           "lang": "ar"
         },
         {
+          "id": 2408,
+          "wordKey": "pleaseLoginWithMobileNumber",
+          "value": "الرجاء الدخول عن طريق رقم الموبايل",
+          "lang": "ar"
+        },
+        {
           "id": 2376,
           "wordKey": "completionNote",
           "value": "اسم المستلم وملاحظة الإكمال",
@@ -8570,6 +8576,12 @@
           "id": 2405,
           "wordKey": "attachmentsRequired",
           "value": "Adding attachments is required.",
+          "lang": "en"
+        },
+        {
+          "id": 2408,
+          "wordKey": "pleaseLoginWithMobileNumber",
+          "value": "Please login using your mobile number",
           "lang": "en"
         }
       ]

@@ -278,4 +278,5 @@ class AppText {
   String get completionNote => getTranslation('completionNote');
   String get accessDeniedServiceNotAvailable => getTranslation('accessDeniedServiceNotAvailable');
   String get accountInactiveMessage => getTranslation('accountInactiveMessage');
+  String get pleaseLoginWithMobileNumber => getTranslation('pleaseLoginWithMobileNumber');
 }

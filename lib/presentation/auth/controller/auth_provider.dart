@@ -1010,7 +1010,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
                   builder: (context) => WidgetDilog(
                     isError: true,
                     title: AppText(context).warning,
-                    message: 'Failed to refresh authentication. Please login again.',
+                    message: AppText(context).pleaseLoginWithMobileNumber,
                     cancelText: AppText(context).back,
                     onCancel: () => SmartDialog.dismiss(),
                   ),
