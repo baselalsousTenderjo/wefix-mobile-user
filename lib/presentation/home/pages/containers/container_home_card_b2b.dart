@@ -177,23 +177,26 @@ class ContainerHomeCardB2B extends StatelessWidget {
                                               : WidgetCachNetworkImage(radius: 1000, boxFit: BoxFit.cover, image: imageUrl),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
                                   // Technician name with proper constraints
                                   Flexible(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                      child: Text(
-                                        technicianName,
-                                        style: AppTextStyle.style18B,
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                    child: SizedBox(
+                                      width: 150,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                        child: Text(
+                                          technicianName,
+                                          style: AppTextStyle.style18B,
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.visible,
+                                        ),
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(height: 20),
                                   if (technicianName.isEmpty)
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                                       child: Text(
                                         AppText(context).loading,
                                         style: AppTextStyle.style14.copyWith(color: AppColor.grey),

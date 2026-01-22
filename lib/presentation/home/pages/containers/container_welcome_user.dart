@@ -73,6 +73,7 @@ class ContainerWelcomeUser extends StatelessWidget {
                               final isRTLInner = lang == 'ar';
                               return Text(
                                 displayName,
+                                maxLines: 2,
                                 textAlign: isRTLInner ? TextAlign.right : TextAlign.left,
                                 style: AppTextStyle.style12B,
                               );
