@@ -723,10 +723,16 @@ class BookingApi {
   static Future<List<Map<String, dynamic>>?> getCompanyBranches({
     required String token,
     BuildContext? context,
+    int? ticketId,
   }) async {
     try {
+      String query = EndPoints.mmsBaseUrl + EndPoints.mmsCompanyBranches;
+      if (ticketId != null) {
+        query += '?ticketId=$ticketId';
+      }
+
       final response = await HttpHelper.getData2(
-        query: EndPoints.mmsBaseUrl + EndPoints.mmsCompanyBranches,
+        query: query,
         token: token,
         context: context,
       );
@@ -745,15 +751,24 @@ class BookingApi {
 
   // * MMS API - Get company zones
   // Optionally filter by branchId if provided
+  // Optionally filter by ticketId - if provided and ticket is delegated, get zones from delegated company
   static Future<List<Map<String, dynamic>>?> getCompanyZones({
     required String token,
     BuildContext? context,
     int? branchId,
+    int? ticketId,
   }) async {
     try {
       String query = EndPoints.mmsBaseUrl + EndPoints.mmsCompanyZones;
+      List<String> queryParams = [];
       if (branchId != null) {
-        query += '?branchId=$branchId';
+        queryParams.add('branchId=$branchId');
+      }
+      if (ticketId != null) {
+        queryParams.add('ticketId=$ticketId');
+      }
+      if (queryParams.isNotEmpty) {
+        query += '?${queryParams.join('&')}';
       }
 
       final response = await HttpHelper.getData2(

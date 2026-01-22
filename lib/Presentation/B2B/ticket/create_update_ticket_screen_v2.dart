@@ -296,7 +296,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     // Load all data in parallel (zones will be loaded when branch is selected)
     final results = await Future.wait([
       Future.value(contractsData),
-      BookingApi.getCompanyBranches(token: token, context: context),
+      BookingApi.getCompanyBranches(token: token, context: context, ticketId: ticketIdForServices),
       // Zones will be loaded when branch is selected, so we don't load them here
       Future.value(null), // Placeholder for zones
       BookingApi.getMainServices(token: token, context: context, contractId: contractIdForServices, ticketId: ticketIdForServices),
@@ -926,35 +926,114 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       }
 
       // Populate branch and load zones
-      if (data['branch'] != null && branches.isNotEmpty) {
-        try {
-          final branchId = data['branch']['id'] as int?;
-          if (branchId != null) {
+      if (data['branch'] != null) {
+        final branchId = data['branch']['id'] as int?;
+        if (branchId != null) {
+          log('🔍 Looking for branch with ID: $branchId');
+          log('📋 Available branches count: ${branches.length}');
+          
+          // Try to find the branch in the list
+          try {
             selectedBranch = branches.firstWhere(
               (branch) => branch.id == branchId,
             );
-            // Load zones for the selected branch
-            _loadZonesForBranch(branchId).then((_) {
+            log('✅ Found branch: ${selectedBranch?.title} (ID: ${selectedBranch?.id})');
+            
+            // Load zones for the selected branch (don't auto-select, we'll select from ticket data)
+            _loadZonesForBranch(branchId, autoSelectFirst: false).then((_) {
               // After zones are loaded, select the zone from ticket data
               if (data['zone'] != null && zones.isNotEmpty) {
                 try {
                   final zoneId = data['zone']['id'] as int?;
                   if (zoneId != null) {
+                    log('🔍 Looking for zone with ID: $zoneId');
+                    log('📋 Available zones count: ${zones.length}');
+                    
                     setState(() {
                       selectedZone = zones.firstWhere(
                         (zone) => zone.id == zoneId,
                       );
+                      log('✅ Found zone: ${selectedZone?.title} (ID: ${selectedZone?.id})');
                     });
                   }
                 } catch (e) {
-                  // Zone not found
+                  log('⚠️ Zone not found in list: $e');
+                  // Zone not found - try to select first zone if available
+                  if (zones.isNotEmpty && mounted) {
+                    setState(() {
+                      selectedZone = zones.first;
+                      log('⚠️ Auto-selected first zone: ${selectedZone?.title} (ID: ${selectedZone?.id})');
+                    });
+                  }
                 }
+              } else if (zones.isNotEmpty && mounted) {
+                // If no zone in ticket data but zones are available, select first one
+                setState(() {
+                  selectedZone = zones.first;
+                  log('⚠️ No zone in ticket data, auto-selected first zone: ${selectedZone?.title} (ID: ${selectedZone?.id})');
+                });
               }
             });
+          } catch (e) {
+            log('⚠️ Branch not found in list: $e');
+            log('📋 Branch IDs in list: ${branches.map((b) => b.id).toList()}');
+            
+            // If branch not found, try to select first branch if available
+            if (branches.isNotEmpty) {
+              selectedBranch = branches.first;
+              log('⚠️ Auto-selected first branch: ${selectedBranch?.title} (ID: ${selectedBranch?.id})');
+              
+              // Load zones for the auto-selected branch (don't auto-select, we'll try to select from ticket data)
+              _loadZonesForBranch(selectedBranch!.id, autoSelectFirst: false).then((_) {
+                // Try to find zone from ticket data
+                if (data['zone'] != null && zones.isNotEmpty) {
+                  try {
+                    final zoneId = data['zone']['id'] as int?;
+                    if (zoneId != null) {
+                      setState(() {
+                        selectedZone = zones.firstWhere(
+                          (zone) => zone.id == zoneId,
+                        );
+                        log('✅ Found zone after branch auto-selection: ${selectedZone?.title} (ID: ${selectedZone?.id})');
+                      });
+                    }
+                  } catch (e) {
+                    log('⚠️ Zone not found after branch auto-selection: $e');
+                    // Auto-select first zone if available
+                    if (zones.isNotEmpty && mounted) {
+                      setState(() {
+                        selectedZone = zones.first;
+                        log('⚠️ Auto-selected first zone after branch auto-selection: ${selectedZone?.title} (ID: ${selectedZone?.id})');
+                      });
+                    }
+                  }
+                } else if (zones.isNotEmpty && mounted) {
+                  // Auto-select first zone if available
+                  setState(() {
+                    selectedZone = zones.first;
+                    log('⚠️ Auto-selected first zone (no zone in ticket data): ${selectedZone?.title} (ID: ${selectedZone?.id})');
+                  });
+                }
+              });
+            } else {
+              log('❌ No branches available to select');
+            }
           }
-        } catch (e) {
-          // Branch not found
         }
+      } else if (branches.isNotEmpty) {
+        // If no branch in ticket data but branches are available, select first one
+        selectedBranch = branches.first;
+        log('⚠️ No branch in ticket data, auto-selected first branch: ${selectedBranch?.title} (ID: ${selectedBranch?.id})');
+        
+        // Load zones for the auto-selected branch (auto-select first zone since no ticket data)
+        _loadZonesForBranch(selectedBranch!.id, autoSelectFirst: true).then((_) {
+          if (zones.isNotEmpty && mounted) {
+            setState(() {
+              selectedZone = zones.first;
+              log('⚠️ Auto-selected first zone (no branch in ticket data): ${selectedZone?.title} (ID: ${selectedZone?.id})');
+            });
+          }
+        });
       }
 
       // Populate ticket status if editing
@@ -1035,7 +1114,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     });
   }
 
-  Future<void> _loadZonesForBranch(int branchId) async {
+  Future<void> _loadZonesForBranch(int branchId, {bool autoSelectFirst = true}) async {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     final token = appProvider.accessToken ?? appProvider.userModel?.token ?? '';
 
@@ -1043,9 +1122,16 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       return;
     }
 
+    // Get ticketId if editing
+    int? ticketIdForZones;
+    if (widget.ticketData != null && widget.ticketData!['id'] != null) {
+      ticketIdForZones = widget.ticketData!['id'] as int?;
+    }
+
     final zonesData = await BookingApi.getCompanyZones(
       token: token,
       branchId: branchId,
+      ticketId: ticketIdForZones,
       context: context,
     );
 
@@ -1062,10 +1148,10 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                   data: item,
                 ))
             .toList();
-        // Auto-select first zone if available
-        if (zones.isNotEmpty) {
+        // Auto-select first zone only if autoSelectFirst is true and no zone is currently selected
+        if (autoSelectFirst && zones.isNotEmpty && selectedZone == null) {
           selectedZone = zones.first;
-        } else {
+        } else if (zones.isEmpty) {
           selectedZone = null;
         }
       } else {
