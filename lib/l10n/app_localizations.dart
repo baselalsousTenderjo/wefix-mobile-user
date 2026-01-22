@@ -2419,6 +2419,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not Assigned'**
   String get notAssigned;
+
+  /// No description provided for @pleaseLoginWithMobileNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please login using your mobile number'**
+  String get pleaseLoginWithMobileNumber;
 }
 
 class _AppLocalizationsDelegate

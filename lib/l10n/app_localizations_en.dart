@@ -1204,4 +1204,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notAssigned => 'Not Assigned';
+
+  @override
+  String get pleaseLoginWithMobileNumber =>
+      'Please login using your mobile number';
 }

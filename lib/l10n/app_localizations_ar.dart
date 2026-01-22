@@ -1198,4 +1198,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notAssigned => 'غير معين';
+
+  @override
+  String get pleaseLoginWithMobileNumber =>
+      'الرجاء الدخول عن طريق رقم الموبايل';
 }
