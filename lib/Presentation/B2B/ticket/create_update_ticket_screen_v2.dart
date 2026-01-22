@@ -20,7 +20,6 @@ import 'package:wefix/Presentation/B2B/ticket/components/dropdown_card_item.dart
 import 'package:wefix/Presentation/Components/custom_botton_widget.dart';
 import 'package:wefix/Presentation/Components/widget_form_text.dart';
 import 'package:wefix/Presentation/SubCategory/Components/add_attachment_widget.dart' show UploadOptionsScreen;
-import 'package:wefix/Presentation/appointment/Components/google_maps_widget.dart';
 import 'package:wefix/l10n/app_localizations.dart';
 
 class CreateUpdateTicketScreenV2 extends StatefulWidget {
@@ -722,17 +721,19 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         
         log('🔍 Auto-selected contract isDelegatedToWeFix: $isContractB2B (B2B=${businessModelLookupId == B2B_BUSINESS_MODEL_ID}, White Label=${businessModelLookupId == WHITE_LABEL_BUSINESS_MODEL_ID})');
       }
-      if (branches.isNotEmpty) {
-        selectedBranch = branches.first;
-        // Load zones for the first branch
-        _loadZonesForBranch(branches.first.id);
+      // Only auto-select if NOT editing a ticket (ticket data will be populated later)
+      if (widget.ticketData == null) {
+        if (branches.isNotEmpty) {
+          selectedBranch = branches.first;
+          // Load zones for the first branch
+          _loadZonesForBranch(branches.first.id);
+        }
+        if (mainServices.isNotEmpty) {
+          selectedMainService = mainServices.first;
+          // Load sub services for the first main service (auto-select first sub service for new tickets)
+          _loadSubServices(mainServices.first.id, autoSelectFirst: true);
+        }
       }
-      if (mainServices.isNotEmpty) {
-        selectedMainService = mainServices.first;
-        // Load sub services for the first main service
-        _loadSubServices(mainServices.first.id);
-      }
-      if (subServices.isNotEmpty) selectedSubService = subServices.first;
 
       // Role-based UI control: Hide/show Team Leader DDL based on role
       // Strategy: Check if current user is in the team leaders list
@@ -1097,6 +1098,78 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
         });
       }
 
+      // Populate main service and sub service
+      // Check both 'mainService' and 'mainServiceLookup' for compatibility
+      final mainServiceData = data['mainService'] ?? data['mainServiceLookup'];
+      if (mainServiceData != null && mainServices.isNotEmpty) {
+        final mainServiceId = mainServiceData['id'] as int?;
+        if (mainServiceId != null) {
+          log('🔍 Looking for main service with ID: $mainServiceId');
+          log('📋 Available main services count: ${mainServices.length}');
+          
+          // Try to find the main service in the list
+          try {
+            final foundMainService = mainServices.firstWhere(
+              (service) => service.id == mainServiceId,
+            );
+            
+            setState(() {
+              selectedMainService = foundMainService;
+            });
+            log('✅ Found main service: ${selectedMainService?.title} (ID: ${selectedMainService?.id})');
+            
+            // Load sub services for the selected main service (don't auto-select, we'll select from ticket data)
+            _loadSubServices(mainServiceId, autoSelectFirst: false).then((_) {
+              // After sub services are loaded, select the sub service from ticket data
+              // Check both 'subService' and 'subServiceLookup' for compatibility
+              final subServiceData = data['subService'] ?? data['subServiceLookup'];
+              if (subServiceData != null && subServices.isNotEmpty) {
+                final subServiceId = subServiceData['id'] as int?;
+                if (subServiceId != null) {
+                  log('🔍 Looking for sub service with ID: $subServiceId');
+                  log('📋 Available sub services count: ${subServices.length}');
+                  
+                  try {
+                    final foundSubService = subServices.firstWhere(
+                      (service) => service.id == subServiceId,
+                    );
+                    setState(() {
+                      selectedSubService = foundSubService;
+                    });
+                    log('✅ Found sub service: ${selectedSubService?.title} (ID: ${selectedSubService?.id})');
+                  } catch (e) {
+                    log('⚠️ Sub service not found in list: $e');
+                    // Sub service not found - don't auto-select, leave it empty
+                    if (mounted) {
+                      setState(() {
+                        selectedSubService = null;
+                        log('⚠️ Sub service from ticket not found in available list - leaving unselected');
+                      });
+                    }
+                  }
+                }
+              }
+            });
+          } catch (e) {
+            log('⚠️ Main service not found in list: $e');
+            log('📋 Main service IDs in list: ${mainServices.map((s) => s.id).toList()}');
+            // Main service not found - don't auto-select, leave it empty
+            setState(() {
+              selectedMainService = null;
+              selectedSubService = null;
+            });
+            log('⚠️ Main service from ticket not found in available list - leaving unselected');
+          }
+        }
+      } else if (mainServices.isNotEmpty && widget.ticketData == null) {
+        // Only auto-select first main service if creating a new ticket (not editing)
+        setState(() {
+          selectedMainService = mainServices.first;
+          // Load sub services for the first main service (auto-select first sub service for new tickets)
+          _loadSubServices(mainServices.first.id, autoSelectFirst: true);
+        });
+      }
+
       // Populate ticket status if editing
       if (data['ticketStatus'] != null && ticketStatuses.isNotEmpty) {
         try {
@@ -1120,7 +1193,7 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     });
   }
 
-  Future<void> _loadSubServices(int mainServiceId) async {
+  Future<void> _loadSubServices(int mainServiceId, {bool autoSelectFirst = false}) async {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     final token = appProvider.accessToken ?? appProvider.userModel?.token ?? '';
 
@@ -1195,8 +1268,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
               );
             })
             .toList();
-        // Auto-select first sub service if available
-        if (subServices.isNotEmpty) {
+        // Auto-select first sub service if available and autoSelectFirst is true
+        if (subServices.isNotEmpty && autoSelectFirst) {
           selectedSubService = subServices.first;
         }
       }
@@ -2685,11 +2758,11 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                           })
                           .toList();
                       
-                      // Auto-select first main service if available
-                      if (mainServices.isNotEmpty) {
+                      // Auto-select first main service if available (only for new tickets)
+                      if (mainServices.isNotEmpty && widget.ticketData == null) {
                         selectedMainService = mainServices.first;
-                        // Load sub services for the first main service
-                        _loadSubServices(mainServices.first.id);
+                        // Load sub services for the first main service (auto-select first sub service for new tickets)
+                        _loadSubServices(mainServices.first.id, autoSelectFirst: true);
                       }
                     });
                   }
@@ -2846,8 +2919,8 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                     selectedSubService = null; // Reset sub service when main service changes
                     fieldErrors.remove('mainService');
                   });
-                  // Load sub services based on selected main service
-                  await _loadSubServices(item.id);
+                  // Load sub services based on selected main service (auto-select first sub service when user selects)
+                  await _loadSubServices(item.id, autoSelectFirst: true);
                 },
               ),
               errorMessage: fieldErrors['mainService'],
@@ -3169,258 +3242,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     );
   }
 
-  Widget _buildLocationMapPicker(AppLocalizations localizations) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          localizations.locationMap,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () {
-            _showLocationMapBottomSheet(localizations);
-          },
-          child: Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColors.greyColorback,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: selectedLocation != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: WidgewtGoogleMaps(
-                      lat: selectedLocation!.latitude,
-                      loang: selectedLocation!.longitude,
-                      isFromCheckOut: true,
-                      height: 200,
-                    ),
-                  )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.map,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          localizations.selectDate,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showLocationMapBottomSheet(AppLocalizations localizations) {
-    LatLng? tempLocation = selectedLocation;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.75,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Title
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      localizations.locationMap,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              // Map
-              Expanded(
-                child: StatefulBuilder(
-                  builder: (context, setModalState) {
-                    return Stack(
-                      children: [
-                        WidgewtGoogleMaps(
-                          lat: tempLocation?.latitude,
-                          loang: tempLocation?.longitude,
-                          isFromCheckOut: false,
-                        ),
-                        // Confirm button at bottom
-                        Positioned(
-                          bottom: 16,
-                          left: 16,
-                          right: 16,
-                          child: CustomBotton(
-                            title: 'Confirm Location',
-                            onTap: () {
-                              // Get location from AppProvider
-                              final appProvider = Provider.of<AppProvider>(context, listen: false);
-                              if (appProvider.position != null) {
-                                final location = LatLng(
-                                  appProvider.position!.latitude,
-                                  appProvider.position!.longitude,
-                                );
-                                Navigator.pop(context);
-                                setState(() {
-                                  selectedLocation = location;
-                                });
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please select a location on the map')),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDatePicker(AppLocalizations localizations) {
-    // Check if Emergency ticket type is selected
-    final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${localizations.date} *',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: isEmergency
-              ? null
-              : () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: selectedTicketDate ?? DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                  );
-
-                  if (date != null && mounted) {
-                    setState(() {
-                      selectedTicketDate = date;
-                      // Reset time selection and get available slots for new date
-                      final now = DateTime.now();
-                      final currentTimeInMinutes = now.hour * 60 + now.minute;
-                      final sixteenHundredInMinutes = 16 * 60; // 16:00 = 960 minutes
-
-                      // Check if selected date is today
-                      final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-
-                      final availableSlots = getAvailableTimeSlots();
-                      if (availableSlots.isNotEmpty) {
-                        selectedTimeFrom = availableSlots.first['from'];
-                        selectedTimeTo = availableSlots.first['to'];
-                      } else if (isToday && currentTimeInMinutes >= sixteenHundredInMinutes) {
-                        // If current time exceeds 16:00 and no slots are available, default to the latest slot (16:00-18:00)
-                        final lastSlot = allTimeSlots.last;
-                        selectedTimeFrom = lastSlot['from'];
-                        selectedTimeTo = lastSlot['to'];
-                      } else {
-                        selectedTimeFrom = null;
-                        selectedTimeTo = null;
-                      }
-                    });
-                  }
-                },
-          child: Opacity(
-            opacity: isEmergency ? 0.6 : 1.0,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.greyColorback,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    color: AppColors(context).primaryColor,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      selectedTicketDate != null ? DateFormat('yyyy-MM-dd').format(selectedTicketDate!) : localizations.selectDate,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: selectedTicketDate != null ? Colors.black87 : Colors.grey,
-                      ),
-                    ),
-                  ),
-                  if (!isEmergency)
-                    Icon(
-                      Icons.arrow_drop_down,
-                      color: Colors.grey[600],
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildDateAndTimeRow(AppLocalizations localizations) {
     final isEmergency = selectedTicketType?.title.toLowerCase() == 'emergency' || selectedTicketType?.data?['name']?.toString().toLowerCase() == 'emergency';
     final availableSlots = getAvailableTimeSlots();
@@ -3716,184 +3537,6 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
             ),
           ),
         ],
-      ],
-    );
-  }
-
-  Widget _buildTimeSlotDropdown(AppLocalizations localizations) {
-    // Get display text for selected time slot
-    String getDisplayText() {
-      if (selectedTimeFrom != null && selectedTimeTo != null) {
-        try {
-          final slot = allTimeSlots.firstWhere(
-            (slot) => slot['from'] == selectedTimeFrom && slot['to'] == selectedTimeTo,
-          );
-          return slot['display'] ?? '${selectedTimeFrom} - ${selectedTimeTo}';
-        } catch (e) {
-          return '${selectedTimeFrom} - ${selectedTimeTo}';
-        }
-      }
-      return localizations.selectTime;
-    }
-
-    final availableSlots = getAvailableTimeSlots();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${localizations.timeLabel} *',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () {
-            // Always allow tapping - show available slots or message
-            if (availableSlots.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(localizations.noAvailableTimeSlots),
-                  backgroundColor: Colors.orange,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-              return;
-            }
-
-            // Convert available time slots to DropdownCardItem list
-            final items = availableSlots.map((slot) {
-              final displayText = slot['display']!;
-              final from = slot['from']!;
-              final to = slot['to']!;
-
-              return DropdownCardItem(
-                id: availableSlots.indexOf(slot),
-                title: displayText,
-                icon: Icons.access_time,
-                data: {'from': from, 'to': to},
-              );
-            }).toList();
-
-            DropdownCardItem? currentSelected;
-            if (selectedTimeFrom != null && selectedTimeTo != null) {
-              try {
-                currentSelected = items.firstWhere(
-                  (item) => item.data!['from'] == selectedTimeFrom && item.data!['to'] == selectedTimeTo,
-                );
-              } catch (e) {
-                currentSelected = items.isNotEmpty ? items.first : null;
-              }
-            }
-
-            DraggableCardBottomSheet.show(
-              context: context,
-              title: localizations.timeLabel,
-              items: items,
-              selectedItem: currentSelected,
-              onItemSelected: (item) {
-                final from = item.data!['from'] as String;
-                final to = item.data!['to'] as String;
-                setState(() {
-                  selectedTimeFrom = from;
-                  selectedTimeTo = to;
-                });
-              },
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.greyColorback,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.access_time,
-                  color: AppColors(context).primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    getDisplayText(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: selectedTimeFrom != null && selectedTimeTo != null ? Colors.black87 : Colors.grey,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.grey[600],
-                ),
-              ],
-            ),
-          ),
-        ),
-        // Show error message if validation failed
-        if (fieldErrors['time'] != null) ...[
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.only(left: 4),
-            child: Text(
-              fieldErrors['time']!,
-              style: TextStyle(
-                color: Colors.red[600],
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildResponseTimeDisplay(AppLocalizations localizations) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          localizations.responseTime,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.greyColorback,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                color: AppColors(context).primaryColor,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  '90 - 120 ${localizations.minutes}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
