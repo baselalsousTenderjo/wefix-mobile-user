@@ -349,13 +349,41 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       final mainServicesData = results[3];
       if (mainServicesData is List<Map<String, dynamic>> && mainServicesData.isNotEmpty) {
         mainServices = mainServicesData
-            .map((item) => DropdownCardItem(
-                  id: item['id'] as int,
-                  title: item['title'] as String? ?? item['name'] as String? ?? '',
-                  subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-                  icon: Icons.build,
-                  data: item,
-                ))
+            .map((item) {
+              // Get icon URL from API response
+              final iconUrl = item['icon'] as String? ?? item['image'] as String?;
+              
+              // Create icon widget - use network image if URL is available, otherwise use default icon
+              Widget? iconWidget;
+              if (iconUrl != null && iconUrl.isNotEmpty) {
+                String fullIconUrl;
+                if (iconUrl.startsWith('http')) {
+                  fullIconUrl = iconUrl;
+                } else {
+                  // Extract base domain from mmsBaseUrl (remove /api/v1/ part)
+                  final baseUrlForFiles = EndPoints.mmsBaseUrl.split('/api/')[0];
+                  fullIconUrl = Uri.encodeFull('$baseUrlForFiles$iconUrl');
+                }
+                
+                iconWidget = CachedNetworkImage(
+                  imageUrl: fullIconUrl,
+                  width: 70,
+                  height: 70,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Icon(Icons.build, size: 70, color: Colors.grey),
+                  errorWidget: (context, url, error) => const Icon(Icons.build, size: 70, color: Colors.grey),
+                );
+              }
+              
+              return DropdownCardItem(
+                id: item['id'] as int,
+                title: item['title'] as String? ?? item['name'] as String? ?? '',
+                subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                icon: iconWidget == null ? Icons.build : null,
+                iconWidget: iconWidget,
+                data: item,
+              );
+            })
             .toList();
       }
 
@@ -363,13 +391,41 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
       final subServicesData = results[4];
       if (subServicesData is List<Map<String, dynamic>> && subServicesData.isNotEmpty) {
         subServices = subServicesData
-            .map((item) => DropdownCardItem(
-                  id: item['id'] as int,
-                  title: item['title'] as String? ?? item['name'] as String? ?? '',
-                  subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-                  icon: Icons.settings,
-                  data: item,
-                ))
+            .map((item) {
+              // Get icon URL from API response
+              final iconUrl = item['icon'] as String? ?? item['image'] as String?;
+              
+              // Create icon widget - use network image if URL is available, otherwise use default icon
+              Widget? iconWidget;
+              if (iconUrl != null && iconUrl.isNotEmpty) {
+                String fullIconUrl;
+                if (iconUrl.startsWith('http')) {
+                  fullIconUrl = iconUrl;
+                } else {
+                  // Extract base domain from mmsBaseUrl (remove /api/v1/ part)
+                  final baseUrlForFiles = EndPoints.mmsBaseUrl.split('/api/')[0];
+                  fullIconUrl = Uri.encodeFull('$baseUrlForFiles$iconUrl');
+                }
+                
+                iconWidget = CachedNetworkImage(
+                  imageUrl: fullIconUrl,
+                  width: 70,
+                  height: 70,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Icon(Icons.settings, size: 70, color: Colors.grey),
+                  errorWidget: (context, url, error) => const Icon(Icons.settings, size: 70, color: Colors.grey),
+                );
+              }
+              
+              return DropdownCardItem(
+                id: item['id'] as int,
+                title: item['title'] as String? ?? item['name'] as String? ?? '',
+                subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                icon: iconWidget == null ? Icons.settings : null,
+                iconWidget: iconWidget,
+                data: item,
+              );
+            })
             .toList();
       }
 
@@ -1098,13 +1154,41 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
     setState(() {
       if (subServicesData != null) {
         subServices = subServicesData
-            .map((item) => DropdownCardItem(
-                  id: item['id'] as int,
-                  title: item['title'] as String? ?? item['name'] as String? ?? '',
-                  subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
-                  icon: Icons.settings,
-                  data: item,
-                ))
+            .map((item) {
+              // Get icon URL from API response
+              final iconUrl = item['icon'] as String? ?? item['image'] as String?;
+              
+              // Create icon widget - use network image if URL is available, otherwise use default icon
+              Widget? iconWidget;
+              if (iconUrl != null && iconUrl.isNotEmpty) {
+                String fullIconUrl;
+                if (iconUrl.startsWith('http')) {
+                  fullIconUrl = iconUrl;
+                } else {
+                  // Extract base domain from mmsBaseUrl (remove /api/v1/ part)
+                  final baseUrlForFiles = EndPoints.mmsBaseUrl.split('/api/')[0];
+                  fullIconUrl = Uri.encodeFull('$baseUrlForFiles$iconUrl');
+                }
+                
+                iconWidget = CachedNetworkImage(
+                  imageUrl: fullIconUrl,
+                  width: 70,
+                  height: 70,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Icon(Icons.settings, size: 70, color: Colors.grey),
+                  errorWidget: (context, url, error) => const Icon(Icons.settings, size: 70, color: Colors.grey),
+                );
+              }
+              
+              return DropdownCardItem(
+                id: item['id'] as int,
+                title: item['title'] as String? ?? item['name'] as String? ?? '',
+                subtitle: item['subtitle'] as String? ?? item['nameArabic'] as String?,
+                icon: iconWidget == null ? Icons.settings : null,
+                iconWidget: iconWidget,
+                data: item,
+              );
+            })
             .toList();
         // Auto-select first sub service if available
         if (subServices.isNotEmpty) {
@@ -2559,13 +2643,41 @@ class _CreateUpdateTicketScreenV2State extends State<CreateUpdateTicketScreenV2>
                   if (mounted && mainServicesData != null) {
                     setState(() {
                       mainServices = mainServicesData
-                          .map((serviceItem) => DropdownCardItem(
-                                id: serviceItem['id'] as int,
-                                title: serviceItem['title'] as String? ?? serviceItem['name'] as String? ?? '',
-                                subtitle: serviceItem['subtitle'] as String? ?? serviceItem['nameArabic'] as String?,
-                                icon: Icons.build,
-                                data: serviceItem,
-                              ))
+                          .map((serviceItem) {
+                            // Get icon URL from API response
+                            final iconUrl = serviceItem['icon'] as String? ?? serviceItem['image'] as String?;
+                            
+                            // Create icon widget - use network image if URL is available, otherwise use default icon
+                            Widget? iconWidget;
+                            if (iconUrl != null && iconUrl.isNotEmpty) {
+                              String fullIconUrl;
+                              if (iconUrl.startsWith('http')) {
+                                fullIconUrl = iconUrl;
+                              } else {
+                                // Extract base domain from mmsBaseUrl (remove /api/v1/ part)
+                                final baseUrlForFiles = EndPoints.mmsBaseUrl.split('/api/')[0];
+                                fullIconUrl = Uri.encodeFull('$baseUrlForFiles$iconUrl');
+                              }
+                              
+                              iconWidget = CachedNetworkImage(
+                                imageUrl: fullIconUrl,
+                                width: 70,
+                                height: 70,
+                                fit: BoxFit.contain,
+                                placeholder: (context, url) => const Icon(Icons.build, size: 70, color: Colors.grey),
+                                errorWidget: (context, url, error) => const Icon(Icons.build, size: 70, color: Colors.grey),
+                              );
+                            }
+                            
+                            return DropdownCardItem(
+                              id: serviceItem['id'] as int,
+                              title: serviceItem['title'] as String? ?? serviceItem['name'] as String? ?? '',
+                              subtitle: serviceItem['subtitle'] as String? ?? serviceItem['nameArabic'] as String?,
+                              icon: iconWidget == null ? Icons.build : null,
+                              iconWidget: iconWidget,
+                              data: serviceItem,
+                            );
+                          })
                           .toList();
                       
                       // Auto-select first main service if available
