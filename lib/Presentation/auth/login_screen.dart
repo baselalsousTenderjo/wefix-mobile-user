@@ -209,9 +209,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
+                                log('My Services button tapped');
                                 setState(() {
                                   isCompanyPersonnel = false;
                                 });
+                                log('isCompanyPersonnel set to: $isCompanyPersonnel');
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -242,9 +244,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
+                                log('Business Services button tapped');
                                 setState(() {
                                   isCompanyPersonnel = true;
                                 });
+                                log('isCompanyPersonnel set to: $isCompanyPersonnel');
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -282,6 +286,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           phoneController: phone,
                           message:
                               phone.text.isEmpty ? "required" : "invalidPhone",
+                          onSubmit: () {
+                            log('Enter pressed in phone field - My Services (B2C)');
+                            // Explicitly prevent any state change when Enter is pressed
+                            FocusScope.of(context).unfocus(); // Just dismiss keyboard
+                          },
                           onCountryChanged: (value) {
                             // Store the PhoneNumber object to get full international format when needed
                             setState(() {
@@ -306,6 +315,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           phoneController: phone,
                           message:
                               phone.text.isEmpty ? "required" : "invalidPhone",
+                          onSubmit: () {
+                            log('Enter pressed in phone field - Business Services (B2B)');
+                            // Explicitly prevent any state change when Enter is pressed
+                            FocusScope.of(context).unfocus(); // Just dismiss keyboard
+                          },
                           onCountryChanged: (value) {
                             // Store the PhoneNumber object to get full international format when needed
                             setState(() {
@@ -360,7 +374,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               loading: loading,
                               height: AppSize(context).height * .06,
                               onTap: () async {
+                                log('===== LOGIN BUTTON TAPPED =====');
+                                log('isCompanyPersonnel: $isCompanyPersonnel');
                                 if (isCompanyPersonnel) {
+                                  log('Branch: Business Services (B2B)');
                                   // Business Services: Validate phone and use OTP flow
                                   if (phone.text.trim().isEmpty) {
                                     showDialog(
@@ -386,8 +403,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     );
                                     return;
                                   }
+                                  log('Calling mmsRequestOTP() for Business Services (B2B)');
                                   await mmsRequestOTP();
                                 } else {
+                                  log('Branch: My Services (B2C)');
                                   // My Services: Validate phone before login
                                   if (phone.text.trim().isEmpty) {
                                     showDialog(
@@ -414,6 +433,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     return;
                                   }
                                   // My Services: Use existing phone OTP flow
+                                  log('Calling login() for My Services (B2C)');
                                   login();
                                 }
                               },
@@ -613,11 +633,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future login() async {
+    log('login() called - isCompanyPersonnel: $isCompanyPersonnel');
     if (isCompanyPersonnel) {
       // Business Services: Use phone number OTP flow
+      log('login() -> Calling mmsRequestOTP() for Business Services (B2B)');
       await mmsRequestOTP();
     } else {
       // My Services: Regular phone-based login
+      log('login() -> Calling regularLogin() for My Services (B2C)');
       await regularLogin();
     }
   }
