@@ -149,6 +149,9 @@ class _LoginScreenState extends State<LoginScreen> {
       hasValidCachedUserData = isValid;
       isCachedUserB2B = isB2B;
       lastLoginType = storedLoginType;
+      // Always reset to My Services (isCompanyPersonnel = false) on app open
+      // Both buttons will always be visible, user can choose which one to use
+      isCompanyPersonnel = false;
     });
   }
   
@@ -198,7 +201,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       SizedBox(height: AppSize(context).height * 0.02),
                       
-                      // * Login Type Toggle - Always show both buttons
+                      // * Login Type Toggle - ALWAYS VISIBLE: Both buttons must always be shown
+                      // These buttons allow users to switch between "My Services" and "Business Services"
+                      // They are never conditionally hidden and should always be visible
                       Row(
                         children: [
                           Expanded(
