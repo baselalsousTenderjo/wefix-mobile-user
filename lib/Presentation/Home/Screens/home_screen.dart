@@ -105,8 +105,7 @@ class _HomeScreenState extends State<HomeScreen>
                    appProvider.userModel?.token == null || 
                    appProvider.userModel!.token.isEmpty;
     
-    // Skip subscription check for guest users
-    if (!isGuest) {
+     if (!isGuest) {
       isSubsicribed();
     } else {
       setState(() {
